@@ -851,7 +851,9 @@ impl<T: Config> Pallet<T> {
     }
 
 
-
+    pub fn pallet_id2()->[u8;32]{
+        T::Rbac::pallet_id(Self())
+    }
 
     pub fn pallet_id()->Vec<u8>{
         Self::module_name().as_bytes().to_vec()

@@ -57,6 +57,11 @@ impl<T: Config> RoleBasedAccessControl<T::AccountId> for Pallet<T>{
         Ok(())
     }
 
+    fn pallet_id<U: PalletInfoAccess>(_: U) -> [u8;32]{
+        println!("Pallet name: {}", U::module_name());
+        U::module_name().as_bytes().to_vec().using_encoded(blake2_256)
+    }
+
      /// External pallet storage removal
     /// 
     /// Removes all storage associated to a external pallet.

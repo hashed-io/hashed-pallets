@@ -1411,3 +1411,10 @@ fn remove_offer_status_is_closed_shouldnt_work(){
 	});
 	
 }
+
+#[test]
+fn test_module_name(){
+	new_test_ext().execute_with(|| {
+		GatedMarketplace::pallet_id2();
+	});
+}

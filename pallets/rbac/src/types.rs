@@ -49,5 +49,6 @@ pub trait RoleBasedAccessControl<AccountId>{
     fn is_permission_linked_to_role(pallet_name: Vec<u8>, role_id: &RoleId, permission_id: &PermissionId)-> DispatchResult;
     fn get_role_users_len(pallet_name: Vec<u8>, scope_id:&ScopeId, role_id: &RoleId) -> usize;
     fn to_id(v: Vec<u8>)->[u8;32];
+    fn pallet_id<U: PalletInfoAccess>(palletInfo: U) -> [u8;32];
 
 }
