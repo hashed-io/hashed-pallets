@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["GroupRole"],"struct":["Group","GroupMember","OwnedDoc","SharedDoc","Vault"],"type":["CID","DocDesc","DocName","GroupName","PublicKey","UserId"]};

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["FruniqueRole","Permission"],"struct":["ChildInfo","FruniqueData","ParentInfo","ParentInfoCall"],"type":["AttributeKey","AttributeValue","Attributes","Children","CollectionDescription","CollectionId","Hierarchical","ItemId","ParentId","Percentage","StringLimit"]};
