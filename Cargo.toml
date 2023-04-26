@@ -1,14 +1,10 @@
 [workspace]
 members = [
-    'collator',
-    'node',
     'pallets/bitcoin-vaults',
     'pallets/confidential-docs',
     'pallets/rbac',
     'pallets/fruniques',
     'pallets/gated-marketplace',
-    # 'parachain-runtime',
-    'runtime',
 ]
 [profile.release]
 panic = 'unwind'
