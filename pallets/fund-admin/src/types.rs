@@ -3,11 +3,11 @@ use frame_support::pallet_prelude::*;
 use frame_support::sp_io::hashing::blake2_256;
 use sp_runtime::sp_std::vec::Vec;
 
-//TODO: Fix types when using an Option, i.e: Option<CID>
 pub type FieldName = BoundedVec<u8, ConstU32<100>>;
 pub type FieldDescription = BoundedVec<u8, ConstU32<400>>;
 pub type CID = BoundedVec<u8, ConstU32<100>>;
 pub type Documents<T> = BoundedVec<(FieldName,CID), <T as Config>::MaxDocuments>;
+type AccountIdOf<T> = <T as frame_system::Config>::AccountId;
 
 // Projects
 pub type ProjectId = [u8; 32];
@@ -15,30 +15,102 @@ pub type CreationDate = u64;
 pub type CompletionDate = u64;
 pub type UpdatedDate = u64;
 pub type RegistrationDate = u64;
+pub type BankName = BoundedVec<u8, ConstU32<100>>;
+pub type BankAddress = BoundedVec<u8, ConstU32<100>>;
+pub type UsersAssignation<T> = BoundedVec<(
+    AccountIdOf<T>,
+    ProxyRole,
+    AssignAction,
+), <T as Config>::MaxRegistrationsAtTime>;
+pub type Banks<T> = BoundedVec<(
+    BankName,
+    BankAddress,
+), <T as Config>::MaxBanksPerProject>;
+pub type PrivateGroupId = BoundedVec<u8, ConstU32<400>>;
+pub type InflationRate = u32;
+pub type ProjectsInflation<T> = BoundedVec<(
+    ProjectId,
+    Option<InflationRate>,
+    CUDAction,
+), <T as Config>::MaxRegistrationsAtTime>;
 
 // Users
 pub type DateRegistered = u64;
+pub type Users<T> = BoundedVec<(
+    AccountIdOf<T>,
+    Option<FieldName>,
+    Option<ProxyRole>,
+    CUDAction,
+), <T as Config>::MaxRegistrationsAtTime>;
 
 // Transactions
 pub type TransactionId = [u8; 32];
 pub type Amount = u64;
+pub type Transactions<T> = BoundedVec<(
+    Option<ExpenditureId>,
+    Option<ExpenditureAmount>,
+    Option<Documents<T>>,
+    CUDAction,
+    Option<TransactionId>,
+), <T as Config>::MaxRegistrationsAtTime>;
+pub type TransactionsFeedback<T> = BoundedVec<(
+    TransactionId,
+    FieldDescription
+), <T as Config>::MaxRegistrationsAtTime>;
 
 // Drawdowns
 pub type DrawdownId = [u8; 32];
 pub type DrawdownNumber = u32;
+pub type DrawdownStatusChanges<T> = BoundedVec<(DrawdownStatus, UpdatedDate),  <T as Config>::MaxStatusChangesPerDrawdown>;
 
 // Budget expenditures
-pub type BudgetExpenditureId = [u8; 32];
-pub type ExpenditureAmount = u64;
-pub type Balance = u64;
+pub type ExpenditureId = [u8; 32];
+pub type ExpenditureAmount = Amount;
 pub type NAICSCode = BoundedVec<u8, ConstU32<400>>;
 pub type JobsMultiplier = u32;
-pub type InflationRate = u32;
+pub type Expenditures<T> = BoundedVec<(
+    Option<FieldName>,
+    Option<ExpenditureType>,
+    Option<ExpenditureAmount>,
+    Option<NAICSCode>,
+    Option<JobsMultiplier>,
+    CUDAction,
+    Option<ExpenditureId>
+), <T as Config>::MaxRegistrationsAtTime>;
 
 // Miscellaneous
 pub type CreatedDate = u64;
 pub type CloseDate = u64;
-pub type TotalAmount = u64;
+pub type TotalAmount = Amount;
+
+// Job Elgibles
+pub type JobEligibleId = [u8; 32];
+pub type JobEligibleAmount = Amount;
+pub type JobEligibles<T> = BoundedVec<(
+    Option<FieldName>,
+    Option<JobEligibleAmount>,
+    Option<NAICSCode>,
+    Option<JobsMultiplier>,
+    CUDAction,
+    Option<JobEligibleId>,
+), <T as Config>::MaxRegistrationsAtTime>;
+
+// Revenues
+pub type RevenueAmount = Amount;
+pub type RevenueId = [u8; 32];
+pub type RevenueNumber = u32;
+pub type RevenueStatusChanges<T> = BoundedVec<(RevenueStatus, UpdatedDate),  <T as Config>::MaxStatusChangesPerRevenue>;
+
+// Revenue Transactions
+pub type RevenueTransactionId = [u8; 32];
+pub type RevenueTransactionAmount = Amount;
+pub type RevenueTransactions<T> = BoundedVec<(
+    Option<JobEligibleId>,
+    Option<RevenueAmount>,
+    Option<Documents<T>>,
+    CUDAction,
+    Option<RevenueTransactionId>,
+), <T as Config>::MaxRegistrationsAtTime>;
 
 #[derive(CloneNoBound, Encode, Decode, RuntimeDebugNoBound, TypeInfo, MaxEncodedLen,)]
 #[scale_info(skip_type_params(T))]
@@ -54,13 +126,16 @@ pub struct ProjectData<T: Config> {
     pub address: FieldName,
     pub status: ProjectStatus,
     pub inflation_rate: Option<InflationRate>,
+    pub banks: Option<Banks<T>>,
     pub creation_date: CreationDate,
     pub completion_date: CompletionDate,
     pub registration_date: RegistrationDate,
     pub updated_date: UpdatedDate,
-	pub eb5_drawdown_status: DrawdownStatus,
-	pub construction_loan_drawdown_status: DrawdownStatus,
-	pub developer_equity_drawdown_status: DrawdownStatus,
+	pub eb5_drawdown_status: Option<DrawdownStatus>,
+	pub construction_loan_drawdown_status: Option<DrawdownStatus>,
+	pub developer_equity_drawdown_status: Option<DrawdownStatus>,
+    pub revenue_status: Option<RevenueStatus>,
+    pub private_group_id: PrivateGroupId,
 }
 
 #[derive(Encode, Decode, Clone, Eq, PartialEq, RuntimeDebugNoBound, MaxEncodedLen, TypeInfo, Copy)]
@@ -87,16 +162,6 @@ pub struct UserData<T: Config> {
     pub documents: Option<Documents<T>>,
 }
 
-#[derive(Encode, Decode, Clone, Eq, PartialEq, RuntimeDebugNoBound, MaxEncodedLen, TypeInfo, Copy)]
-pub enum ProxyRole {
-    Administrator,
-    Builder,
-    Investor,
-    Issuer,
-    RegionalCenter,
-}
-
-
 #[derive(CloneNoBound, Encode, Decode, RuntimeDebugNoBound, Default, TypeInfo, MaxEncodedLen)]
 pub struct ExpenditureData {
     pub project_id: ProjectId,
@@ -121,16 +186,6 @@ impl Default for ExpenditureType {
     }
 }
 
-
-#[derive(CloneNoBound, Encode, Decode, RuntimeDebugNoBound, Default, TypeInfo, MaxEncodedLen)]
-pub struct BudgetData {
-    pub expenditure_id: BudgetExpenditureId,
-    pub balance: Balance,
-    pub created_date: CreatedDate,
-    pub updated_date: UpdatedDate,
-}
-
-
 #[derive(CloneNoBound, Encode, Decode, RuntimeDebugNoBound, TypeInfo, MaxEncodedLen,)]
 #[scale_info(skip_type_params(T))]
 #[codec(mel_bound())]
@@ -140,11 +195,13 @@ pub struct DrawdownData<T: Config> {
     pub drawdown_type: DrawdownType,
     pub total_amount: TotalAmount,
     pub status: DrawdownStatus,
-    pub documents: Option<Documents<T>>,
+    pub bulkupload_documents: Option<Documents<T>>,
+    pub bank_documents: Option<Documents<T>>,
     pub description: Option<FieldDescription>,
     pub feedback: Option<FieldDescription>,
+    pub status_changes: DrawdownStatusChanges<T>,
     pub created_date: CreatedDate,
-    pub close_date: CloseDate,
+    pub closed_date: CloseDate,
 }
 
 #[derive(Encode, Decode, Clone, Eq, PartialEq, RuntimeDebugNoBound, MaxEncodedLen, TypeInfo, Copy)]
@@ -162,11 +219,11 @@ impl Default for DrawdownType {
 
 #[derive(Encode, Decode, Clone, Eq, PartialEq, RuntimeDebugNoBound, MaxEncodedLen, TypeInfo, Copy)]
 pub enum DrawdownStatus {
-	None,
     Draft,
     Submitted,
     Approved,
     Rejected,
+    Confirmed,
 }
 
 impl Default for DrawdownStatus {
@@ -181,7 +238,7 @@ impl Default for DrawdownStatus {
 pub struct TransactionData<T: Config> {
     pub project_id: ProjectId,
     pub drawdown_id: DrawdownId,
-    pub expenditure_id: BudgetExpenditureId,
+    pub expenditure_id: ExpenditureId,
     pub created_date: CreatedDate,
     pub updated_date: UpdatedDate,
     pub closed_date: CloseDate,
@@ -197,11 +254,78 @@ pub enum TransactionStatus {
     Submitted,
     Approved,
     Rejected,
+    Confirmed
 }
 
 impl Default for TransactionStatus {
     fn default() -> Self {
         TransactionStatus::Draft
+    }
+}
+
+#[derive(CloneNoBound, Encode, Decode, RuntimeDebugNoBound, Default, TypeInfo, MaxEncodedLen)]
+pub struct JobEligibleData {
+    pub project_id: ProjectId,
+    pub name: FieldName,
+    pub job_eligible_amount: JobEligibleAmount,
+    pub naics_code: Option<FieldDescription>,
+    pub jobs_multiplier: Option<JobsMultiplier>,
+}
+
+#[derive(CloneNoBound, Encode, Decode, RuntimeDebugNoBound, TypeInfo, MaxEncodedLen,)]
+#[scale_info(skip_type_params(T))]
+#[codec(mel_bound())]
+pub struct RevenueData<T: Config> {
+    pub project_id: ProjectId,
+    pub revenue_number: RevenueNumber,
+    pub total_amount: RevenueAmount,
+    pub status: RevenueStatus,
+    pub status_changes: RevenueStatusChanges<T>,
+    pub created_date: CreatedDate,
+    pub closed_date: CloseDate,
+}
+
+#[derive(Encode, Decode, Clone, Eq, PartialEq, RuntimeDebugNoBound, MaxEncodedLen, TypeInfo, Copy)]
+pub enum RevenueStatus {
+    Draft,
+    Submitted,
+    Approved,
+    Rejected,
+}
+
+impl Default for RevenueStatus {
+    fn default() -> Self {
+        RevenueStatus::Draft
+    }
+}
+
+#[derive(CloneNoBound, Encode, Decode, RuntimeDebugNoBound, TypeInfo, MaxEncodedLen,)]
+#[scale_info(skip_type_params(T))]
+#[codec(mel_bound())]
+pub struct RevenueTransactionData<T: Config> {
+    pub project_id: ProjectId,
+    pub revenue_id: RevenueId,
+    pub job_eligible_id: JobEligibleId,
+    pub created_date: CreatedDate,
+    pub updated_date: UpdatedDate,
+    pub closed_date: CloseDate,
+    pub feedback: Option<FieldDescription>,
+    pub amount: RevenueTransactionAmount,
+    pub status: RevenueTransactionStatus,
+    pub documents: Option<Documents<T>>,
+}
+
+#[derive(Encode, Decode, Clone, Eq, PartialEq, RuntimeDebugNoBound, MaxEncodedLen, TypeInfo, Copy)]
+pub enum RevenueTransactionStatus {
+    Draft,
+    Submitted,
+    Approved,
+    Rejected,
+}
+
+impl Default for RevenueTransactionStatus {
+    fn default() -> Self {
+        RevenueTransactionStatus::Draft
     }
 }
 
@@ -218,11 +342,18 @@ pub enum AssignAction {
     Unassign,
 }
 
+#[derive(Encode, Decode, Clone, Eq, PartialEq, RuntimeDebugNoBound, MaxEncodedLen, TypeInfo, Copy)]
+pub enum ProxyRole {
+    Administrator,
+    Builder,
+    Investor,
+    Issuer,
+    RegionalCenter,
+}
+
 impl ProxyRole {
     pub fn to_vec(self) -> Vec<u8>{
         match self{
-            //TOREVIEW: optimization (?)
-            //Self::Administrator => b"Administrator".to_vec(),
             Self::Administrator => "Administrator".as_bytes().to_vec(),
             Self::Builder => "Builder".as_bytes().to_vec(),
             Self::Investor => "Investor".as_bytes().to_vec(),
@@ -244,38 +375,53 @@ impl ProxyRole {
 
 
 
-/// Extrinsics which require previous authorization to call them
 #[derive(Encode, Decode, Clone, Eq, PartialEq, RuntimeDebugNoBound, MaxEncodedLen, TypeInfo, Copy)]
 pub enum ProxyPermission {
-    RegisterUser, // users
-    EditUser, // users_edit_user
-    CreateProject, // projects_create_project
-    EditProject, // projects_edit_project
-    DeleteProject, // projects_delete_project
-    AssignUser, // projects_assign_user
-    Expenditures, // expenditures
-    SubmitDrawdown, // submit_drawdown
-    ApproveDrawdown, // approve_drawdown
-    RejectDrawdown, // reject_drawdown
-    UpBulkupload, // up_bulkupload
-    Inflation, // inflation
+    CreateProject, // projects_create_project: admin
+    EditProject, // projects_edit_project: admin
+    DeleteProject, // projects_delete_project: admin
+    AssignUsers, // projects_assign_user: admin
+    ExecuteUsers, // users: admin
+    EditUser, // users_edit_user: all
+    Expenditures, // expenditures: admin
+    SubmitDrawdown, // submit_drawdown: admin, builder
+    ApproveDrawdown, // approve_drawdown: admin
+    RejectDrawdown, // reject_drawdown: admin
+    ExecuteTransactions, // transactions: admin, builder
+    UpBulkupload, // up_bulkupload: builder
+    InflationRate, // inflation: admin
+    JobEligible, // job_eligible: admin
+    RevenueTransaction, // revenue_transaction: builder
+    SubmitRevenue, // submit_revenue: builder
+    ApproveRevenue, // approve_revenue: admin
+    RejectRevenue, // reject_revenue: admin
+    BankConfirming, // bank_confirming: admin
+    CancelDrawdownSubmission, // cancel_drawdown_submission: builder
 }
 
 impl ProxyPermission {
     pub fn to_vec(self) -> Vec<u8>{
         match self{
-            Self::RegisterUser => "RegisterUser".as_bytes().to_vec(),
-            Self::EditUser => "EditUser".as_bytes().to_vec(),
             Self::CreateProject => "CreateProject".as_bytes().to_vec(),
             Self::EditProject => "EditProject".as_bytes().to_vec(),
             Self::DeleteProject => "DeleteProject".as_bytes().to_vec(),
-            Self::AssignUser => "AssignUser".as_bytes().to_vec(),
+            Self::AssignUsers => "AssignUsers".as_bytes().to_vec(),
+            Self::ExecuteUsers => "ExecuteUsers".as_bytes().to_vec(),
+            Self::EditUser => "Edituser".as_bytes().to_vec(),
             Self::Expenditures => "Expenditures".as_bytes().to_vec(),
             Self::SubmitDrawdown => "SubmitDrawdown".as_bytes().to_vec(),
             Self::ApproveDrawdown => "ApproveDrawdown".as_bytes().to_vec(),
             Self::RejectDrawdown => "RejectDrawdown".as_bytes().to_vec(),
+            Self::ExecuteTransactions => "ExecuteTransactions".as_bytes().to_vec(),
             Self::UpBulkupload => "UpBulkupload".as_bytes().to_vec(),
-            Self::Inflation => "Inflation".as_bytes().to_vec(),
+            Self::InflationRate => "InflationRate".as_bytes().to_vec(),
+            Self::JobEligible => "JobEligible".as_bytes().to_vec(),
+            Self::RevenueTransaction => "RevenueTransaction".as_bytes().to_vec(),
+            Self::SubmitRevenue => "SubmitRevenue".as_bytes().to_vec(),
+            Self::ApproveRevenue => "ApproveRevenue".as_bytes().to_vec(),
+            Self::RejectRevenue => "RejectRevenue".as_bytes().to_vec(),
+            Self::BankConfirming => "BankConfirming".as_bytes().to_vec(),
+            Self::CancelDrawdownSubmission => "CancelDrawdownSubmission".as_bytes().to_vec(),
         }
     }
 
@@ -285,21 +431,28 @@ impl ProxyPermission {
 
     pub fn administrator_permissions() -> Vec<Vec<u8>>{
         use crate::types::ProxyPermission::*;
-        let administrator_permissions = [
-            RegisterUser.to_vec(),
-            EditUser.to_vec(),
+        [
             CreateProject.to_vec(),
             EditProject.to_vec(),
             DeleteProject.to_vec(),
-            AssignUser.to_vec(),
+            AssignUsers.to_vec(),
+            ExecuteUsers.to_vec(),
+            EditUser.to_vec(),
             Expenditures.to_vec(),
             SubmitDrawdown.to_vec(),
             ApproveDrawdown.to_vec(),
             RejectDrawdown.to_vec(),
-            UpBulkupload.to_vec(),
-            Inflation.to_vec(),
-        ].to_vec();
-        administrator_permissions
+            ExecuteTransactions.to_vec(),
+            UpBulkupload.to_vec(),        
+            InflationRate.to_vec(),
+            JobEligible.to_vec(),
+            RevenueTransaction.to_vec(),
+            SubmitRevenue.to_vec(),
+            ApproveRevenue.to_vec(),
+            RejectRevenue.to_vec(),
+            BankConfirming.to_vec(),
+            CancelDrawdownSubmission.to_vec(),
+        ].to_vec()
     }
 
     pub fn builder_permissions() -> Vec<Vec<u8>>{
@@ -307,7 +460,11 @@ impl ProxyPermission {
         [
             EditUser.to_vec(),
             SubmitDrawdown.to_vec(),
+            ExecuteTransactions.to_vec(),
             UpBulkupload.to_vec(),
+            RevenueTransaction.to_vec(),
+            SubmitRevenue.to_vec(),
+            CancelDrawdownSubmission.to_vec(),
         ].to_vec()
     }
 
