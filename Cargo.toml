@@ -5,6 +5,8 @@ members = [
     'pallets/rbac',
     'pallets/fruniques',
     'pallets/gated-marketplace',
+    'pallets/mapped-assets',
+    'pallets/afloat',
 ]
 [profile.release]
 panic = 'unwind'

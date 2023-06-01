@@ -91,7 +91,7 @@ pub mod pallet {
 
 	#[pallet::pallet]
 	#[pallet::storage_version(STORAGE_VERSION)]
-	#[pallet::generate_store(pub(super) trait Store)]
+	
 	pub struct Pallet<T>(_);
 
 	#[pallet::event]
@@ -345,7 +345,7 @@ pub mod pallet {
 		/// - This extrinsic cannot handle a xpub update (yet). if it needs to be updated, remove it first and insert
 		/// a new one.
 		#[pallet::call_index(1)]
-		#[pallet::weight(Weight::from_ref_time(10_000) + T::DbWeight::get().writes(2))]
+		#[pallet::weight(Weight::from_parts(10_000,0) + T::DbWeight::get().writes(2))]
 		pub fn set_xpub(origin: OriginFor<T>, xpub: BoundedVec<u8, T::XPubLen>) -> DispatchResult {
 			// Check that the extrinsic was signed and get the signer.
 			let who = ensure_signed(origin.clone())?;
@@ -387,7 +387,7 @@ pub mod pallet {
 		/// This tx does not takes any parameters.
 		///
 		#[pallet::call_index(2)]
-		#[pallet::weight(Weight::from_ref_time(10_000) + T::DbWeight::get().writes(2))]
+		#[pallet::weight(Weight::from_parts(10_000,0) + T::DbWeight::get().writes(2))]
 		pub fn remove_xpub(origin: OriginFor<T>) -> DispatchResult {
 			let who = ensure_signed(origin.clone())?;
 			// The xpub must exists
@@ -423,7 +423,7 @@ pub mod pallet {
 		/// - Do not include the vault owner on the `cosigners` list.
 		///
 		#[pallet::call_index(3)]
-		#[pallet::weight(Weight::from_ref_time(10_000) + T::DbWeight::get().writes(1))]
+		#[pallet::weight(Weight::from_parts(10_000,0) + T::DbWeight::get().writes(1))]
 		pub fn create_vault(
 			origin: OriginFor<T>,
 			threshold: u32,
@@ -473,7 +473,7 @@ pub mod pallet {
 		/// - Only the vault owner can perform this extrinsic
 		///
 		#[pallet::call_index(4)]
-		#[pallet::weight(Weight::from_ref_time(10_000) + T::DbWeight::get().writes(1))]
+		#[pallet::weight(Weight::from_parts(10_000,0) + T::DbWeight::get().writes(1))]
 		pub fn remove_vault(origin: OriginFor<T>, vault_id: [u8; 32]) -> DispatchResult {
 			let who = ensure_signed(origin.clone())?;
 
@@ -493,7 +493,7 @@ pub mod pallet {
 		/// ### Considerations
 		/// - Please ensure the recipient address is a valid mainnet address.
 		#[pallet::call_index(5)]
-		#[pallet::weight(Weight::from_ref_time(10_000) + T::DbWeight::get().writes(1))]
+		#[pallet::weight(Weight::from_parts(10_000,0) + T::DbWeight::get().writes(1))]
 		pub fn propose(
 			origin: OriginFor<T>,
 			vault_id: [u8; 32],
@@ -528,7 +528,7 @@ pub mod pallet {
 		/// - `proposal_id`: the proposal identifier
 		///
 		#[pallet::call_index(6)]
-		#[pallet::weight(Weight::from_ref_time(10_000) + T::DbWeight::get().writes(1))]
+		#[pallet::weight(Weight::from_parts(10_000,0) + T::DbWeight::get().writes(1))]
 		pub fn remove_proposal(origin: OriginFor<T>, proposal_id: [u8; 32]) -> DispatchResult {
 			let who = ensure_signed(origin.clone())?;
 			let proposal = <Proposals<T>>::get(proposal_id).ok_or(Error::<T>::ProposalNotFound)?;
@@ -551,7 +551,7 @@ pub mod pallet {
 		/// - Ensure the new url is valid.
 		/// - The url has a maximum length of 32 bytes
 		#[pallet::call_index(7)]
-		#[pallet::weight(Weight::from_ref_time(10_000) + T::DbWeight::get().writes(1))]
+		#[pallet::weight(Weight::from_parts(10_000,0) + T::DbWeight::get().writes(1))]
 		pub fn set_bdk_url(
 			origin: OriginFor<T>,
 			new_url: BoundedVec<u8, ConstU32<32>>,
@@ -574,7 +574,7 @@ pub mod pallet {
 		/// - If successful, this process cannot be undone
 		/// - A user can only sign a proposal once
 		#[pallet::call_index(8)]
-		#[pallet::weight(Weight::from_ref_time(10_000) + T::DbWeight::get().writes(1))]
+		#[pallet::weight(Weight::from_parts(10_000,0) + T::DbWeight::get().writes(1))]
 		pub fn save_psbt(
 			origin: OriginFor<T>,
 			proposal_id: [u8; 32],
@@ -597,7 +597,7 @@ pub mod pallet {
 		/// - The proposal must have a valid PSBT
 		/// - Any vault member can perform this extrinsic
 		#[pallet::call_index(9)]
-		#[pallet::weight(Weight::from_ref_time(10_000) + T::DbWeight::get().writes(1))]
+		#[pallet::weight(Weight::from_parts(10_000,0) + T::DbWeight::get().writes(1))]
 		pub fn finalize_psbt(
 			origin: OriginFor<T>,
 			proposal_id: [u8; 32],
@@ -619,7 +619,7 @@ pub mod pallet {
 		/// - The proposal must be finalized already
 		/// - Any vault member can perform this extrinsic
 		#[pallet::call_index(10)]
-		#[pallet::weight(Weight::from_ref_time(10_000) + T::DbWeight::get().writes(1))]
+		#[pallet::weight(Weight::from_parts(10_000,0) + T::DbWeight::get().writes(1))]
 		pub fn broadcast_psbt(origin: OriginFor<T>, proposal_id: [u8; 32]) -> DispatchResult {
 			let who = ensure_signed(origin.clone())?;
 			Self::do_finalize_psbt(who, proposal_id, true)
@@ -638,7 +638,7 @@ pub mod pallet {
 		/// - Any vault member can perform this extrinsic
 		/// - A vault can only have a PoR at a time.
 		#[pallet::call_index(11)]
-		#[pallet::weight(Weight::from_ref_time(10_000) + T::DbWeight::get().writes(1))]
+		#[pallet::weight(Weight::from_parts(10_000,0) + T::DbWeight::get().writes(1))]
 		pub fn create_proof(
 			origin: OriginFor<T>,
 			vault_id: [u8; 32],
@@ -661,7 +661,7 @@ pub mod pallet {
 		/// - Any vault member can perform this extrinsic
 		/// - A vault signer can only sabe its PSBT once.
 		#[pallet::call_index(12)]
-		#[pallet::weight(Weight::from_ref_time(10_000) + T::DbWeight::get().writes(1))]
+		#[pallet::weight(Weight::from_parts(10_000,0) + T::DbWeight::get().writes(1))]
 		pub fn save_proof_psbt(
 			origin: OriginFor<T>,
 			vault_id: [u8; 32],
@@ -683,7 +683,7 @@ pub mod pallet {
 		/// - Any vault member can perform this extrinsic
 		/// - A vault signer can only sabe its PSBT once.
 		#[pallet::call_index(13)]
-		#[pallet::weight(Weight::from_ref_time(10_000) + T::DbWeight::get().writes(1))]
+		#[pallet::weight(Weight::from_parts(10_000,0) + T::DbWeight::get().writes(1))]
 		pub fn finalize_proof(
 			origin: OriginFor<T>,
 			vault_id: [u8; 32],
@@ -699,7 +699,7 @@ pub mod pallet {
 		///
 		/// Can only be called by root and removes All vaults and proposals
 		#[pallet::call_index(14)]
-		#[pallet::weight(Weight::from_ref_time(10_000) + T::DbWeight::get().writes(1))]
+		#[pallet::weight(Weight::from_parts(10_000,0) + T::DbWeight::get().writes(1))]
 		pub fn kill_storage(origin: OriginFor<T>) -> DispatchResult {
 			T::ChangeBDKOrigin::ensure_origin(origin.clone())?;
 			let _ = <Xpubs<T>>::clear(1000, None);
