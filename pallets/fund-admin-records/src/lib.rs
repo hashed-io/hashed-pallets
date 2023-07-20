@@ -47,24 +47,55 @@ pub mod pallet {
 	pub struct Pallet<T>(_);
 
 	/*--- Onchain storage section ---*/
+  #[pallet::storage]
+	#[pallet::getter(fn records)]
+	pub(super) type Records<T: Config> = StorageDoubleMap<
+		_,
+		Identity,
+		RecordId, //K1: record id
+		Identity,
+		(ProjectId, Table), //K2: (projectId, Table)
+		RecordData, // Value transactions
+		OptionQuery,
+	>;
 
   // E V E N T S
 	// --------------------------------------------------------------------
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(super) fn deposit_event)]
 	pub enum Event<T: Config> {
+    /// A record was added
+    RecordAdded(RecordId),
 	}
 
 	// E R R O R S
 	// --------------------------------------------------------------------
 	#[pallet::error]
 	pub enum Error<T> {
+    /// The record id already exists
+    RecordIdAlreadyExists,
+    /// Timestamp was not genereated correctly
+		TimestampError,
   }
 
   // E X T R I N S I C S
 	// --------------------------------------------------------------------
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
+    #[transactional]
+		#[pallet::weight(10_000 + T::DbWeight::get().writes(1))]
+    pub fn add_record(
+      origin: OriginFor<T>,
+      project_id: ProjectId,
+      table: Table,
+      cid: CID,
+      description: Description,
+    ) -> DispatchResult {
+      let _who = ensure_signed(origin)?;
+
+      Self::do_add_record(project_id, table, cid, description)
+    }
+
     /// Kill all the stored data.
 		///
 		/// This function is used to kill ALL the stored data.
