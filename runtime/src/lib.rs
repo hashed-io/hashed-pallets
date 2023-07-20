@@ -595,7 +595,20 @@ impl pallet_fund_admin::Config for Runtime {
 
 }
 
+parameter_types! {
 
+}
+
+impl pallet_fund_admin_records::Config for Runtime {
+	type Event = Event;
+	type Timestamp = Timestamp;
+	type Moment = Moment;
+	type RemoveOrigin = EitherOfDiverse<
+		EnsureRoot<AccountId>,
+		pallet_collective::EnsureProportionAtLeast<AccountId, CouncilCollective, 3, 5>,
+	>;
+
+}
 
 parameter_types! {
 	pub const LabelMaxLen:u32 = 32;
@@ -793,6 +806,7 @@ construct_runtime!(
 		RBAC: pallet_rbac,
 		ConfidentialDocs: pallet_confidential_docs,
 		FundAdmin: pallet_fund_admin,
+		FundAdminRecords: pallet_fund_admin_records
 	}
 );
 
