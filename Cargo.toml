@@ -8,6 +8,8 @@ members = [
     'pallets/fruniques',
     'pallets/gated-marketplace',
     'parachain-runtime',
+    'pallets/fund-admin',
+    'pallets/fund-admin-records',
     'runtime',
 ]
 [profile.release]
