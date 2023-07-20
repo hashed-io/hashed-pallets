@@ -11,8 +11,42 @@ use crate::types::*;
 
 impl<T: Config> Pallet<T> {
 
-  pub fn do_initial_setup() -> DispatchResult{
+  pub fn do_add_record(
+    project_id: ProjectId,
+    table: Table,
+    cid: CID,
+    description: Description,
+  ) -> DispatchResult{
+    // Get timestamp
+    let creation_date = Self::get_timestamp_in_milliseconds().ok_or(Error::<T>::TimestampError)?;
+
+    let record_id = (project_id, creation_date).using_encoded(blake2_256);
+    // Ensure the generated id is unique
+    ensure!(!Records::<T>::contains_key(record_id, (project_id, table)), Error::<T>::RecordIdAlreadyExists);
+
+    let record_data = RecordData {
+      cid,
+      description,
+      creation_date,
+      updated_date: None,
+    };
+
+    // Insert the record into the storage
+    <Records<T>>::insert(
+      &record_id,
+      (project_id, table),
+      record_data
+    );
+
+    Self::deposit_event(Event::RecordAdded(record_id));
+
     Ok(())
+  }
+
+  fn get_timestamp_in_milliseconds() -> Option<u64> {
+    let timestamp:u64 = T::Timestamp::now().into();
+
+    Some(timestamp)
   }
 
 }
