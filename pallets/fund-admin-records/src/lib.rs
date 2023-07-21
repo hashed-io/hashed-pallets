@@ -47,14 +47,14 @@ pub mod pallet {
 	pub struct Pallet<T>(_);
 
 	/*--- Onchain storage section ---*/
-  #[pallet::storage]
+	#[pallet::storage]
 	#[pallet::getter(fn records)]
 	pub(super) type Records<T: Config> = StorageDoubleMap<
 		_,
 		Identity,
-		RecordId, //K1: record id
+		(ProjectId, Table), //K1: record id
 		Identity,
-		(ProjectId, Table), //K2: (projectId, Table)
+		Id, //K2: (projectId, Table)
 		RecordData, // Value transactions
 		OptionQuery,
 	>;
@@ -65,7 +65,7 @@ pub mod pallet {
 	#[pallet::generate_deposit(pub(super) fn deposit_event)]
 	pub enum Event<T: Config> {
     /// A record was added
-    RecordAdded(RecordId),
+    RecordAdded(Id),
 	}
 
 	// E R R O R S
@@ -73,7 +73,7 @@ pub mod pallet {
 	#[pallet::error]
 	pub enum Error<T> {
     /// The record id already exists
-    RecordIdAlreadyExists,
+    IdAlreadyExists,
     /// Timestamp was not genereated correctly
 		TimestampError,
   }
