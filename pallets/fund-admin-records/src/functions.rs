@@ -1,11 +1,9 @@
 use super::*;
-use frame_support::{pallet_prelude::*};
+use frame_support::pallet_prelude::*;
 use frame_support::traits::Time;
 use frame_support::sp_io::hashing::blake2_256;
 use sp_runtime::sp_std::vec::Vec; // vec primitive
 use scale_info::prelude::vec; // vec![] macro
-// use frame_system::Config;
-// use frame_system::Pallet;
 
 use crate::types::*;
 
@@ -22,7 +20,7 @@ impl<T: Config> Pallet<T> {
 
     let record_id = (project_id, creation_date).using_encoded(blake2_256);
     // Ensure the generated id is unique
-    ensure!(!Records::<T>::contains_key(record_id, (project_id, table)), Error::<T>::RecordIdAlreadyExists);
+    ensure!(!Records::<T>::contains_key((project_id, table), record_id), Error::<T>::IdAlreadyExists);
 
     let record_data = RecordData {
       cid,
@@ -33,8 +31,8 @@ impl<T: Config> Pallet<T> {
 
     // Insert the record into the storage
     <Records<T>>::insert(
-      &record_id,
       (project_id, table),
+      &record_id,
       record_data
     );
 
@@ -44,7 +42,7 @@ impl<T: Config> Pallet<T> {
   }
 
   fn get_timestamp_in_milliseconds() -> Option<u64> {
-    let timestamp:u64 = T::Timestamp::now().into();
+    let timestamp: u64 = T::Timestamp::now().into();
 
     Some(timestamp)
   }
