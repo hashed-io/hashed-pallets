@@ -1,4 +1,4 @@
-use crate::{mock::*, Error, types::*, Config, Records};
+use crate::{mock::*, types::*, Records};
 use frame_support::{assert_ok, BoundedVec, traits::ConstU32, assert_noop, error::BadOrigin, bounded_vec};
 use sp_io::hashing::blake2_256;
 use sp_runtime::DispatchResult;
@@ -19,7 +19,7 @@ fn return_description(description: &str) -> Description {
 #[test]
 fn add_drawdown_record_works() {
   new_test_ext().execute_with(|| {
-    let project_id = [0u8; 36];
+    let project_id = [0; 32];
     let table = Table::Drawdown;
     let cid = return_cid("cid");
     let description = return_description("description");
@@ -31,14 +31,13 @@ fn add_drawdown_record_works() {
       description.clone()
     ));
 
-    let record_id = Records::<Test>::iter_keys().next().unwrap();
+    let record_id = Records::<Test>::iter_keys().next().unwrap().1;
 
     // Get record data
-    let record_data = FundAdminRecords::records(record_id, (project_id, table)).unwrap();
+    let record_data = FundAdminRecords::records( (project_id, table), record_id).unwrap();
 
-    // assert_eq!(record_data.cid, cid);
-    // assert_eq!(record_data.description, description);
-    // assert!(record_data.creation_date > 0);
-    // assert_eq!(record_data.updated_date, None);
+    assert_eq!(record_data.cid, cid);
+    assert_eq!(record_data.description, description);
+    assert_eq!(record_data.updated_date, None);
   });
 }
