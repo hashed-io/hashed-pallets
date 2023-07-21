@@ -5,8 +5,8 @@ use sp_runtime::sp_std::vec::Vec;
 
 pub type CID = BoundedVec<u8, ConstU32<100>>;
 pub type Description = BoundedVec<u8, ConstU32<400>>;
-pub type RecordId = [u8; 32];
-pub type ProjectId = [u8; 36];
+pub type Id = [u8; 32];
+pub type ProjectId = [u8; 32];
 pub type CreationDate = u64;
 pub type UpdateDate = u64;
 
