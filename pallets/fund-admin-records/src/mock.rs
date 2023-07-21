@@ -23,6 +23,16 @@ frame_support::construct_runtime!(
 		Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent},
 	}
 );
+parameter_types! {
+
+}
+
+impl pallet_timestamp::Config for Test {
+	type Moment = u64;
+	type OnTimestampSet = ();
+	type MinimumPeriod = ();
+	type WeightInfo = ();
+}
 
 parameter_types! {
 	pub const BlockHashCount: u64 = 250;
@@ -56,26 +66,15 @@ impl system::Config for Test {
 	type MaxConsumers = frame_support::traits::ConstU32<16>;
 }
 
-parameter_types! {
-
-
-}
-
 impl pallet_fund_admin_records::Config for Test {
 	type Event = Event;
-	type RemoveOrigin = EnsureRoot<Self::AccountId>;
-
 	type Timestamp = Timestamp;
+	type RemoveOrigin = EnsureRoot<Self::AccountId>;
 	type Moment = u64;
 }
 
 
-impl pallet_timestamp::Config for Test {
-	type Moment = u64;
-	type OnTimestampSet = ();
-	type MinimumPeriod = ();
-	type WeightInfo = ();
-}
+
 
 // Build genesis storage according to the mock runtime.
 pub fn new_test_ext() -> sp_io::TestExternalities {
