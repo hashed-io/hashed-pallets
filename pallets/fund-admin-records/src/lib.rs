@@ -17,17 +17,24 @@ mod types;
 #[frame_support::pallet]
 pub mod pallet {
 	use frame_support::{pallet_prelude::{*, ValueQuery}, BoundedVec};
-	use frame_system::pallet_prelude::*;
+	use frame_system::{
+		offchain::{
+			AppCrypto, CreateSignedTransaction,
+			SignedPayload, Signer,
+		},
+		pallet_prelude::*,
+	};
 	use frame_support::transactional;
 	use sp_runtime::traits::Scale;
-	use frame_support::traits::{Time};
+	use frame_support::traits::Time;
 
 	use crate::types::*;
 
 	#[pallet::config]
 	pub trait Config: frame_system::Config + CreateSignedTransaction<Call<Self>> {
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
-
+		/// The identifier type for an offchain worker.
+		type AuthorityId: AppCrypto<Self::Public, Self::Signature>;
 		type Moment: Parameter
 		+ Default
 		+ Scale<Self::BlockNumber, Output = Self::Moment>
@@ -99,14 +106,16 @@ pub mod pallet {
 	// --------------------------------------------------------------------
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
+		/// Extrinsics to add a record
+		/// 
+		/// Meant to be unsigned with a signed payload and used by the offchain worker
+		/// 
     #[transactional]
 		#[pallet::weight(10_000 + T::DbWeight::get().writes(1))]
     pub fn add_record(
       origin: OriginFor<T>,
-      project_id: ProjectId,
-      table: Table,
-      cid: CID,
-      description: Description,
+			payload: Record
+
     ) -> DispatchResult {
       let _who = ensure_signed(origin)?;
 
