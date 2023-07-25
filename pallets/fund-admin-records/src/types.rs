@@ -1,10 +1,10 @@
 use super::*;
 use frame_support::pallet_prelude::*;
-use frame_support::sp_io::hashing::blake2_256;
 use sp_runtime::sp_std::vec::Vec;
 use sp_core::crypto::KeyTypeId;
 
-pub const KEY_TYPE: KeyTypeId = KeyTypeId(*b"funadmin");
+pub const KEY_TYPE: KeyTypeId = KeyTypeId(*b"fund");
+pub const UNSIGNED_TXS_PRIORITY: u64 = 100;
 
 pub mod crypto {
 	use super::KEY_TYPE;
@@ -41,12 +41,20 @@ pub type ProjectId = [u8; 32];
 pub type CreationDate = u64;
 pub type UpdateDate = u64;
 
-#[derive(CloneNoBound, Encode, Decode, RuntimeDebugNoBound, Default, TypeInfo, MaxEncodedLen)]
+#[derive(Encode, Decode, Clone, PartialEq, Eq, RuntimeDebug, TypeInfo)]
+#[codec(mel_bound())]
+pub struct RecordsPayload<Public> {
+	pub records_payload: Vec<RecordData>,
+	pub public: Public,
+}
+
+#[derive(Encode, Decode, RuntimeDebugNoBound, Default, TypeInfo, MaxEncodedLen,)]
+#[scale_info(skip_type_params(MaxLen))]
+#[codec(mel_bound())]
 pub struct RecordData {
   pub cid: CID,
   pub description: Description,
   pub creation_date: CreationDate,
-  pub updated_date: Option<UpdateDate>,
 }
 
 #[derive(Encode, Decode, Clone, Eq, PartialEq, RuntimeDebugNoBound, MaxEncodedLen, TypeInfo, Copy)]
