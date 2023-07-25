@@ -25,7 +25,7 @@ pub mod pallet {
 	use crate::types::*;
 
 	#[pallet::config]
-	pub trait Config: frame_system::Config {
+	pub trait Config: frame_system::Config + CreateSignedTransaction<Call<Self>> {
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
 
 		type Moment: Parameter
@@ -58,6 +58,23 @@ pub mod pallet {
 		RecordData, // Value transactions
 		OptionQuery,
 	>;
+
+	#[pallet::hooks]
+	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
+		/// Offchain worker entry point.
+		///
+		/// By implementing `fn offchain_worker` you declare a new offchain worker.
+		/// This function will be called when the node is fully synced and a new best block is
+		/// successfully imported.
+		/// Note that it's not guaranteed for offchain workers to run on EVERY block, there might
+		/// be cases where some blocks are skipped, or for some the worker runs twice (re-orgs),
+		/// so the code should be able to handle that.
+		fn offchain_worker(block_number: T::BlockNumber) {
+			log::info!("Hello from pallet-ocw.");
+			// The entry point of your code called by offchain worker
+		}
+		// ...
+	}
 
   // E V E N T S
 	// --------------------------------------------------------------------
@@ -116,5 +133,33 @@ pub mod pallet {
 			Ok(())
 		}
   }
-//
+
+	#[pallet::validate_unsigned]
+	impl<T: Config> ValidateUnsigned for Pallet<T> {
+		type Call = Call<T>;
+
+			/// Validate unsigned call to this module.
+			///
+			/// By default unsigned transactions are disallowed, but implementing the validator
+			/// here we make sure that some particular calls (the ones produced by offchain worker)
+			/// are being whitelisted and marked as valid.
+			fn validate_unsigned(source: TransactionSource, call: &Self::Call) -> TransactionValidity {
+				let valid_tx = |provide| ValidTransaction::with_tag_prefix("my-pallet")
+					.priority(UNSIGNED_TXS_PRIORITY) // please define `UNSIGNED_TXS_PRIORITY` before this line
+					.and_provides([&provide])
+					.longevity(3)
+					.propagate(true)
+					.build();
+				// ...
+				match call {
+					Call::add_record { ref project_id, ref table , ref cid, ref description} => {
+						if !SignedPayload::<T>::verify::<T::AuthorityId>(project_id, table, cid, description, signature.clone()) {
+							return InvalidTransaction::BadProof.into();
+						}
+						valid_tx(b"unsigned_extrinsic_with_signed_payload".to_vec())
+					},
+					_ => InvalidTransaction::Call.into(),
+				}
+			}
+	}
 }
