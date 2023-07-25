@@ -600,6 +600,7 @@ parameter_types! {
 }
 
 impl pallet_fund_admin_records::Config for Runtime {
+	type AuthorityId = pallet_fund_admin_records::types::crypto::TestAuthId;
 	type Event = Event;
 	type Timestamp = Timestamp;
 	type Moment = Moment;
