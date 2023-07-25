@@ -2,13 +2,11 @@ use super::*;
 use frame_support::pallet_prelude::*;
 use frame_support::traits::Time;
 use frame_support::sp_io::hashing::blake2_256;
-use sp_runtime::sp_std::vec::Vec; // vec primitive
-use scale_info::prelude::vec; // vec![] macro
 
 use crate::types::*;
 
 impl<T: Config> Pallet<T> {
-
+  /*---- Offchain extrinsics ----*/
   pub fn do_add_record(
     project_id: ProjectId,
     table: Table,
@@ -26,7 +24,6 @@ impl<T: Config> Pallet<T> {
       cid,
       description,
       creation_date,
-      updated_date: None,
     };
 
     // Insert the record into the storage
