@@ -2,6 +2,7 @@
 use frame_support::pallet_prelude::*;
 use sp_runtime::sp_std::vec::Vec;
 use sp_core::crypto::KeyTypeId;
+use frame_system::offchain::{SigningTypes, SignedPayload};
 
 pub const KEY_TYPE: KeyTypeId = KeyTypeId(*b"fund");
 pub const UNSIGNED_TXS_PRIORITY: u64 = 100;
@@ -33,7 +34,6 @@ pub mod crypto {
 		type GenericPublic = sp_core::sr25519::Public;
 	}
 }
-
 pub type CID = BoundedVec<u8, ConstU32<100>>;
 pub type Description = BoundedVec<u8, ConstU32<400>>;
 pub type Id = [u8; 32];
@@ -47,7 +47,7 @@ pub struct RecordsPayload<Public> {
 	pub public: Public,
 }
 
-#[derive(Encode, Decode, Clone, PartialEq, Eq, RuntimeDebug, TypeInfo)]
+#[derive(Encode, Decode, PartialEq, Eq, RuntimeDebug, TypeInfo)]
 #[codec(mel_bound())]
 pub struct SingleRecordPayload {
 	pub project_id: ProjectId,
@@ -55,6 +55,24 @@ pub struct SingleRecordPayload {
 	pub description: Description,
 	pub table: Table,
 	pub record_type: RecordType,
+}
+
+impl Clone for SingleRecordPayload {
+	fn clone(&self) -> Self {
+		Self {
+			project_id: self.project_id.clone(),
+			cid: self.cid.clone(),
+			description: self.description.clone(),
+			table: self.table.clone(),
+			record_type: self.record_type.clone(),
+		}
+	}
+}
+
+impl<S: SigningTypes > SignedPayload<S> for RecordsPayload<S::Public> {
+	fn public(&self) -> S::Public {
+		self.public.clone()
+	}
 }
 
 #[derive(Encode, Decode, RuntimeDebugNoBound, Default, TypeInfo, MaxEncodedLen,)]
