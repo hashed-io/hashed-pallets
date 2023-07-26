@@ -16,11 +16,11 @@ mod types;
 
 #[frame_support::pallet]
 pub mod pallet {
-	use frame_support::{pallet_prelude::{*, ValueQuery}, BoundedVec};
+	use frame_support::{pallet_prelude::{*}};
 	use frame_system::{
 		offchain::{
 			AppCrypto, CreateSignedTransaction,
-			SignedPayload, Signer,
+			SignedPayload,
 		},
 		pallet_prelude::*,
 	};
@@ -59,10 +59,10 @@ pub mod pallet {
 	pub(super) type Records<T: Config> = StorageDoubleMap<
 		_,
 		Identity,
-		(ProjectId, Table), //K1: record id
+		(ProjectId, Table), //K1: (projectId, Table)
 		Identity,
-		Id, //K2: (projectId, Table)
-		RecordData, // Value transactions
+		Id, //K2: record id 
+		RecordData, // Value record data
 		OptionQuery,
 	>;
 
@@ -89,7 +89,7 @@ pub mod pallet {
 	#[pallet::generate_deposit(pub(super) fn deposit_event)]
 	pub enum Event<T: Config> {
     /// A record was added
-    RecordAdded(Id),
+    RecordAdded(ProjectId, Table, Id),
 	}
 
 	// E R R O R S
@@ -114,13 +114,52 @@ pub mod pallet {
 		#[pallet::weight(10_000 + T::DbWeight::get().writes(1))]
     pub fn add_record(
       origin: OriginFor<T>,
-			payload: Record
-
+			payload: RecordsPayload<T::Public>,
+			_signature: T::Signature,
     ) -> DispatchResult {
-      let _who = ensure_signed(origin)?;
-
-      Self::do_add_record(project_id, table, cid, description)
-    }
+      ensure_none(origin.clone())?;
+			payload.records_payload.iter().find_map(|record| {
+				Self::do_add_record(
+					record.project_id,
+					record.cid,
+					record.description,
+					record.table, 
+					record.record_type,
+				);
+				let record_id = record.id;
+				let project_id = record.project_id;
+				let table = record.table;
+				let record_data = record.record_data.clone();
+				let timestamp = T::Timestamp::now().into();
+				let record_data = RecordData {
+					record_data,
+					timestamp,
+				};
+				let record = Records::<T>::get(project_id, table, record_id);
+				match record {
+					Some(_) => {
+						log::info!("Record already exists");
+						Some(Err(Error::<T>::IdAlreadyExists))
+					},
+					None => {
+						Records::<T>::insert(project_id, table, record_id, record_data);
+						Some(Ok(()))
+					}
+				}
+			}).unwrap_or(Ok(()))
+		}
+			
+			// for_each(|record| {
+			// 	Self::do_add_record(
+			// 		record.project_id,
+			// 		record.cid,
+			// 		record.description,
+			// 		record.table, 
+			// 		record.record_type,
+			// 	)?;
+			// });
+				// project_id, table, cid, description)
+    // }
 
     /// Kill all the stored data.
 		///
@@ -161,8 +200,8 @@ pub mod pallet {
 					.build();
 				// ...
 				match call {
-					Call::add_record { ref project_id, ref table , ref cid, ref description} => {
-						if !SignedPayload::<T>::verify::<T::AuthorityId>(project_id, table, cid, description, signature.clone()) {
+					Call::add_record { ref payload, ref signature } => {
+						if !SignedPayload::<T>::verify::<T::AuthorityId>(payload, signature.clone()) {
 							return InvalidTransaction::BadProof.into();
 						}
 						valid_tx(b"unsigned_extrinsic_with_signed_payload".to_vec())
