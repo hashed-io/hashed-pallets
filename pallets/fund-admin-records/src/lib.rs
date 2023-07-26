@@ -76,7 +76,7 @@ pub mod pallet {
 		/// Note that it's not guaranteed for offchain workers to run on EVERY block, there might
 		/// be cases where some blocks are skipped, or for some the worker runs twice (re-orgs),
 		/// so the code should be able to handle that.
-		fn offchain_worker(block_number: T::BlockNumber) {
+		fn offchain_worker(_block_number: T::BlockNumber) {
 			log::info!("Hello from pallet-ocw.");
 			// The entry point of your code called by offchain worker
 		}
@@ -119,47 +119,21 @@ pub mod pallet {
     ) -> DispatchResult {
       ensure_none(origin.clone())?;
 			payload.records_payload.iter().find_map(|record| {
-				Self::do_add_record(
+				let tx_res = Self::do_add_record(
 					record.project_id,
-					record.cid,
-					record.description,
+					record.cid.clone(),
+					record.description.clone(),
 					record.table, 
 					record.record_type,
 				);
-				let record_id = record.id;
-				let project_id = record.project_id;
-				let table = record.table;
-				let record_data = record.record_data.clone();
-				let timestamp = T::Timestamp::now().into();
-				let record_data = RecordData {
-					record_data,
-					timestamp,
-				};
-				let record = Records::<T>::get(project_id, table, record_id);
-				match record {
-					Some(_) => {
-						log::info!("Record already exists");
-						Some(Err(Error::<T>::IdAlreadyExists))
-					},
-					None => {
-						Records::<T>::insert(project_id, table, record_id, record_data);
-						Some(Ok(()))
-					}
+
+				if let Err(e) = tx_res {
+					Some(Err(e))
+				} else {
+					None
 				}
 			}).unwrap_or(Ok(()))
 		}
-			
-			// for_each(|record| {
-			// 	Self::do_add_record(
-			// 		record.project_id,
-			// 		record.cid,
-			// 		record.description,
-			// 		record.table, 
-			// 		record.record_type,
-			// 	)?;
-			// });
-				// project_id, table, cid, description)
-    // }
 
     /// Kill all the stored data.
 		///
@@ -191,7 +165,7 @@ pub mod pallet {
 			/// By default unsigned transactions are disallowed, but implementing the validator
 			/// here we make sure that some particular calls (the ones produced by offchain worker)
 			/// are being whitelisted and marked as valid.
-			fn validate_unsigned(source: TransactionSource, call: &Self::Call) -> TransactionValidity {
+			fn validate_unsigned(_source: TransactionSource, call: &Self::Call) -> TransactionValidity {
 				let valid_tx = |provide| ValidTransaction::with_tag_prefix("my-pallet")
 					.priority(UNSIGNED_TXS_PRIORITY) // please define `UNSIGNED_TXS_PRIORITY` before this line
 					.and_provides([&provide])
