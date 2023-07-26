@@ -1,4 +1,4 @@
-use super::*;
+// use super::*;
 use frame_support::pallet_prelude::*;
 use sp_runtime::sp_std::vec::Vec;
 use sp_core::crypto::KeyTypeId;
@@ -39,22 +39,34 @@ pub type Description = BoundedVec<u8, ConstU32<400>>;
 pub type Id = [u8; 32];
 pub type ProjectId = [u8; 32];
 pub type CreationDate = u64;
-pub type UpdateDate = u64;
 
 #[derive(Encode, Decode, Clone, PartialEq, Eq, RuntimeDebug, TypeInfo)]
 #[codec(mel_bound())]
 pub struct RecordsPayload<Public> {
-	pub records_payload: Vec<RecordData>,
+	pub records_payload: Vec<SingleRecordPayload>,
 	pub public: Public,
+}
+
+#[derive(Encode, Decode, Clone, PartialEq, Eq, RuntimeDebug, TypeInfo)]
+#[codec(mel_bound())]
+pub struct SingleRecordPayload {
+	pub project_id: ProjectId,
+	pub cid: CID,
+	pub description: Description,
+	pub table: Table,
+	pub record_type: RecordType,
 }
 
 #[derive(Encode, Decode, RuntimeDebugNoBound, Default, TypeInfo, MaxEncodedLen,)]
 #[scale_info(skip_type_params(MaxLen))]
 #[codec(mel_bound())]
 pub struct RecordData {
-  pub cid: CID,
-  pub description: Description,
-  pub creation_date: CreationDate,
+	pub project_id: ProjectId,
+	pub cid: CID,
+	pub description: Description,
+	pub table: Table,
+	pub record_type: RecordType,
+	pub creation_date: CreationDate,
 }
 
 #[derive(Encode, Decode, Clone, Eq, PartialEq, RuntimeDebugNoBound, MaxEncodedLen, TypeInfo, Copy)]
@@ -65,3 +77,24 @@ pub enum Table {
   RecoveryRevenue,
 }
 
+impl Default for Table {
+	fn default() -> Self {
+		Table::Drawdown
+	}
+}
+
+#[derive(Encode, Decode, Clone, Eq, PartialEq, RuntimeDebugNoBound, MaxEncodedLen, TypeInfo, Copy)]
+pub enum RecordType {
+	Creation,
+	Submit,
+	Approve,
+	Reject,
+	Recovery,
+	Reset,
+}
+
+impl Default for RecordType {
+	fn default() -> Self {
+		RecordType::Creation
+	}
+}
