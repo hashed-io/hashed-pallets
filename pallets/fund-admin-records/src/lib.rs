@@ -12,18 +12,12 @@ mod tests;
 mod benchmarking;
 
 mod functions;
-mod types;
+pub mod types;
 
 #[frame_support::pallet]
 pub mod pallet {
-	use frame_support::{pallet_prelude::{*}};
-	use frame_system::{
-		offchain::{
-			AppCrypto, CreateSignedTransaction,
-			SignedPayload,
-		},
-		pallet_prelude::*,
-	};
+	use frame_support::pallet_prelude::*;
+	use frame_system::pallet_prelude::*;
 	use frame_support::transactional;
 	use sp_runtime::traits::Scale;
 	use frame_support::traits::Time;
@@ -31,10 +25,9 @@ pub mod pallet {
 	use crate::types::*;
 
 	#[pallet::config]
-	pub trait Config: frame_system::Config + CreateSignedTransaction<Call<Self>> {
+	pub trait Config: frame_system::Config {
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
-		/// The identifier type for an offchain worker.
-		type AuthorityId: AppCrypto<Self::Public, Self::Signature>;
+
 		type Moment: Parameter
 		+ Default
 		+ Scale<Self::BlockNumber, Output = Self::Moment>
@@ -55,6 +48,14 @@ pub mod pallet {
 
 	/*--- Onchain storage section ---*/
 	#[pallet::storage]
+	#[pallet::getter(fn signer_account)]
+	pub(super) type SignerAccount<T: Config> = StorageValue<
+		_,
+		T::AccountId,
+		OptionQuery
+	>;
+
+	#[pallet::storage]
 	#[pallet::getter(fn records)]
 	pub(super) type Records<T: Config> = StorageDoubleMap<
 		_,
@@ -66,30 +67,13 @@ pub mod pallet {
 		OptionQuery,
 	>;
 
-	#[pallet::hooks]
-	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
-		/// Offchain worker entry point.
-		///
-		/// By implementing `fn offchain_worker` you declare a new offchain worker.
-		/// This function will be called when the node is fully synced and a new best block is
-		/// successfully imported.
-		/// Note that it's not guaranteed for offchain workers to run on EVERY block, there might
-		/// be cases where some blocks are skipped, or for some the worker runs twice (re-orgs),
-		/// so the code should be able to handle that.
-		fn offchain_worker(_block_number: T::BlockNumber) {
-			log::info!("Hello from pallet-ocw.");
-			// The entry point of your code called by offchain worker
-		}
-		// ...
-	}
-
   // E V E N T S
 	// --------------------------------------------------------------------
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(super) fn deposit_event)]
 	pub enum Event<T: Config> {
     /// A record was added
-    RecordAdded(ProjectId, Table, Id),
+    RecordAdded(ProjectId, Table, RecordType, Id),
 	}
 
 	// E R R O R S
@@ -100,39 +84,60 @@ pub mod pallet {
     IdAlreadyExists,
     /// Timestamp was not genereated correctly
 		TimestampError,
+		/// Signer account is not set
+		SignerAccountNotSet,
+		/// The sender is not the signer account
+		SenderIsNotTheSignerAccount,
   }
 
   // E X T R I N S I C S
 	// --------------------------------------------------------------------
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
+		/// Sets the signer account.
+		/// 
+		/// # Arguments
+		/// * `origin` - The sender of the transaction
+		/// * `signer_account` - The account id of the signer
+		/// Returns `Ok` if the operation is successful, `Err` otherwise.
+		#[transactional]
+		#[pallet::weight(10_000 + T::DbWeight::get().writes(1))]
+		pub fn set_signer_account(
+			origin: OriginFor<T>,
+			account: T::AccountId,
+		) -> DispatchResult {
+			T::RemoveOrigin::ensure_origin(origin)?;
+			<SignerAccount<T>>::put(account);
+			Ok(())
+		}
+
 		/// Extrinsics to add a record
 		/// 
 		/// Meant to be unsigned with a signed payload and used by the offchain worker
 		/// 
     #[transactional]
-		#[pallet::weight(10_000 + T::DbWeight::get().writes(1))]
+		#[pallet::weight(10_000 + T::DbWeight::get().writes(1))] 		// TODO: test fees
     pub fn add_record(
       origin: OriginFor<T>,
-			payload: RecordsPayload<T::Public>,
-			_signature: T::Signature,
+			project_id: ProjectId,
+			hashed_info: HashedInfo,
+			table: Table,
+			record_type: RecordType,
     ) -> DispatchResult {
-      ensure_none(origin.clone())?;
-			payload.records_payload.iter().find_map(|record| {
-				let tx_res = Self::do_add_record(
-					record.project_id,
-					record.cid.clone(),
-					record.description.clone(),
-					record.table, 
-					record.record_type,
-				);
+			let who = ensure_signed(origin.clone())?;
 
-				if let Err(e) = tx_res {
-					Some(Err(e))
-				} else {
-					None
-				}
-			}).unwrap_or(Ok(()))
+			// Ensure the signer account is set
+			let signer_account = SignerAccount::<T>::get().ok_or(Error::<T>::SignerAccountNotSet)?;
+
+			// Ensure the sender is the signer account
+			ensure!(who == signer_account, Error::<T>::SenderIsNotTheSignerAccount);
+
+			Self::do_add_record(
+				project_id,
+				hashed_info,
+				table,
+				record_type,
+			)
 		}
 
     /// Kill all the stored data.
@@ -155,33 +160,4 @@ pub mod pallet {
 			Ok(())
 		}
   }
-
-	#[pallet::validate_unsigned]
-	impl<T: Config> ValidateUnsigned for Pallet<T> {
-		type Call = Call<T>;
-
-			/// Validate unsigned call to this module.
-			///
-			/// By default unsigned transactions are disallowed, but implementing the validator
-			/// here we make sure that some particular calls (the ones produced by offchain worker)
-			/// are being whitelisted and marked as valid.
-			fn validate_unsigned(_source: TransactionSource, call: &Self::Call) -> TransactionValidity {
-				let valid_tx = |provide| ValidTransaction::with_tag_prefix("my-pallet")
-					.priority(UNSIGNED_TXS_PRIORITY) // please define `UNSIGNED_TXS_PRIORITY` before this line
-					.and_provides([&provide])
-					.longevity(3)
-					.propagate(true)
-					.build();
-				// ...
-				match call {
-					Call::add_record { ref payload, ref signature } => {
-						if !SignedPayload::<T>::verify::<T::AuthorityId>(payload, signature.clone()) {
-							return InvalidTransaction::BadProof.into();
-						}
-						valid_tx(b"unsigned_extrinsic_with_signed_payload".to_vec())
-					},
-					_ => InvalidTransaction::Call.into(),
-				}
-			}
-	}
 }
