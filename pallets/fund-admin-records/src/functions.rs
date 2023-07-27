@@ -9,8 +9,7 @@ impl<T: Config> Pallet<T> {
   /*---- Offchain extrinsics ----*/
   pub fn do_add_record(
     project_id: ProjectId,
-    cid: CID,
-    description: Description,
+    hashed_info: HashedInfo,
     table: Table,
     record_type: RecordType,
   ) -> DispatchResult{
@@ -18,13 +17,13 @@ impl<T: Config> Pallet<T> {
     let creation_date: CreationDate = Self::get_timestamp_in_milliseconds().ok_or(Error::<T>::TimestampError)?;
 
     let record_id: Id = (project_id, creation_date).using_encoded(blake2_256);
+
     // Ensure the generated id is unique
     ensure!(!Records::<T>::contains_key((project_id, table), record_id), Error::<T>::IdAlreadyExists);
 
     let record_data = RecordData {
       project_id,
-      cid,
-      description,
+      hashed_info,
       table,
       record_type,
       creation_date,
@@ -37,7 +36,7 @@ impl<T: Config> Pallet<T> {
       record_data
     );
 
-    Self::deposit_event(Event::RecordAdded(project_id, table, record_id));
+    Self::deposit_event(Event::RecordAdded(project_id, table, record_type, record_id));
 
     Ok(())
   }
