@@ -1,34 +1,47 @@
-use crate::{mock::*, types::*, Records};
-use frame_support::{assert_ok, BoundedVec, traits::ConstU32, assert_noop, error::BadOrigin, bounded_vec};
-use sp_io::hashing::blake2_256;
-use sp_runtime::DispatchResult;
-use std::vec;
+use crate::{mock::*, types::*, Records, Error};
+use frame_support::{assert_ok, assert_noop};
 
-
-fn return_cid(name: &str) -> CID {
-  let name: BoundedVec<u8, ConstU32<100>> = name.as_bytes().to_vec().try_into().unwrap_or_default();
-  name
+#[test]
+fn set_signer_account_works() {
+  new_test_ext().execute_with(|| {
+    let signer_account = 1;
+    assert_ok!(FundAdminRecords::set_signer_account(Origin::root(), signer_account));
+    assert_eq!(FundAdminRecords::signer_account(), Some(signer_account));
+  });
 }
 
-fn return_description(description: &str) -> Description {
-  let description: BoundedVec<u8, ConstU32<400>> = description.as_bytes().to_vec().try_into().unwrap_or_default();
-  description
-}
+#[test]
+fn cannot_add_record_if_signer_account_is_not_set() {
+  new_test_ext().execute_with(|| {
+    let project_id: ProjectId = [0; 60];
+    let hashed_info: HashedInfo = [0; 60];
+    let table = Table::Drawdown;
+    let record_type = RecordType::Creation;
 
+    assert_noop!(
+      FundAdminRecords::add_record(Origin::signed(1), project_id, hashed_info, table, record_type),
+      Error::<Test>::SignerAccountNotSet
+    );
+  });
+}
 
 #[test]
 fn add_drawdown_record_works() {
   new_test_ext().execute_with(|| {
-    let project_id = [0; 32];
+    let signer_account = 1;
+    let project_id = [0; 60];
+    let hashed_info = [0; 60];
     let table = Table::Drawdown;
-    let cid = return_cid("cid");
-    let description = return_description("description");
+    let record_type = RecordType::Creation;
 
-    assert_ok!(FundAdminRecords::do_add_record(
+    assert_ok!(FundAdminRecords::set_signer_account(Origin::root(), signer_account));
+
+    assert_ok!(FundAdminRecords::add_record(
+      Origin::signed(signer_account),
       project_id,
+      hashed_info,
       table,
-      cid.clone(),
-      description.clone()
+      record_type,
     ));
 
     let record_id = Records::<Test>::iter_keys().next().unwrap().1;
@@ -36,8 +49,9 @@ fn add_drawdown_record_works() {
     // Get record data
     let record_data = FundAdminRecords::records( (project_id, table), record_id).unwrap();
 
-    assert_eq!(record_data.cid, cid);
-    assert_eq!(record_data.description, description);
-    assert_eq!(record_data.updated_date, None);
+    assert_eq!(record_data.project_id, project_id);
+    assert_eq!(record_data.hashed_info, hashed_info);
+    assert_eq!(record_data.table, table);
+    assert_eq!(record_data.record_type, record_type);
   });
 }
