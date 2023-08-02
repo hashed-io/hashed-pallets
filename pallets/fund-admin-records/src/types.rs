@@ -1,9 +1,9 @@
 // use super::*;
 use frame_support::pallet_prelude::*;
 
-pub type HashedInfo = [u8; 60];
+pub type HashedInfo = BoundedVec<u8, ConstU32<400>>;
 pub type Id = [u8; 32];
-pub type ProjectId = [u8; 60];
+pub type ProjectId = BoundedVec<u8, ConstU32<50>>;
 pub type CreationDate = u64;
 
 #[derive(Encode, Decode, RuntimeDebugNoBound, TypeInfo, MaxEncodedLen,)]
