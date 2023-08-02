@@ -88,7 +88,15 @@ pub mod pallet {
 		SignerAccountNotSet,
 		/// The sender is not the signer account
 		SenderIsNotTheSignerAccount,
-  }
+		/// The project id is empty
+		ProjectIdIsEmpty,
+		/// Hashed info is empty
+		HashedInfoIsEmpty,
+		/// Project id exceeded max length
+		ProjectIdExceededMaxLength,
+		/// Hashed info exceeded max length
+		HashedInfoExceededMaxLength,
+	}
 
   // E X T R I N S I C S
 	// --------------------------------------------------------------------
