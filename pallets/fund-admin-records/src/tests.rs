@@ -3,12 +3,12 @@ use frame_support::{assert_ok, assert_noop, bounded_vec, BoundedVec, traits::Con
 
 
 fn make_project_id(v: &str) -> ProjectId {
-  let v: BoundedVec<u8, ConstU32<50>> = v.as_bytes().to_vec().try_into().unwrap_or_default();
+  let v: ProjectId = v.as_bytes().to_vec().try_into().unwrap_or_default();
   v
 }
 
 fn make_hashed_info(v: &str) -> HashedInfo {
-  let v: BoundedVec<u8, ConstU32<400>> = v.as_bytes().to_vec().try_into().unwrap_or_default();
+  let v: HashedInfo = v.as_bytes().to_vec().try_into().unwrap_or_default();
   v
 }
 
