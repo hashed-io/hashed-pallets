@@ -595,6 +595,9 @@ impl pallet_fund_admin::Config for Runtime {
 
 }
 
+parameter_types! {
+	pub const MaxRecordsAtTime:u32 = 50;
+}
 impl pallet_fund_admin_records::Config for Runtime {
 	type Event = Event;
 	type Timestamp = Timestamp;
@@ -603,7 +606,7 @@ impl pallet_fund_admin_records::Config for Runtime {
 		EnsureRoot<AccountId>,
 		pallet_collective::EnsureProportionAtLeast<AccountId, CouncilCollective, 3, 5>,
 	>;
-
+	type MaxRecordsAtTime = MaxRecordsAtTime;
 }
 
 parameter_types! {
