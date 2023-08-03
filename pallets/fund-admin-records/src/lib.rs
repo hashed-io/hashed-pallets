@@ -40,6 +40,9 @@ pub mod pallet {
 
 		type RemoveOrigin: EnsureOrigin<Self::Origin>;
 
+		#[pallet::constant]
+		type MaxRecordsAtTime: Get<u32>;
+
 	}
 
 	#[pallet::pallet]
@@ -60,7 +63,7 @@ pub mod pallet {
 	pub(super) type Records<T: Config> = StorageDoubleMap<
 		_,
 		Identity,
-		(ProjectId, Table), //K1: (projectId, Table)
+		(ProjectId, TableType), //K1: (projectId, TableType)
 		Identity,
 		Id, //K2: record id 
 		RecordData, // Value record data
@@ -73,7 +76,7 @@ pub mod pallet {
 	#[pallet::generate_deposit(pub(super) fn deposit_event)]
 	pub enum Event<T: Config> {
     /// A record was added
-    RecordAdded(ProjectId, Table, RecordType, Id),
+    RecordAdded(ProjectId, TableType, RecordType, Id),
 	}
 
 	// E R R O R S
@@ -96,6 +99,8 @@ pub mod pallet {
 		ProjectIdExceededMaxLength,
 		/// Hashed info exceeded max length
 		HashedInfoExceededMaxLength,
+		/// Maximun number of registrations at a time reached
+		MaxRegistrationsAtATimeReached,
 	}
 
   // E X T R I N S I C S
@@ -104,7 +109,7 @@ pub mod pallet {
 	impl<T: Config> Pallet<T> {
 		/// Sets the signer account.
 		/// 
-		/// # Arguments
+		/// # Parameters:
 		/// * `origin` - The sender of the transaction
 		/// * `signer_account` - The account id of the signer
 		/// Returns `Ok` if the operation is successful, `Err` otherwise.
@@ -119,19 +124,24 @@ pub mod pallet {
 			Ok(())
 		}
 
-		/// Extrinsics to add a record
-		/// 
-		/// Meant to be unsigned with a signed payload and used by the offchain worker
-		/// 
+		/// An extrinsic method to add new records to storage.
+		///
+		/// # Parameters:
+		///
+		/// - `origin`: The origin of the call. Must be a signed extrinsic.
+		/// - `records`: The collection of records to be added. It is a vector of tuples, where each tuple represents a single record.
+		///
+		/// # Returns:
+		///
+		/// - DispatchResult: This function will return an instance of `DispatchResult`. 
+		///   If the function executes successfully without any error, it will return `Ok(())`. 
+    ///   If there is an error, it will return `Err(error)`, where `error` is an instance of the `DispatchError` class.
     #[transactional]
 		#[pallet::weight(10_000 + T::DbWeight::get().writes(1))] 		// TODO: test fees
     pub fn add_record(
       origin: OriginFor<T>,
-			project_id: ProjectId,
-			hashed_info: HashedInfo,
-			table: Table,
-			record_type: RecordType,
-    ) -> DispatchResult {
+			records: RecordCollection<T>,
+		) -> DispatchResult {
 			let who = ensure_signed(origin.clone())?;
 
 			// Ensure the signer account is set
@@ -140,12 +150,7 @@ pub mod pallet {
 			// Ensure the sender is the signer account
 			ensure!(who == signer_account, Error::<T>::SenderIsNotTheSignerAccount);
 
-			Self::do_add_record(
-				project_id,
-				hashed_info,
-				table,
-				record_type,
-			)
+			Self::do_add_record(records)
 		}
 
     /// Kill all the stored data.
