@@ -24,7 +24,13 @@ impl<T: Config> Pallet<T> {
       // Get timestamp
       let creation_date: CreationDate = Self::get_timestamp_in_milliseconds().ok_or(Error::<T>::TimestampError)?;
 
-      let record_id: Id = (record.0.clone(), creation_date).using_encoded(blake2_256);
+      let record_id: Id = (
+        record.0.clone(),
+        record.1.clone(),
+        record.2,
+        record.3,
+        creation_date.clone()
+      ).using_encoded(blake2_256);
 
       // Ensure the generated id is unique
       ensure!(!Records::<T>::contains_key((record.0.clone(), record.2), record_id), Error::<T>::IdAlreadyExists);
