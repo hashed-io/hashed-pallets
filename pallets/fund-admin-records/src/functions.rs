@@ -15,10 +15,10 @@ impl<T: Config> Pallet<T> {
       ensure!(!record.0.is_empty(), Error::<T>::ProjectIdIsEmpty);
       ensure!(!record.1.is_empty(), Error::<T>::HashedInfoIsEmpty);
 
-      let project_id_validated = BoundedVec::<u8, ConstU32<50>>::try_from(record.0.clone())
+      let project_id_validated = ProjectId::try_from(record.0.clone())
         .map_err(|_| Error::<T>::ProjectIdExceededMaxLength)?;
 
-      let hashed_info_validated = BoundedVec::<u8, ConstU32<400>>::try_from(record.1.clone())
+      let hashed_info_validated = HashedInfo::try_from(record.1.clone())
         .map_err(|_| Error::<T>::HashedInfoExceededMaxLength)?;
 
       // Get timestamp
