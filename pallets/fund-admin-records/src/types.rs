@@ -38,5 +38,5 @@ pub enum RecordType {
 	Approve,
 	Reject,
 	Recovery,
-	Reset,
+	Cancel,
 }
