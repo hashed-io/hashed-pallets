@@ -13,7 +13,7 @@ The unique record id is generated using a record's project id and its creation t
 - **ProjectId:** A unique identifier for each project. It's a bounded vector with a maximum length of 50 bytes.
 - **CreationDate:** Unix timestamp representing the creation time of a record.
 - **TableType:** This enum determines the type of table that the record belongs to. It can be Drawdown, RecoveryDrawdown, Revenue, or RecoveryRevenue.
-- **RecordType:** This enum determines the type of operation performed for the record. It can be Creation, Submit, Approve, Reject, Recovery, or Reset.
+- **RecordType:** This enum determines the type of operation performed for the record. It can be Creation, Submit, Approve, Reject, Recovery, or Cancel.
 - **Records:** The storage item containing all the records. They are organized in a double map structure, which uses (ProjectId, TableType) as the first key and record ID as a second.
 
 ## Interface
