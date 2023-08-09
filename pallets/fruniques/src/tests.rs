@@ -3,7 +3,7 @@ use codec::Encode;
 use core::convert::TryFrom;
 
 use frame_support::{assert_noop, assert_ok, BoundedVec};
-
+use crate::types::ParentInfoCall;
 pub struct ExtBuilder;
 
 // helper function to set BoundedVec
@@ -51,57 +51,66 @@ fn dummy_empty_attributes() -> Vec<(BoundedVec<u8, KeyLimit>, BoundedVec<u8, Val
 	vec![]
 }
 
+fn dummy_parent(collection_id: u32, parent_id: u32) -> ParentInfoCall<Test> {
+	ParentInfoCall {
+		collection_id,
+		parent_id,
+		parent_percentage: 10,
+		is_hierarchical: true
+	}
+}
+
 #[test]
 fn create_collection_works() {
-	ExtBuilder::default().build().execute_with(|| {
-		assert_ok!(Fruniques::create_collection(Origin::signed(1), dummy_description()));
+	new_test_ext().execute_with(|| {
+		assert_ok!(Fruniques::create_collection(RuntimeOrigin::signed(1), dummy_description()));
 	})
 }
 
 #[test]
 fn spawn_extrinsic_works() {
-	ExtBuilder::default().build().execute_with(|| {
+	new_test_ext().execute_with(|| {
 		// A collection must be created before spawning an NFT
 		assert_noop!(
-			Fruniques::spawn(Origin::signed(1), 0, None, dummy_description(), None),
+			Fruniques::spawn(RuntimeOrigin::signed(1), 0, dummy_description(), None, None),
 			Error::<Test>::CollectionNotFound
 		);
 
 		// Create a collection
-		assert_ok!(Fruniques::create_collection(Origin::signed(1), dummy_description()));
+		assert_ok!(Fruniques::create_collection(RuntimeOrigin::signed(1), dummy_description()));
 
 		// The first item can not be a child
 		assert_noop!(
-			Fruniques::spawn(Origin::signed(1), 0, Some((0, false, 10)), dummy_description(), None),
+			Fruniques::spawn(RuntimeOrigin::signed(1), 0, dummy_description(), None, Some(dummy_parent(0, 10))),
 			Error::<Test>::ParentNotFound
 		);
 
 		// A NFT can be created with empty data
-		assert_ok!(Fruniques::spawn(Origin::signed(1), 0, None, dummy_description(), None));
+		assert_ok!(Fruniques::spawn(RuntimeOrigin::signed(1), 0, dummy_description(), None, None));
 		// A NFT can be created with attributes
 		assert_ok!(Fruniques::spawn(
-			Origin::signed(1),
+			RuntimeOrigin::signed(1),
 			0,
-			None,
 			dummy_description(),
-			Some(dummy_attributes())
+			Some(dummy_attributes()),
+			None
 		));
 		// A NFT can be hierarchical
 		assert_ok!(Fruniques::spawn(
-			Origin::signed(1),
+			RuntimeOrigin::signed(1),
 			0,
-			Some((0, false, 10)),
 			dummy_description(),
-			None
+			None,
+			Some(dummy_parent(0, 0))
 		));
 		// The parent must exist
 		assert_noop!(
 			Fruniques::spawn(
-				Origin::signed(1),
+				RuntimeOrigin::signed(1),
 				0,
-				Some((100, false, 10)),
 				dummy_description(),
-				None
+				None,
+				Some(dummy_parent(0, 10))
 			),
 			Error::<Test>::ParentNotFound
 		);
@@ -110,25 +119,25 @@ fn spawn_extrinsic_works() {
 
 #[test]
 fn set_attributes_works() {
-	ExtBuilder::default().build().execute_with(|| {
+	new_test_ext().execute_with(|| {
 		// A collection must be created before spawning an NFT
 		assert_noop!(
-			Fruniques::spawn(Origin::signed(1), 0, None, dummy_description(), None),
+			Fruniques::spawn(RuntimeOrigin::signed(1), 0, dummy_description(), None, None),
 			Error::<Test>::CollectionNotFound
 		);
 
 		// Create a collection
-		assert_ok!(Fruniques::create_collection(Origin::signed(1), dummy_description()));
+		assert_ok!(Fruniques::create_collection(RuntimeOrigin::signed(1), dummy_description()));
 		// Attributes can be added only to existing NFTs
 		assert_noop!(
-			Fruniques::set_attributes(Origin::signed(1), 0, 0, dummy_attributes()),
+			Fruniques::set_attributes(RuntimeOrigin::signed(1), 0, 0, dummy_attributes()),
 			Error::<Test>::FruniqueNotFound
 		);
 		// A NFT can be created with empty data
-		assert_ok!(Fruniques::spawn(Origin::signed(1), 0, None, dummy_description(), None));
+		assert_ok!(Fruniques::spawn(RuntimeOrigin::signed(1), 0, dummy_description(), None, None));
 		// Attributes can not be empty
 		assert_noop!(
-			Fruniques::set_attributes(Origin::signed(1), 0, 0, dummy_empty_attributes()),
+			Fruniques::set_attributes(RuntimeOrigin::signed(1), 0, 0, dummy_empty_attributes()),
 			Error::<Test>::AttributesEmpty
 		);
 	})
@@ -138,11 +147,97 @@ fn set_attributes_works() {
 fn invite_collaborator_works() {
 	new_test_ext().execute_with(|| {
 		// Create a collection
-		assert_ok!(Fruniques::create_collection(Origin::signed(1), dummy_description()));
+		assert_ok!(Fruniques::create_collection(RuntimeOrigin::signed(1), dummy_description()));
 		assert_ok!(Fruniques::invite(
-			Origin::signed(1),
+			RuntimeOrigin::signed(1),
 			0,
 			2
 		));
+	});
+}
+
+#[test]
+fn verify_by_admin_works() {
+	new_test_ext().execute_with(|| {
+		// Create a collection
+		assert_ok!(Fruniques::create_collection(RuntimeOrigin::signed(1), dummy_description()));
+		// Spawn an NFT
+		assert_ok!(Fruniques::spawn(RuntimeOrigin::signed(1), 0, dummy_description(), None, None));
+		// Add admin to the collection
+		assert_ok!(Fruniques::insert_auth_in_frunique_collection(2, 0, crate::types::FruniqueRole::Admin));
+		// Verify
+		assert_ok!(Fruniques::verify(
+			RuntimeOrigin::signed(2),
+			0,
+			0
+		));
+	});
+}
+
+#[test]
+fn verify_by_owner_works() {
+	new_test_ext().execute_with(|| {
+		// Create a collection
+		assert_ok!(Fruniques::create_collection(RuntimeOrigin::signed(1), dummy_description()));
+		// Spawn an NFT
+		assert_ok!(Fruniques::spawn(RuntimeOrigin::signed(1), 0, dummy_description(), None, None));
+		// Verify
+		assert_ok!(Fruniques::verify(
+			RuntimeOrigin::signed(1),
+			0,
+			0
+		));
+	});
+}
+
+#[test]
+fn verify_by_neither_admin_nor_owner_fails() {
+	new_test_ext().execute_with(|| {
+		// Create a collection
+		assert_ok!(Fruniques::create_collection(RuntimeOrigin::signed(1), dummy_description()));
+		// Spawn an NFT
+		assert_ok!(Fruniques::spawn(RuntimeOrigin::signed(1), 0, dummy_description(), None, None));
+		// Invite collaborator
+		assert_ok!(Fruniques::invite(
+			RuntimeOrigin::signed(1),
+			0,
+			2
+		));
+		// Verify
+		assert_noop!(
+			Fruniques::verify(
+				RuntimeOrigin::signed(3),
+				0,
+				0
+			),
+			Error::<Test>::NotAuthorized
+		);
+	});
+}
+
+#[test]
+fn verify_already_verified_fails() {
+	new_test_ext().execute_with(|| {
+		// Create a collection
+		assert_ok!(Fruniques::create_collection(RuntimeOrigin::signed(1), dummy_description()));
+		// Spawn an NFT
+		assert_ok!(Fruniques::spawn(RuntimeOrigin::signed(1), 0, dummy_description(), None, None));
+		// Add admin to the collection
+		assert_ok!(Fruniques::insert_auth_in_frunique_collection(2, 0, crate::types::FruniqueRole::Admin));
+		// Verify
+		assert_ok!(Fruniques::verify(
+			RuntimeOrigin::signed(2),
+			0,
+			0
+		));
+		// Verify again
+		assert_noop!(
+			Fruniques::verify(
+				RuntimeOrigin::signed(2),
+				0,
+				0
+			),
+			Error::<Test>::FruniqueAlreadyVerified
+		);
 	});
 }
