@@ -162,6 +162,7 @@ use frame_system::Config as SystemConfig;
 use sp_runtime::AccountId32;
 
 pub use pallet::*;
+use pallet_rbac::types::RoleBasedAccessControl;
 pub use weights::WeightInfo;
 
 type AccountIdLookupOf<T> = <<T as frame_system::Config>::Lookup as StaticLookup>::Source;
@@ -206,6 +207,7 @@ pub mod pallet {
     /// The overarching event type.
     type RuntimeEvent: From<Event<Self, I>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
 
+	type Rbac: RoleBasedAccessControl<Self::AccountId>;
     /// The units in which we record balances.
     type Balance: Member
       + Parameter
