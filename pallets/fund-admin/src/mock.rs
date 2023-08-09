@@ -22,8 +22,26 @@ frame_support::construct_runtime!(
 		FundAdmin: pallet_fund_admin::{Pallet, Call, Storage, Event<T>},
 		Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent},
 		RBAC: pallet_rbac::{Pallet, Call, Storage, Event<T>},
+		Balances: pallet_balances::{Pallet, Call, Storage, Event<T>},
 	}
 );
+
+parameter_types! {
+	pub const ExistentialDeposit: u64 = 1;
+	pub const MaxReserves: u32 = 50;
+}
+
+impl pallet_balances::Config for Test {
+	type Balance = u64;
+	type DustRemoval = ();
+	type RuntimeEvent = RuntimeEvent;
+	type ExistentialDeposit = ExistentialDeposit;
+	type AccountStore = System;
+	type WeightInfo = ();
+	type MaxLocks = ();
+	type MaxReserves = MaxReserves;
+	type ReserveIdentifier = [u8; 8];
+}
 
 parameter_types! {
 	pub const BlockHashCount: u64 = 250;
@@ -35,8 +53,8 @@ impl system::Config for Test {
 	type BlockWeights = ();
 	type BlockLength = ();
 	type DbWeight = ();
-	type Origin = Origin;
-	type Call = Call;
+	type RuntimeOrigin = RuntimeOrigin;
+	type RuntimeCall = RuntimeCall;
 	type Index = u64;
 	type BlockNumber = u64;
 	type Hash = H256;
@@ -44,38 +62,51 @@ impl system::Config for Test {
 	type AccountId = u64;
 	type Lookup = IdentityLookup<Self::AccountId>;
 	type Header = Header;
-	type Event = Event;
+	type RuntimeEvent = RuntimeEvent;
 	type BlockHashCount = BlockHashCount;
 	type Version = ();
 	type PalletInfo = PalletInfo;
-	type AccountData = ();
 	type OnNewAccount = ();
 	type OnKilledAccount = ();
 	type SystemWeightInfo = ();
 	type SS58Prefix = SS58Prefix;
 	type OnSetCode = ();
 	type MaxConsumers = frame_support::traits::ConstU32<16>;
+	type AccountData = pallet_balances::AccountData<u64>;
 }
 
 parameter_types! {
 	pub const MaxDocuments:u32 = 5;
 	pub const MaxProjectsPerUser:u32 = 10;
-	pub const MaxUserPerProject:u32 = 50;
-	pub const MaxBuildersPerProject:u32 = 1;
-	pub const MaxInvestorsPerProject:u32 = 50;
-	pub const MaxIssuersPerProject:u32 = 1;
-	pub const MaxRegionalCenterPerProject:u32 = 1;
-	pub const MaxBoundedVecs:u32 = 1;
+	pub const MaxUserPerProject:u32 = 2000; // should be the sum of the max number of builders, investors, issuers, regional centers
+	pub const MaxBuildersPerProject:u32 = 500;
+	pub const MaxInvestorsPerProject:u32 = 500;
+	pub const MaxIssuersPerProject:u32 = 500;
+	pub const MaxRegionalCenterPerProject:u32 = 500;
+	pub const MaxProjectsPerInvestor:u32 = 1;
 	pub const MaxDrawdownsPerProject:u32 = 1000;
 	pub const MaxTransactionsPerDrawdown:u32 = 500;
 	pub const MaxRegistrationsAtTime:u32 = 50;
 	pub const MaxExpendituresPerProject:u32 = 1000;
-
+	pub const MaxBanksPerProject:u32 = 200;
+	pub const MaxJobEligiblesByProject:u32 = 1000;
+	pub const MaxRevenuesByProject:u32 = 1000;
+	pub const MaxTransactionsPerRevenue:u32 = 500;
+	pub const MaxStatusChangesPerDrawdown:u32 = 100;
+	pub const MaxStatusChangesPerRevenue:u32 = 100;
+	pub const MinAdminBalance:u64 = 10;
+	pub const TransferAmount:u64 = 10;
+	pub const InitialAdminBalance:u64 = 1_000_000;
 }
 
 impl pallet_fund_admin::Config for Test {
-	type Event = Event;
+	type RuntimeEvent = RuntimeEvent;
 	type RemoveOrigin = EnsureRoot<Self::AccountId>;
+	type Timestamp = Timestamp;
+	type Moment = u64;
+	type Rbac = RBAC;
+	type Currency = Balances;
+
 	type MaxDocuments = MaxDocuments;
 	type MaxProjectsPerUser = MaxProjectsPerUser;
 	type MaxUserPerProject = MaxUserPerProject;
@@ -83,16 +114,19 @@ impl pallet_fund_admin::Config for Test {
 	type MaxInvestorsPerProject = MaxInvestorsPerProject;
 	type MaxIssuersPerProject = MaxIssuersPerProject;
 	type MaxRegionalCenterPerProject = MaxRegionalCenterPerProject;
-	type MaxBoundedVecs = MaxBoundedVecs;
 	type MaxDrawdownsPerProject = MaxDrawdownsPerProject;
 	type MaxTransactionsPerDrawdown = MaxTransactionsPerDrawdown;
 	type MaxRegistrationsAtTime = MaxRegistrationsAtTime;
 	type MaxExpendituresPerProject = MaxExpendituresPerProject;
-
-
-	type Timestamp = Timestamp;
-	type Moment = u64;
-	type Rbac = RBAC;
+	type MaxProjectsPerInvestor = MaxProjectsPerInvestor;
+	type MaxBanksPerProject = MaxBanksPerProject;
+	type MaxJobEligiblesByProject = MaxJobEligiblesByProject;
+	type MaxRevenuesByProject = MaxRevenuesByProject;
+	type MaxTransactionsPerRevenue = MaxTransactionsPerRevenue;
+	type MaxStatusChangesPerDrawdown = MaxStatusChangesPerDrawdown;
+	type MaxStatusChangesPerRevenue = MaxStatusChangesPerRevenue;
+	type MinAdminBalance = MinAdminBalance;
+	type TransferAmount = TransferAmount;
 }
 
 
@@ -113,7 +147,7 @@ parameter_types! {
 	pub const MaxUsersPerRole: u32 = 2500;
 }
 impl pallet_rbac::Config for Test {
-	type Event = Event;
+	type RuntimeEvent = RuntimeEvent;
 	type MaxScopesPerPallet = MaxScopesPerPallet;
 	type MaxRolesPerPallet = MaxRolesPerPallet;
 	type RoleMaxLen = RoleMaxLen;
@@ -125,7 +159,12 @@ impl pallet_rbac::Config for Test {
 
 // Build genesis storage according to the mock runtime.
 pub fn new_test_ext() -> sp_io::TestExternalities {
-	let mut t: sp_io::TestExternalities = frame_system::GenesisConfig::default().build_storage::<Test>().unwrap().into();
+	let balance_amount = InitialAdminBalance::get();
+	let mut t = frame_system::GenesisConfig::default().build_storage::<Test>().unwrap();
+	pallet_balances::GenesisConfig::<Test> {
+		balances: vec![(1, balance_amount)],
+	}.assimilate_storage(&mut t).expect("assimilate_storage failed");
+	let mut t: sp_io::TestExternalities = t.into();
 	t.execute_with(|| FundAdmin::do_initial_setup().expect("Error on configuring initial setup"));
 	t
 }
