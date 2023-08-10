@@ -6,8 +6,8 @@ authors = ["Hashed <https://github.com/hashed-io"]
 homepage = "https://hashed.io"
 edition = "2021"
 license = "Unlicense"
-publish = false
-repository = "https://github.com/hashed-io/hashed-substrate"
+publish = true
+repository = "https://github.com/hashed-io/hashed-pallets"
 
 [package.metadata.docs.rs]
 targets = ["x86_64-unknown-linux-gnu"]
@@ -40,6 +40,5 @@ std = [
 	"frame-benchmarking/std",
 	"pallet-timestamp/std"
 ]
-
 runtime-benchmarks = ["frame-benchmarking/runtime-benchmarks"]
 try-runtime = ["frame-support/try-runtime"]
