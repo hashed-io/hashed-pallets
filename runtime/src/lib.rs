@@ -648,7 +648,7 @@ parameter_types! {
 	pub const MaxRecordsAtTime:u32 = 50;
 }
 impl pallet_fund_admin_records::Config for Runtime {
-	type Event = Event;
+	type RuntimeEvent = RuntimeEvent;
 	type Timestamp = Timestamp;
 	type Moment = Moment;
 	type RemoveOrigin = EitherOfDiverse<
