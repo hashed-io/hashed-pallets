@@ -7,6 +7,7 @@ var sourcesIndex = JSON.parse('{\
 "pallet_confidential_docs":["",[],["functions.rs","lib.rs","types.rs"]],\
 "pallet_fruniques":["",[],["functions.rs","lib.rs","types.rs"]],\
 "pallet_fund_admin":["",[],["functions.rs","lib.rs","types.rs"]],\
+"pallet_fund_admin_records":["",[],["functions.rs","lib.rs","types.rs"]],\
 "pallet_gated_marketplace":["",[],["functions.rs","lib.rs","types.rs"]],\
 "pallet_rbac":["",[],["functions.rs","lib.rs","types.rs"]],\
 "pallet_template":["",[["migrations",[],["mod.rs","v2.rs"]]],["lib.rs"]]\
