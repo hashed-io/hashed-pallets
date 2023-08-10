@@ -1,7 +1,7 @@
-use crate as pallet_gated_marketplace;
+use crate as pallet_afloat;
 use frame_support::{
-  construct_runtime, parameter_types,
-  traits::{AsEnsureOriginWithArg, ConstU32, ConstU64, GenesisBuild},
+  parameter_types,
+  traits::{AsEnsureOriginWithArg, ConstU32, ConstU64, Currency},
 };
 use frame_system as system;
 use sp_core::H256;
@@ -9,21 +9,20 @@ use sp_runtime::{
   testing::Header,
   traits::{BlakeTwo256, IdentityLookup},
 };
-/// Balance of an account.
-pub type Balance = u128;
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;
 type Block = frame_system::mocking::MockBlock<Test>;
 use frame_system::EnsureRoot;
-use pallet_mapped_assets::DefaultCallback;
-use sp_runtime::{
-  create_runtime_str, generic, impl_opaque_keys,
-  traits::{AccountIdLookup, Block as BlockT, IdentifyAccount, NumberFor, Verify},
-  transaction_validity::{TransactionSource, TransactionValidity},
-  AccountId32, ApplyExtrinsicResult, MultiSignature, Percent,
-};
 use system::EnsureSigned;
-type AccountId = u64;
+
+use crate::types::CreateAsset;
+use frame_system::RawOrigin;
 type AssetId = u32;
+
+parameter_types! {
+  pub const BlockHashCount: u64 = 250;
+  pub const SS58Prefix: u8 = 42;
+}
+
 // Configure a mock runtime to test the pallet.
 frame_support::construct_runtime!(
   pub enum Test where
@@ -39,13 +38,9 @@ frame_support::construct_runtime!(
     Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent},
     RBAC: pallet_rbac::{Pallet, Call, Storage, Event<T>},
     Assets: pallet_mapped_assets::{Pallet, Call, Storage, Event<T>},
+    Afloat: pallet_afloat::{Pallet, Call, Storage, Event<T>},
   }
 );
-
-parameter_types! {
-  pub const BlockHashCount: u64 = 250;
-  pub const SS58Prefix: u8 = 42;
-}
 
 impl system::Config for Test {
   type BaseCallFilter = frame_support::traits::Everything;
@@ -65,13 +60,22 @@ impl system::Config for Test {
   type BlockHashCount = BlockHashCount;
   type Version = ();
   type PalletInfo = PalletInfo;
-  type AccountData = pallet_balances::AccountData<u64>;
   type OnNewAccount = ();
   type OnKilledAccount = ();
   type SystemWeightInfo = ();
   type SS58Prefix = SS58Prefix;
   type OnSetCode = ();
   type MaxConsumers = frame_support::traits::ConstU32<16>;
+  type AccountData = pallet_balances::AccountData<u64>;
+}
+
+impl pallet_afloat::Config for Test {
+  type RuntimeEvent = RuntimeEvent;
+  type TimeProvider = pallet_timestamp::Pallet<Self>;
+  //type RemoveOrigin = frame_system::EnsureSigned<Self::AccountId>;
+  type Currency = pallet_balances::Pallet<Self>;
+  type Rbac = RBAC;
+  type ItemId = u32;
 }
 
 parameter_types! {
@@ -181,6 +185,7 @@ parameter_types! {
 }
 impl pallet_rbac::Config for Test {
   type RuntimeEvent = RuntimeEvent;
+  type RemoveOrigin = EnsureRoot<Self::AccountId>;
   type MaxScopesPerPallet = MaxScopesPerPallet;
   type MaxRolesPerPallet = MaxRolesPerPallet;
   type RoleMaxLen = RoleMaxLen;
@@ -188,20 +193,6 @@ impl pallet_rbac::Config for Test {
   type MaxPermissionsPerRole = MaxPermissionsPerRole;
   type MaxRolesPerUser = MaxRolesPerUser;
   type MaxUsersPerRole = MaxUsersPerRole;
-  type RemoveOrigin = EnsureRoot<Self::AccountId>;
-}
-
-// Build genesis storage according to the mock runtime.
-pub fn new_test_ext() -> sp_io::TestExternalities {
-  // TODO: get initial conf?
-  let mut t: sp_io::TestExternalities =
-    frame_system::GenesisConfig::default().build_storage::<Test>().unwrap().into();
-  t.execute_with(|| {
-    GatedMarketplace::do_initial_setup()
-      .expect("Error on GatedMarketplace configuring initial setup");
-    Fruniques::do_initial_setup().expect("Error on Fruniques configuring initial setup");
-  });
-  t
 }
 
 impl pallet_timestamp::Config for Test {
@@ -209,12 +200,6 @@ impl pallet_timestamp::Config for Test {
   type OnTimestampSet = ();
   type MinimumPeriod = ();
   type WeightInfo = ();
-}
-parameter_types! {
-
-  pub const AssetDeposit: Balance = 100;
-  pub const ApprovalDeposit: Balance = 1;
-  pub const RemoveItemsLimit: u32 = 1000;
 }
 
 pub trait AssetsCallback<AssetId, AccountId> {
@@ -253,4 +238,24 @@ impl pallet_mapped_assets::Config for Test {
   type RemoveItemsLimit = ConstU32<5>;
   type MaxReserves = MaxReserves;
   type ReserveIdentifier = u32;
+  type Rbac = RBAC;
+}
+
+// Build genesis storage according to the mock runtime.
+pub fn new_test_ext() -> sp_io::TestExternalities {
+  // TODO: get initial conf?
+  let mut t: sp_io::TestExternalities =
+    frame_system::GenesisConfig::default().build_storage::<Test>().unwrap().into();
+  t.execute_with(|| {
+    Balances::make_free_balance_be(&1, 100);
+    Balances::make_free_balance_be(&2, 100);
+    Afloat::initial_setup(
+      RawOrigin::Root.into(),
+      1,
+      2,
+      CreateAsset::New { asset_id: 0, min_balance: 1 },
+    )
+    .expect("Error on GatedMarketplace configuring initial setup");
+  });
+  t
 }

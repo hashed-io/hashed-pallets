@@ -1,7 +1,7 @@
 [package]
-name = "pallet-gated-marketplace"
+name = "pallet-afloat"
 version = "4.0.0-dev"
-description = "Pallet to create marketplaces"
+description = ""
 authors = ["Hashed <https://github.com/hashed-io"]
 homepage = "https://hashed.io"
 edition = "2021"
@@ -30,28 +30,30 @@ pallet-balances = { git = "https://github.com/paritytech/substrate", branch = "p
 pallet-timestamp = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.40", default-features = false }
 pallet-fruniques = { path = "../fruniques", default-features = false, version = "0.1.0-dev" }
 pallet-rbac = { path = "../rbac/", default-features = false, version = "4.0.0-dev" }
+pallet-gated-marketplace = { path = "../gated-marketplace/", default-features = false, version = "4.0.0-dev" }
 pallet-mapped-assets = { path = "../mapped-assets/", default-features = false, version = "4.0.0-dev" }
 
 [dev-dependencies]
-sp-core = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.40", default-features = false }
-sp-io = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.40", default-features = false }
-sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.40", default-features = false }
+sp-core = { default-features = false, git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.40" }
+sp-io = { default-features = false, git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.40" }
+sp-runtime = { default-features = false, git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.40" }
+sp-std = { default-features = false, git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.40" }
 
 [features]
 default = ["std"]
 std = [
 	"codec/std",
-	"serde/std",
 	"scale-info/std",
 	"frame-support/std",
 	"frame-system/std",
 	"frame-benchmarking/std",
+	"sp-std/std",
 	"pallet-balances/std",
 	"pallet-uniques/std",
 	"pallet-fruniques/std",
 	"pallet-timestamp/std",
 	"pallet-rbac/std",
-	"pallet-mapped-assets/std"
+	"pallet-gated-marketplace/std",
 ]
 runtime-benchmarks = ["frame-benchmarking/runtime-benchmarks"]
 try-runtime = ["frame-support/try-runtime"]
