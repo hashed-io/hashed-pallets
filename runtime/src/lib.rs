@@ -645,6 +645,20 @@ impl pallet_fund_admin::Config for Runtime {
 }
 
 parameter_types! {
+	pub const MaxRecordsAtTime:u32 = 50;
+}
+impl pallet_fund_admin_records::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type Timestamp = Timestamp;
+	type Moment = Moment;
+	type RemoveOrigin = EitherOfDiverse<
+		EnsureRoot<AccountId>,
+		pallet_collective::EnsureProportionAtLeast<AccountId, CouncilCollective, 3, 5>,
+	>;
+	type MaxRecordsAtTime = MaxRecordsAtTime;
+}
+
+parameter_types! {
 	pub const LabelMaxLen:u32 = 32;
 	pub const MaxAuthsPerMarket:u32 = 3; // 1 of each role (1 owner, 1 admin, etc.)
 	pub const MaxRolesPerAuth: u32 = 2;
@@ -848,6 +862,7 @@ construct_runtime!(
 		RBAC: pallet_rbac,
 		ConfidentialDocs: pallet_confidential_docs,
 		FundAdmin: pallet_fund_admin,
+		FundAdminRecords: pallet_fund_admin_records
 	}
 );
 
