@@ -34,7 +34,7 @@ impl system::Config for Test {
 	type BlockWeights = ();
 	type BlockLength = ();
 	type DbWeight = ();
-	type Origin = Origin;
+	type RuntimeOrigin = RuntimeOrigin;
 	type Call = Call;
 	type Index = u64;
 	type BlockNumber = u64;
@@ -43,7 +43,7 @@ impl system::Config for Test {
 	type AccountId = u64;
 	type Lookup = IdentityLookup<Self::AccountId>;
 	type Header = Header;
-	type Event = Event;
+	type RuntimeEvent = RuntimeEvent;
 	type BlockHashCount = BlockHashCount;
 	type Version = ();
 	type PalletInfo = PalletInfo;
@@ -61,7 +61,7 @@ parameter_types! {
 }
 
 impl pallet_fund_admin_records::Config for Test {
-	type Event = Event;
+	type RuntimeEvent = RuntimeEvent;
 	type Timestamp = Timestamp;
 	type RemoveOrigin = EnsureRoot<Self::AccountId>;
 	type Moment = u64;
