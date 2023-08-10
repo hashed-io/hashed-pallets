@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"fn":["get_chain_spec","hashed_genesis"],"type":["HashedChainSpec"]};

@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"fn":["authority_keys_from_seed","chaos_config","development_config","get_account_id_from_seed","get_from_seed","local_testnet_config","md5_config"],"type":["ChainSpec"]};

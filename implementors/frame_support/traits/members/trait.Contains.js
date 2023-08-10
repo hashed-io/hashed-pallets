@@ -1,3 +1,0 @@
-(function() {var implementors = {
-"hashed_parachain_runtime":[["impl Contains&lt;MultiLocation&gt; for <a class=\"struct\" href=\"hashed_parachain_runtime/xcm_config/struct.ParentOrParentsExecutivePlurality.html\" title=\"struct hashed_parachain_runtime::xcm_config::ParentOrParentsExecutivePlurality\">ParentOrParentsExecutivePlurality</a>"]]
-};if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

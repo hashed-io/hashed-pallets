@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["AfloatAssetId",""],["AfloatCollectionId",""],["AfloatMarketPlaceId",""],["AfloatOffers",""],["AfloatTransactions",""],["UserInfo","Keeps track of the number of fruniques in existence for a collection."]]};

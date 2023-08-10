@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["ApplicantsByMarketplace",""],["Applications",""],["ApplicationsByAccount",""],["AskingForRedemption",""],["BlockedUsersByMarketplace",""],["Custodians",""],["Marketplaces",""],["OffersByAccount",""],["OffersByItem",""],["OffersByMarketplace",""],["OffersInfo",""]]};

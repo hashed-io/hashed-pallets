@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["Freezer","Keeps track of the number of collections in existence."],["FruniqueInfo",""],["FruniqueRedeemed",""],["FruniqueRoots",""],["FruniqueVerified",""],["NextCollection","Keeps track of the number of collections in existence."],["NextFrunique","Keeps track of the number of fruniques in existence for a collection."]]};

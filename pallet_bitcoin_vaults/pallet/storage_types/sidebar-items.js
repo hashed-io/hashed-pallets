@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["BDKServicesURL",""],["ProofOfReserves","Stores vaults proof-of-reserve"],["Proposals",""],["ProposalsByVault",""],["Vaults","Stores vaults"],["VaultsBySigner","Keeps track of what accounts own what xpub."],["Xpubs","Stores hash-xpub pairs"],["XpubsByOwner","Keeps track of what accounts own what xpub."]]};

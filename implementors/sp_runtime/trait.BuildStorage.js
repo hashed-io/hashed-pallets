@@ -1,4 +1,0 @@
-(function() {var implementors = {
-"hashed_parachain_runtime":[["impl <a class=\"trait\" href=\"hashed_parachain_runtime/trait.BuildStorage.html\" title=\"trait hashed_parachain_runtime::BuildStorage\">BuildStorage</a> for <a class=\"struct\" href=\"hashed_parachain_runtime/struct.GenesisConfig.html\" title=\"struct hashed_parachain_runtime::GenesisConfig\">GenesisConfig</a>"]],
-"hashed_runtime":[["impl <a class=\"trait\" href=\"hashed_runtime/trait.BuildStorage.html\" title=\"trait hashed_runtime::BuildStorage\">BuildStorage</a> for <a class=\"struct\" href=\"hashed_runtime/struct.GenesisConfig.html\" title=\"struct hashed_runtime::GenesisConfig\">GenesisConfig</a>"]]
-};if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()
