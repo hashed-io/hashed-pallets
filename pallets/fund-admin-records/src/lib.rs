@@ -12,13 +12,12 @@ mod tests;
 mod benchmarking;
 
 mod functions;
-pub mod types;
+mod types;
 
 #[frame_support::pallet]
 pub mod pallet {
 	use frame_support::pallet_prelude::*;
 	use frame_system::pallet_prelude::*;
-	use frame_support::transactional;
 	use sp_runtime::traits::Scale;
 	use frame_support::traits::Time;
 
@@ -26,7 +25,7 @@ pub mod pallet {
 
 	#[pallet::config]
 	pub trait Config: frame_system::Config {
-		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
+		type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
 
 		type Moment: Parameter
 		+ Default
@@ -38,7 +37,7 @@ pub mod pallet {
 
 		type Timestamp: Time<Moment = Self::Moment>;
 
-		type RemoveOrigin: EnsureOrigin<Self::Origin>;
+		type RemoveOrigin: EnsureOrigin<Self::RuntimeOrigin>;
 
 		#[pallet::constant]
 		type MaxRecordsAtTime: Get<u32>;
@@ -70,7 +69,7 @@ pub mod pallet {
 		OptionQuery,
 	>;
 
-  // E V E N T S
+  	// E V E N T S
 	// --------------------------------------------------------------------
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(super) fn deposit_event)]
@@ -83,9 +82,9 @@ pub mod pallet {
 	// --------------------------------------------------------------------
 	#[pallet::error]
 	pub enum Error<T> {
-    /// The record id already exists
-    IdAlreadyExists,
-    /// Timestamp was not genereated correctly
+		/// The record id already exists
+		IdAlreadyExists,
+		/// Timestamp was not genereated correctly
 		TimestampError,
 		/// Signer account is not set
 		SignerAccountNotSet,
@@ -103,7 +102,7 @@ pub mod pallet {
 		MaxRegistrationsAtATimeReached,
 	}
 
-  // E X T R I N S I C S
+  	// E X T R I N S I C S
 	// --------------------------------------------------------------------
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
@@ -113,8 +112,8 @@ pub mod pallet {
 		/// * `origin` - The sender of the transaction
 		/// * `signer_account` - The account id of the signer
 		/// Returns `Ok` if the operation is successful, `Err` otherwise.
-		#[transactional]
-		#[pallet::weight(10_000 + T::DbWeight::get().writes(1))]
+		#[pallet::call_index(1)]
+		#[pallet::weight(Weight::from_ref_time(10_000) + T::DbWeight::get().writes(10))]
 		pub fn set_signer_account(
 			origin: OriginFor<T>,
 			account: T::AccountId,
@@ -135,11 +134,11 @@ pub mod pallet {
 		///
 		/// - DispatchResult: This function will return an instance of `DispatchResult`. 
 		///   If the function executes successfully without any error, it will return `Ok(())`. 
-    ///   If there is an error, it will return `Err(error)`, where `error` is an instance of the `DispatchError` class.
-    #[transactional]
-		#[pallet::weight(10_000 + T::DbWeight::get().writes(1))] 		// TODO: test fees
-    pub fn add_record(
-      origin: OriginFor<T>,
+    	///   If there is an error, it will return `Err(error)`, where `error` is an instance of the `DispatchError` class.
+		#[pallet::call_index(2)]
+		#[pallet::weight(Weight::from_ref_time(10_000) + T::DbWeight::get().writes(10))]
+		pub fn add_record(
+			origin: OriginFor<T>,
 			records: RecordCollection<T>,
 		) -> DispatchResult {
 			let who = ensure_signed(origin.clone())?;
@@ -153,7 +152,7 @@ pub mod pallet {
 			Self::do_add_record(records)
 		}
 
-    /// Kill all the stored data.
+    	/// Kill all the stored data.
 		///
 		/// This function is used to kill ALL the stored data.
 		/// Use it with caution!
@@ -163,8 +162,8 @@ pub mod pallet {
 		///
 		/// ### Considerations:
 		/// - This function is only available to the `admin` with sudo access.
-		#[transactional]
-		#[pallet::weight(10_000 + T::DbWeight::get().writes(1))]
+		#[pallet::call_index(3)]
+		#[pallet::weight(Weight::from_ref_time(10_000) + T::DbWeight::get().writes(10))]
 		pub fn kill_storage(
 			origin: OriginFor<T>,
 		) -> DispatchResult{
