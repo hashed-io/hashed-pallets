@@ -168,7 +168,8 @@ pub mod pallet {
 			origin: OriginFor<T>,
 		) -> DispatchResult{
 			T::RemoveOrigin::ensure_origin(origin.clone())?;
-
+			let _ = <SignerAccount<T>>::kill();
+			let _ = <Records<T>>::clear(1000, None);
 			Ok(())
 		}
   }

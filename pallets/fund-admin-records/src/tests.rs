@@ -54,7 +54,7 @@ fn make_array_record_collection(num: u16) -> RecordCollection<Test> {
 fn set_signer_account_works() {
   new_test_ext().execute_with(|| {
     let signer_account = 1;
-    assert_ok!(FundAdminRecords::set_signer_account(Origin::root(), signer_account));
+    assert_ok!(FundAdminRecords::set_signer_account(RuntimeOrigin::root(), signer_account));
     assert_eq!(FundAdminRecords::signer_account(), Some(signer_account));
   });
 }
@@ -69,7 +69,7 @@ fn cannot_add_record_if_signer_account_is_not_set() {
     let recod_request = make_record_collection(project_id, hashed_info, table, record_type);
 
     assert_noop!(
-      FundAdminRecords::add_record(Origin::signed(1), recod_request),
+      FundAdminRecords::add_record(RuntimeOrigin::signed(1), recod_request),
       Error::<Test>::SignerAccountNotSet
     );
   });
@@ -90,10 +90,10 @@ fn add_drawdown_record_works() {
       record_type
     );
 
-    assert_ok!(FundAdminRecords::set_signer_account(Origin::root(), signer_account));
+    assert_ok!(FundAdminRecords::set_signer_account(RuntimeOrigin::root(), signer_account));
 
     assert_ok!(FundAdminRecords::add_record(
-      Origin::signed(signer_account),
+      RuntimeOrigin::signed(signer_account),
       recod_request
     ));
 
