@@ -173,6 +173,7 @@
 <a href="#173" id="173">173</a>
 <a href="#174" id="174">174</a>
 <a href="#175" id="175">175</a>
+<a href="#176" id="176">176</a>
 </pre><pre class="rust"><code><span class="attr">#![cfg_attr(not(feature = <span class="string">&quot;std&quot;</span>), no_std)]
 
 </span><span class="kw">pub use </span>pallet::<span class="kw-2">*</span>;
@@ -343,7 +344,8 @@
 			origin: OriginFor&lt;T&gt;,
 		) -&gt; DispatchResult{
 			T::RemoveOrigin::ensure_origin(origin.clone())<span class="question-mark">?</span>;
-
+			<span class="kw">let _ </span>= &lt;SignerAccount&lt;T&gt;&gt;::kill();
+			<span class="kw">let _ </span>= &lt;Records&lt;T&gt;&gt;::clear(<span class="number">1000</span>, <span class="prelude-val">None</span>);
 			<span class="prelude-val">Ok</span>(())
 		}
   }
