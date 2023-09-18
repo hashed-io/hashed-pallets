@@ -402,11 +402,11 @@ pub mod pallet {
 
 	#[pallet::call_index(11)]
     #[pallet::weight(Weight::from_parts(10_000,0) + T::DbWeight::get().reads_writes(1,1))]
-    pub fn cancel_offer(origin: OriginFor<T>, offer_id: StorageId) -> DispatchResult {
+    pub fn cancel_offer(origin: OriginFor<T>, order_id: StorageId) -> DispatchResult {
       let who = ensure_signed(origin.clone())?;
       let is_admin_or_owner = Self::is_admin_or_owner(who.clone())?;
       ensure!(is_admin_or_owner, Error::<T>::Unauthorized);
-	  Self::do_cancel_offer(offer_id)
+	  Self::do_cancel_offer(order_id)
     }
   }
 }

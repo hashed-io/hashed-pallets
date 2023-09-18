@@ -859,7 +859,11 @@ impl<T: Config> Pallet<T> {
     Ok(())
   }
 
-  pub fn do_cancel_offer(offer_id: StorageId) -> DispatchResult {
+  pub fn do_cancel_offer(order_id: StorageId) -> DispatchResult {
+	// ensure offer exists
+    ensure!(<AfloatOffers<T>>::contains_key(order_id), Error::<T>::OfferNotFound);
+    //get offer details
+    let offer = <AfloatOffers<T>>::get(order_id).unwrap();
 	Ok(())
   }
 }
