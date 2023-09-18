@@ -858,4 +858,8 @@ impl<T: Config> Pallet<T> {
     })?;
     Ok(())
   }
+
+  pub fn do_cancel_offer(offer_id: StorageId) -> DispatchResult {
+	Ok(())
+  }
 }
