@@ -56,7 +56,7 @@ pub enum SignUpArgs {
 }
 
 // ! Offer structures
-
+// ! The statuses with "TF" refer to the transfer form that is generated after a match is formed - so all of the TF_* statuses come after matched
 #[derive(
   Encode, Decode, Clone, Eq, PartialEq, RuntimeDebugNoBound, MaxEncodedLen, TypeInfo, Copy,
 )]
@@ -70,6 +70,7 @@ pub enum OfferStatus {
   TF_APPROVED,
   APPROVED,
   FILLED,
+  CANCELLED,
 }
 
 impl Default for OfferStatus {

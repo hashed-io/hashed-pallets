@@ -864,6 +864,19 @@ impl<T: Config> Pallet<T> {
     ensure!(<AfloatOffers<T>>::contains_key(order_id), Error::<T>::OfferNotFound);
     //get offer details
     let offer = <AfloatOffers<T>>::get(order_id).unwrap();
-	Ok(())
+	match offer.status {
+		OfferStatus::CREATED => {
+			<AfloatOffers<T>>::try_mutate(order_id, |offer| -> DispatchResult {
+				let offer = offer.as_mut().ok_or(Error::<T>::OfferNotFound)?;
+				offer.cancellation_date = Some(T::TimeProvider::now().as_secs());
+				offer.status = OfferStatus::CANCELLED;
+				Ok(())
+			})?;
+			Ok(())
+		}
+		_ => {
+			Err(Error::<T>::OfferTaken.into())
+		}
+	}
   }
 }
