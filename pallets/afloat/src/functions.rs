@@ -858,4 +858,34 @@ impl<T: Config> Pallet<T> {
     })?;
     Ok(())
   }
+
+  pub fn do_cancel_offer(order_id: StorageId) -> DispatchResult {
+	// ensure offer exists
+    ensure!(<AfloatOffers<T>>::contains_key(order_id), Error::<T>::OfferNotFound);
+    //get offer details
+    let offer = <AfloatOffers<T>>::get(order_id).unwrap();
+	match offer.status {
+		OfferStatus::CREATED => {
+			<AfloatOffers<T>>::try_mutate(order_id, |offer| -> DispatchResult {
+				let offer = offer.as_mut().ok_or(Error::<T>::OfferNotFound)?;
+				offer.cancellation_date = Some(T::TimeProvider::now().as_secs());
+				offer.status = OfferStatus::CANCELLED;
+				Ok(())
+			})?;
+			Ok(())
+		}
+		OfferStatus::TF_PENDING_SIGNATURE => {
+			<AfloatOffers<T>>::try_mutate(order_id, |offer| -> DispatchResult {
+				let offer = offer.as_mut().ok_or(Error::<T>::OfferNotFound)?;
+				offer.cancellation_date = Some(T::TimeProvider::now().as_secs());
+				offer.status = OfferStatus::CANCELLED;
+				Ok(())
+			})?;
+			Ok(())
+		}
+		_ => {
+			Err(Error::<T>::OfferTaken.into())
+		}
+	}
+  }
 }
