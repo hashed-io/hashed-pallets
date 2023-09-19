@@ -859,6 +859,36 @@
 <a href="#859" id="859">859</a>
 <a href="#860" id="860">860</a>
 <a href="#861" id="861">861</a>
+<a href="#862" id="862">862</a>
+<a href="#863" id="863">863</a>
+<a href="#864" id="864">864</a>
+<a href="#865" id="865">865</a>
+<a href="#866" id="866">866</a>
+<a href="#867" id="867">867</a>
+<a href="#868" id="868">868</a>
+<a href="#869" id="869">869</a>
+<a href="#870" id="870">870</a>
+<a href="#871" id="871">871</a>
+<a href="#872" id="872">872</a>
+<a href="#873" id="873">873</a>
+<a href="#874" id="874">874</a>
+<a href="#875" id="875">875</a>
+<a href="#876" id="876">876</a>
+<a href="#877" id="877">877</a>
+<a href="#878" id="878">878</a>
+<a href="#879" id="879">879</a>
+<a href="#880" id="880">880</a>
+<a href="#881" id="881">881</a>
+<a href="#882" id="882">882</a>
+<a href="#883" id="883">883</a>
+<a href="#884" id="884">884</a>
+<a href="#885" id="885">885</a>
+<a href="#886" id="886">886</a>
+<a href="#887" id="887">887</a>
+<a href="#888" id="888">888</a>
+<a href="#889" id="889">889</a>
+<a href="#890" id="890">890</a>
+<a href="#891" id="891">891</a>
 </pre><pre class="rust"><code><span class="kw">use super</span>::<span class="kw-2">*</span>;
 
 <span class="kw">use </span><span class="kw">crate</span>::types::<span class="kw-2">*</span>;
@@ -1718,6 +1748,36 @@
       <span class="prelude-val">Ok</span>::&lt;(), DispatchError&gt;(())
     })<span class="question-mark">?</span>;
     <span class="prelude-val">Ok</span>(())
+  }
+
+  <span class="kw">pub fn </span>do_cancel_offer(order_id: StorageId) -&gt; DispatchResult {
+	<span class="comment">// ensure offer exists
+    </span><span class="macro">ensure!</span>(&lt;AfloatOffers&lt;T&gt;&gt;::contains_key(order_id), Error::&lt;T&gt;::OfferNotFound);
+    <span class="comment">//get offer details
+    </span><span class="kw">let </span>offer = &lt;AfloatOffers&lt;T&gt;&gt;::get(order_id).unwrap();
+	<span class="kw">match </span>offer.status {
+		OfferStatus::CREATED =&gt; {
+			&lt;AfloatOffers&lt;T&gt;&gt;::try_mutate(order_id, |offer| -&gt; DispatchResult {
+				<span class="kw">let </span>offer = offer.as_mut().ok_or(Error::&lt;T&gt;::OfferNotFound)<span class="question-mark">?</span>;
+				offer.cancellation_date = <span class="prelude-val">Some</span>(T::TimeProvider::now().as_secs());
+				offer.status = OfferStatus::CANCELLED;
+				<span class="prelude-val">Ok</span>(())
+			})<span class="question-mark">?</span>;
+			<span class="prelude-val">Ok</span>(())
+		}
+		OfferStatus::TF_PENDING_SIGNATURE =&gt; {
+			&lt;AfloatOffers&lt;T&gt;&gt;::try_mutate(order_id, |offer| -&gt; DispatchResult {
+				<span class="kw">let </span>offer = offer.as_mut().ok_or(Error::&lt;T&gt;::OfferNotFound)<span class="question-mark">?</span>;
+				offer.cancellation_date = <span class="prelude-val">Some</span>(T::TimeProvider::now().as_secs());
+				offer.status = OfferStatus::CANCELLED;
+				<span class="prelude-val">Ok</span>(())
+			})<span class="question-mark">?</span>;
+			<span class="prelude-val">Ok</span>(())
+		}
+		<span class="kw">_ </span>=&gt; {
+			<span class="prelude-val">Err</span>(Error::&lt;T&gt;::OfferTaken.into())
+		}
+	}
   }
 }
 </code></pre></div>

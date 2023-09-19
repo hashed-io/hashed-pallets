@@ -257,6 +257,7 @@
 <a href="#257" id="257">257</a>
 <a href="#258" id="258">258</a>
 <a href="#259" id="259">259</a>
+<a href="#260" id="260">260</a>
 </pre><pre class="rust"><code><span class="kw">use super</span>::<span class="kw-2">*</span>;
 <span class="kw">use </span>frame_support::pallet_prelude::<span class="kw-2">*</span>;
 <span class="kw">use </span>frame_support::sp_io::hashing::blake2_256;
@@ -315,7 +316,7 @@
 }
 
 <span class="comment">// ! Offer structures
-
+// ! The statuses with &quot;TF&quot; refer to the transfer form that is generated after a match is formed - so all of the TF_* statuses come after matched
 </span><span class="attr">#[derive(
   Encode, Decode, Clone, Eq, PartialEq, RuntimeDebugNoBound, MaxEncodedLen, TypeInfo, Copy,
 )]
@@ -329,6 +330,7 @@
   TF_APPROVED,
   APPROVED,
   FILLED,
+  CANCELLED,
 }
 
 <span class="kw">impl </span>Default <span class="kw">for </span>OfferStatus {
