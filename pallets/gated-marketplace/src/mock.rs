@@ -1,6 +1,6 @@
 use crate as pallet_gated_marketplace;
 use frame_support::{
-  construct_runtime, parameter_types,
+  parameter_types,
   traits::{AsEnsureOriginWithArg, ConstU32, ConstU64, GenesisBuild},
 };
 use frame_system as system;
@@ -253,4 +253,4 @@ impl pallet_mapped_assets::Config for Test {
   type RemoveItemsLimit = ConstU32<5>;
   type MaxReserves = MaxReserves;
   type ReserveIdentifier = u32;
-}
+C}

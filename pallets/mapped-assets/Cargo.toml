@@ -25,7 +25,7 @@ frame-support = { git = "https://github.com/paritytech/substrate", branch = "pol
 # `system` module provides us with all sorts of useful stuff and macros depend on it being around.
 frame-system = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.40", default-features = false }
 frame-benchmarking = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.40", default-features = false, optional = true }
-pallet-rbac = { path = "../rbac/", default-features = false, version = "4.0.0-dev" }
+pallet-rbac = { default-features = false, version = "4.0.0-dev", path = "../rbac/" }
 
 [dev-dependencies]
 sp-core = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.40", default-features = false }
