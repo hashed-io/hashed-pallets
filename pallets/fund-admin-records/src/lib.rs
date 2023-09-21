@@ -22,6 +22,7 @@ pub mod pallet {
 	use frame_support::traits::Time;
 
 	use crate::types::*;
+	const STORAGE_VERSION: StorageVersion = StorageVersion::new(1);
 
 	#[pallet::config]
 	pub trait Config: frame_system::Config {
@@ -45,7 +46,7 @@ pub mod pallet {
 	}
 
 	#[pallet::pallet]
-	#[pallet::generate_store(pub(super) trait Store)]
+	#[pallet::storage_version(STORAGE_VERSION)]
 	pub struct Pallet<T>(_);
 
 	/*--- Onchain storage section ---*/
@@ -113,7 +114,7 @@ pub mod pallet {
 		/// * `signer_account` - The account id of the signer
 		/// Returns `Ok` if the operation is successful, `Err` otherwise.
 		#[pallet::call_index(1)]
-		#[pallet::weight(Weight::from_ref_time(10_000) + T::DbWeight::get().writes(10))]
+		#[pallet::weight(Weight::from_parts(10_000,0) + T::DbWeight::get().writes(10))]
 		pub fn set_signer_account(
 			origin: OriginFor<T>,
 			account: T::AccountId,
@@ -136,7 +137,7 @@ pub mod pallet {
 		///   If the function executes successfully without any error, it will return `Ok(())`. 
     	///   If there is an error, it will return `Err(error)`, where `error` is an instance of the `DispatchError` class.
 		#[pallet::call_index(2)]
-		#[pallet::weight(Weight::from_ref_time(10_000) + T::DbWeight::get().writes(10))]
+		#[pallet::weight(Weight::from_parts(10_000,0) + T::DbWeight::get().writes(10))]
 		pub fn add_record(
 			origin: OriginFor<T>,
 			records: RecordCollection<T>,
@@ -163,7 +164,7 @@ pub mod pallet {
 		/// ### Considerations:
 		/// - This function is only available to the `admin` with sudo access.
 		#[pallet::call_index(3)]
-		#[pallet::weight(Weight::from_ref_time(10_000) + T::DbWeight::get().writes(10))]
+		#[pallet::weight(Weight::from_parts(10_000,0) + T::DbWeight::get().writes(10))]
 		pub fn kill_storage(
 			origin: OriginFor<T>,
 		) -> DispatchResult{
