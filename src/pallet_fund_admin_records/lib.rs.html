@@ -174,6 +174,7 @@
 <a href="#174" id="174">174</a>
 <a href="#175" id="175">175</a>
 <a href="#176" id="176">176</a>
+<a href="#177" id="177">177</a>
 </pre><pre class="rust"><code><span class="attr">#![cfg_attr(not(feature = <span class="string">&quot;std&quot;</span>), no_std)]
 
 </span><span class="kw">pub use </span>pallet::<span class="kw-2">*</span>;
@@ -198,6 +199,7 @@
 	<span class="kw">use </span>frame_support::traits::Time;
 
 	<span class="kw">use </span><span class="kw">crate</span>::types::<span class="kw-2">*</span>;
+	<span class="kw">const </span>STORAGE_VERSION: StorageVersion = StorageVersion::new(<span class="number">1</span>);
 
 	<span class="attr">#[pallet::config]
 	</span><span class="kw">pub trait </span>Config: frame_system::Config {
@@ -221,7 +223,7 @@
 	}
 
 	<span class="attr">#[pallet::pallet]
-	#[pallet::generate_store(<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">trait </span>Store)]
+	#[pallet::storage_version(STORAGE_VERSION)]
 	</span><span class="kw">pub struct </span>Pallet&lt;T&gt;(<span class="kw">_</span>);
 
 	<span class="comment">/*--- Onchain storage section ---*/
@@ -289,7 +291,7 @@
 		/// * `signer_account` - The account id of the signer
 		/// Returns `Ok` if the operation is successful, `Err` otherwise.
 		</span><span class="attr">#[pallet::call_index(<span class="number">1</span>)]
-		#[pallet::weight(Weight::from_ref_time(<span class="number">10_000</span>) + T::DbWeight::get().writes(<span class="number">10</span>))]
+		#[pallet::weight(Weight::from_parts(<span class="number">10_000</span>,<span class="number">0</span>) + T::DbWeight::get().writes(<span class="number">10</span>))]
 		</span><span class="kw">pub fn </span>set_signer_account(
 			origin: OriginFor&lt;T&gt;,
 			account: T::AccountId,
@@ -312,7 +314,7 @@
 		///   If the function executes successfully without any error, it will return `Ok(())`. 
     	///   If there is an error, it will return `Err(error)`, where `error` is an instance of the `DispatchError` class.
 		</span><span class="attr">#[pallet::call_index(<span class="number">2</span>)]
-		#[pallet::weight(Weight::from_ref_time(<span class="number">10_000</span>) + T::DbWeight::get().writes(<span class="number">10</span>))]
+		#[pallet::weight(Weight::from_parts(<span class="number">10_000</span>,<span class="number">0</span>) + T::DbWeight::get().writes(<span class="number">10</span>))]
 		</span><span class="kw">pub fn </span>add_record(
 			origin: OriginFor&lt;T&gt;,
 			records: RecordCollection&lt;T&gt;,
@@ -339,7 +341,7 @@
 		/// ### Considerations:
 		/// - This function is only available to the `admin` with sudo access.
 		</span><span class="attr">#[pallet::call_index(<span class="number">3</span>)]
-		#[pallet::weight(Weight::from_ref_time(<span class="number">10_000</span>) + T::DbWeight::get().writes(<span class="number">10</span>))]
+		#[pallet::weight(Weight::from_parts(<span class="number">10_000</span>,<span class="number">0</span>) + T::DbWeight::get().writes(<span class="number">10</span>))]
 		</span><span class="kw">pub fn </span>kill_storage(
 			origin: OriginFor&lt;T&gt;,
 		) -&gt; DispatchResult{

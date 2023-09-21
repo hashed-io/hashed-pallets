@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":[["add_record","An extrinsic method to add new records to storage."],["kill_storage","Kill all the stored data."],["set_signer_account","Sets the signer account."]]};
