@@ -161,6 +161,17 @@ pub enum CreateOfferArgs<T: Config> {
   },
 }
 
+#[derive(Encode, Decode, Clone, Eq, PartialEq, RuntimeDebugNoBound, TypeInfo)]
+pub enum KillStorageArgs {
+  All,
+  UserInfo,
+  AfloatMarketPlaceId,
+  AfloatCollectionId,
+  AfloatAssetId,
+  AfloatOffers,
+  AfloatTransactions,
+}
+
 // ! Transaction structures
 
 #[derive(CloneNoBound, Encode, Decode, RuntimeDebugNoBound, TypeInfo, MaxEncodedLen, PartialEq)]

@@ -255,11 +255,40 @@ pub mod pallet {
 
     #[pallet::call_index(1)]
     #[pallet::weight(Weight::from_parts(10_000,0) + T::DbWeight::get().reads_writes(1,1))]
-    pub fn kill_storage(origin: OriginFor<T>) -> DispatchResult {
+    pub fn kill_storage(origin: OriginFor<T>, args: KillStorageArgs) -> DispatchResult {
       // ensure sudo origin
       T::RemoveOrigin::ensure_origin(origin.clone())?;
-      Self::do_delete_all_users()?;
-      Ok(())
+	  match args {
+		KillStorageArgs::All => {
+		  Self::do_delete_all_users()?;
+		  <AfloatMarketPlaceId<T>>::kill();
+		  <AfloatCollectionId<T>>::kill();
+		  <AfloatAssetId<T>>::kill();
+		  let _ = <AfloatOffers<T>>::clear(1000, None);
+		  let _ = <AfloatTransactions<T>>::clear(1000, None);
+		},
+		KillStorageArgs::UserInfo => {
+		  Self::do_delete_all_users()?;
+		}
+		KillStorageArgs::AfloatMarketPlaceId => {
+		  <AfloatMarketPlaceId<T>>::kill();
+		},
+		KillStorageArgs::AfloatCollectionId => {
+		  <AfloatCollectionId<T>>::kill();
+		},
+		KillStorageArgs::AfloatAssetId => {
+		  <AfloatAssetId<T>>::kill();
+		},
+		KillStorageArgs::AfloatOffers => {
+		  let _ = <AfloatOffers<T>>::clear(1000, None);
+		},
+		KillStorageArgs::AfloatTransactions => {
+		  let _ = <AfloatTransactions<T>>::clear(1000, None);
+		},
+
+	  }
+
+	  Ok(())
     }
 
     #[pallet::call_index(2)]
@@ -404,9 +433,7 @@ pub mod pallet {
     #[pallet::weight(Weight::from_parts(10_000,0) + T::DbWeight::get().reads_writes(1,1))]
     pub fn cancel_offer(origin: OriginFor<T>, order_id: StorageId) -> DispatchResult {
       let who = ensure_signed(origin.clone())?;
-      let is_admin_or_owner = Self::is_admin_or_owner(who.clone())?;
-      ensure!(is_admin_or_owner, Error::<T>::Unauthorized);
-	  Self::do_cancel_offer(order_id)
+	  Self::do_cancel_offer(who, order_id)
     }
   }
 }
