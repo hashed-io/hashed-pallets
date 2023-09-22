@@ -889,6 +889,9 @@
 <a href="#889" id="889">889</a>
 <a href="#890" id="890">890</a>
 <a href="#891" id="891">891</a>
+<a href="#892" id="892">892</a>
+<a href="#893" id="893">893</a>
+<a href="#894" id="894">894</a>
 </pre><pre class="rust"><code><span class="kw">use super</span>::<span class="kw-2">*</span>;
 
 <span class="kw">use </span><span class="kw">crate</span>::types::<span class="kw-2">*</span>;
@@ -1750,11 +1753,14 @@
     <span class="prelude-val">Ok</span>(())
   }
 
-  <span class="kw">pub fn </span>do_cancel_offer(order_id: StorageId) -&gt; DispatchResult {
+  <span class="kw">pub fn </span>do_cancel_offer(who: T::AccountId, order_id: StorageId) -&gt; DispatchResult {
 	<span class="comment">// ensure offer exists
     </span><span class="macro">ensure!</span>(&lt;AfloatOffers&lt;T&gt;&gt;::contains_key(order_id), Error::&lt;T&gt;::OfferNotFound);
     <span class="comment">//get offer details
     </span><span class="kw">let </span>offer = &lt;AfloatOffers&lt;T&gt;&gt;::get(order_id).unwrap();
+	<span class="kw">let </span>is_admin_or_owner = <span class="self">Self</span>::is_admin_or_owner(who.clone())<span class="question-mark">?</span>;
+    <span class="macro">ensure!</span>(is_admin_or_owner || offer.creator_id == who, Error::&lt;T&gt;::Unauthorized);
+
 	<span class="kw">match </span>offer.status {
 		OfferStatus::CREATED =&gt; {
 			&lt;AfloatOffers&lt;T&gt;&gt;::try_mutate(order_id, |offer| -&gt; DispatchResult {
