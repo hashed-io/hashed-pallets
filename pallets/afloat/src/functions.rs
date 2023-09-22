@@ -859,11 +859,14 @@ impl<T: Config> Pallet<T> {
     Ok(())
   }
 
-  pub fn do_cancel_offer(order_id: StorageId) -> DispatchResult {
+  pub fn do_cancel_offer(who: T::AccountId, order_id: StorageId) -> DispatchResult {
 	// ensure offer exists
     ensure!(<AfloatOffers<T>>::contains_key(order_id), Error::<T>::OfferNotFound);
     //get offer details
     let offer = <AfloatOffers<T>>::get(order_id).unwrap();
+	let is_admin_or_owner = Self::is_admin_or_owner(who.clone())?;
+    ensure!(is_admin_or_owner || offer.creator_id == who, Error::<T>::Unauthorized);
+
 	match offer.status {
 		OfferStatus::CREATED => {
 			<AfloatOffers<T>>::try_mutate(order_id, |offer| -> DispatchResult {

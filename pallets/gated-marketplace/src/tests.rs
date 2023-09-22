@@ -756,7 +756,7 @@ fn add_authority_admin_works() {
       600,
       1,
     ));
-    Assets::mint(RuntimeOrigin::signed(1), 1, 1, 100);
+    assert_ok!(Assets::mint(RuntimeOrigin::signed(1), 1, 1, 100));
     let m_id = get_marketplace_id("my marketplace", 500, 600, 1);
     assert_ok!(GatedMarketplace::add_authority(
       RuntimeOrigin::signed(1),
@@ -1924,8 +1924,8 @@ fn enlist_sell_offer_not_owner_tries_to_enlist_shouldnt_work() {
       600,
       1,
     ));
-    Assets::mint(RuntimeOrigin::signed(1), 1, 1, 100);
-    Assets::mint(RuntimeOrigin::signed(1), 1, 2, 100);
+    assert_ok!(Assets::mint(RuntimeOrigin::signed(1), 1, 1, 100));
+    assert_ok!(Assets::mint(RuntimeOrigin::signed(1), 1, 2, 100));
     let m_id = get_marketplace_id("my marketplace", 500, 600, 1);
 
     assert_ok!(Fruniques::create_collection(RuntimeOrigin::signed(1), dummy_description()));
@@ -1953,7 +1953,7 @@ fn enlist_sell_offer_price_must_greater_than_zero_shouldnt_work() {
       600,
       1,
     ));
-    Assets::mint(RuntimeOrigin::signed(1), 1, 1, 100);
+    assert_ok!(Assets::mint(RuntimeOrigin::signed(1), 1, 1, 100));
     let m_id = get_marketplace_id("my marketplace", 500, 600, 1);
 
     assert_ok!(Fruniques::create_collection(RuntimeOrigin::signed(1), dummy_description()));
@@ -1981,7 +1981,7 @@ fn enlist_sell_offer_price_must_greater_than_minimun_amount_works() {
       600,
       1,
     ));
-    Assets::mint(RuntimeOrigin::signed(1), 1, 1, 100);
+    assert_ok!(Assets::mint(RuntimeOrigin::signed(1), 1, 1, 100));
     let m_id = get_marketplace_id("my marketplace", 500, 600, 1);
 
     assert_ok!(Fruniques::create_collection(RuntimeOrigin::signed(1), dummy_description()));
@@ -2016,7 +2016,7 @@ fn enlist_sell_offer_is_properly_stored_works() {
       600,
       1,
     ));
-    Assets::mint(RuntimeOrigin::signed(1), 1, 1, 100);
+    assert_ok!(Assets::mint(RuntimeOrigin::signed(1), 1, 1, 100));
     let m_id = get_marketplace_id("my marketplace", 500, 600, 1);
 
     assert_ok!(Fruniques::create_collection(RuntimeOrigin::signed(1), dummy_description()));
@@ -2067,8 +2067,8 @@ fn enlist_sell_offer_two_marketplaces() {
     ));
     let m_id2 = get_marketplace_id2("my marketplace2", 500, 600, 1, 2);
 
-    Assets::mint(RuntimeOrigin::signed(1), 1, 1, 10000);
-    Assets::mint(RuntimeOrigin::signed(1), 2, 1, 10000);
+    assert_ok!(Assets::mint(RuntimeOrigin::signed(1), 1, 1, 10000));
+    assert_ok!(Assets::mint(RuntimeOrigin::signed(1), 2, 1, 10000));
 
     assert_ok!(Fruniques::create_collection(RuntimeOrigin::signed(1), dummy_description()));
     assert_ok!(Fruniques::spawn(RuntimeOrigin::signed(1), 0, dummy_description(), None, None));
@@ -2114,8 +2114,8 @@ fn enlist_buy_offer_works() {
       1,
     ));
 
-    Assets::mint(RuntimeOrigin::signed(1), 1, 1, 10000);
-    Assets::mint(RuntimeOrigin::signed(1), 1, 2, 10000);
+    assert_ok!(Assets::mint(RuntimeOrigin::signed(1), 1, 1, 10000));
+    assert_ok!(Assets::mint(RuntimeOrigin::signed(1), 1, 2, 10000));
 
     let m_id = get_marketplace_id("my marketplace", 500, 600, 1);
 
@@ -2261,9 +2261,9 @@ fn enlist_buy_offer_an_item_can_receive_multiple_buy_offers() {
       1,
     ));
 
-    Assets::mint(RuntimeOrigin::signed(1), 1, 1, 10000);
-    Assets::mint(RuntimeOrigin::signed(1), 1, 2, 10000);
-    Assets::mint(RuntimeOrigin::signed(1), 1, 3, 10000);
+    assert_ok!(Assets::mint(RuntimeOrigin::signed(1), 1, 1, 10000));
+    assert_ok!(Assets::mint(RuntimeOrigin::signed(1), 1, 2, 10000));
+    assert_ok!(Assets::mint(RuntimeOrigin::signed(1), 1, 3, 10000));
 
     let m_id = get_marketplace_id("my marketplace", 500, 600, 1);
 
@@ -2324,8 +2324,8 @@ fn take_sell_offer_works() {
       1,
     ));
 
-    Assets::mint(RuntimeOrigin::signed(1), 1, 1, 10000);
-    Assets::mint(RuntimeOrigin::signed(1), 1, 2, 10000);
+    assert_ok!(Assets::mint(RuntimeOrigin::signed(1), 1, 1, 10000));
+    assert_ok!(Assets::mint(RuntimeOrigin::signed(1), 1, 2, 10000));
 
     let m_id = get_marketplace_id("my marketplace", 500, 600, 1);
 
@@ -2453,8 +2453,8 @@ fn take_buy_offer_works() {
       1,
     ));
 
-    Assets::mint(RuntimeOrigin::signed(1), 1, 1, 10000);
-    Assets::mint(RuntimeOrigin::signed(1), 1, 2, 10000);
+    assert_ok!(Assets::mint(RuntimeOrigin::signed(1), 1, 1, 10000));
+    assert_ok!(Assets::mint(RuntimeOrigin::signed(1), 1, 2, 10000));
 
     let m_id = get_marketplace_id("my marketplace", 500, 600, 1);
 
@@ -2492,8 +2492,8 @@ fn take_buy_offer_only_owner_can_accept_buy_offers_shouldnt_work() {
       1,
     ));
 
-    Assets::mint(RuntimeOrigin::signed(1), 1, 1, 10000);
-    Assets::mint(RuntimeOrigin::signed(1), 1, 2, 10000);
+    assert_ok!(Assets::mint(RuntimeOrigin::signed(1), 1, 1, 10000));
+    assert_ok!(Assets::mint(RuntimeOrigin::signed(1), 1, 2, 10000));
 
     let m_id = get_marketplace_id("my marketplace", 500, 600, 1);
 
@@ -2531,8 +2531,8 @@ fn take_buy_offer_id_does_not_exist_shouldnt_work() {
       600,
       1,
     ));
-    Assets::mint(RuntimeOrigin::signed(1), 1, 1, 10000);
-    Assets::mint(RuntimeOrigin::signed(1), 1, 2, 10000);
+    assert_ok!(Assets::mint(RuntimeOrigin::signed(1), 1, 1, 10000));
+    assert_ok!(Assets::mint(RuntimeOrigin::signed(1), 1, 2, 10000));
 
     let m_id = get_marketplace_id("my marketplace", 500, 600, 1);
 
@@ -2571,8 +2571,8 @@ fn take_buy_offer_user_does_not_have_enough_balance_shouldnt_work() {
       600,
       1,
     ));
-    Assets::mint(RuntimeOrigin::signed(1), 1, 1, 100);
-    Assets::mint(RuntimeOrigin::signed(1), 1, 2, 1200);
+    assert_ok!(Assets::mint(RuntimeOrigin::signed(1), 1, 1, 100));
+    assert_ok!(Assets::mint(RuntimeOrigin::signed(1), 1, 2, 1200));
     let m_id = get_marketplace_id("my marketplace", 500, 600, 1);
 
     assert_ok!(Fruniques::create_collection(RuntimeOrigin::signed(1), dummy_description()));
@@ -2587,7 +2587,7 @@ fn take_buy_offer_user_does_not_have_enough_balance_shouldnt_work() {
     let offer_id2 = GatedMarketplace::offers_by_account(2).iter().next().unwrap().clone();
     assert_eq!(GatedMarketplace::offers_info(offer_id2).unwrap().offer_type, OfferType::BuyOrder);
 
-    Assets::transfer(RuntimeOrigin::signed(2), 1, 1, 1000);
+    assert_ok!(Assets::transfer(RuntimeOrigin::signed(2), 1, 1, 1000));
     assert_noop!(
       GatedMarketplace::take_buy_offer(RuntimeOrigin::signed(1), offer_id2),
       Error::<Test>::NotEnoughBalance
@@ -2642,8 +2642,8 @@ fn remove_buy_offer_works() {
       1,
     ));
 
-    Assets::mint(RuntimeOrigin::signed(1), 1, 1, 10000);
-    Assets::mint(RuntimeOrigin::signed(1), 1, 2, 10000);
+    assert_ok!(Assets::mint(RuntimeOrigin::signed(1), 1, 1, 10000));
+    assert_ok!(Assets::mint(RuntimeOrigin::signed(1), 1, 2, 10000));
 
     let m_id = get_marketplace_id("my marketplace", 500, 600, 1);
 
@@ -2746,8 +2746,8 @@ fn remove_offer_status_is_closed_shouldnt_work() {
       1,
     ));
 
-    Assets::mint(RuntimeOrigin::signed(1), 1, 1, 10000);
-    Assets::mint(RuntimeOrigin::signed(1), 1, 2, 10000);
+    assert_ok!(Assets::mint(RuntimeOrigin::signed(1), 1, 1, 10000));
+    assert_ok!(Assets::mint(RuntimeOrigin::signed(1), 1, 2, 10000));
 
     let m_id = get_marketplace_id("my marketplace", 500, 600, 1);
 
@@ -3130,43 +3130,43 @@ fn self_enroll_while_already_participant_should_fail() {
   });
 }
 
-#[test]
-fn self_enroll_should_work() {
-  new_test_ext().execute_with(|| {
-    assert_ok!(GatedMarketplace::create_marketplace(
-      RuntimeOrigin::signed(1),
-      1,
-      create_label("my marketplace"),
-      500,
-      600
-    ));
-    let m_id = get_marketplace_id("my marketplace", 500, 600, 1);
+// #[test]
+// fn self_enroll_should_work() {
+//   new_test_ext().execute_with(|| {
+//     assert_ok!(GatedMarketplace::create_marketplace(
+//       RuntimeOrigin::signed(1),
+//       1,
+//       create_label("my marketplace"),
+//       500,
+//       600
+//     ));
+//     let m_id = get_marketplace_id("my marketplace", 500, 600, 1);
 
-    assert_ok!(GatedMarketplace::self_enroll(2, m_id,));
-  });
-}
+//     assert_ok!(GatedMarketplace::self_enroll(2, m_id,));
+//   });
+// }
 
-#[test]
-fn self_enroll_while_marketplace_doesnt_exist_should_fail() {
-  new_test_ext().execute_with(|| {
-    let m_id = get_marketplace_id("my marketplace", 500, 600, 1);
-    assert_noop!(GatedMarketplace::self_enroll(2, m_id,), Error::<Test>::MarketplaceNotFound);
-  });
-}
+// #[test]
+// fn self_enroll_while_marketplace_doesnt_exist_should_fail() {
+//   new_test_ext().execute_with(|| {
+//     let m_id = get_marketplace_id("my marketplace", 500, 600, 1);
+//     assert_noop!(GatedMarketplace::self_enroll(2, m_id,), Error::<Test>::MarketplaceNotFound);
+//   });
+// }
 
-#[test]
-fn self_enroll_while_already_participant_should_fail() {
-  new_test_ext().execute_with(|| {
-    assert_ok!(GatedMarketplace::create_marketplace(
-      RuntimeOrigin::signed(1),
-      1,
-      create_label("my marketplace"),
-      500,
-      600
-    ));
-    let m_id = get_marketplace_id("my marketplace", 500, 600, 1);
+// #[test]
+// fn self_enroll_while_already_participant_should_fail() {
+//   new_test_ext().execute_with(|| {
+//     assert_ok!(GatedMarketplace::create_marketplace(
+//       RuntimeOrigin::signed(1),
+//       1,
+//       create_label("my marketplace"),
+//       500,
+//       600
+//     ));
+//     let m_id = get_marketplace_id("my marketplace", 500, 600, 1);
 
-    assert_ok!(GatedMarketplace::self_enroll(2, m_id,));
-    assert_noop!(GatedMarketplace::self_enroll(2, m_id,), Error::<Test>::UserAlreadyParticipant);
-  });
-}
+//     assert_ok!(GatedMarketplace::self_enroll(2, m_id,));
+//     assert_noop!(GatedMarketplace::self_enroll(2, m_id,), Error::<Test>::UserAlreadyParticipant);
+//   });
+// }

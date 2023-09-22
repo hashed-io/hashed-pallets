@@ -31,6 +31,7 @@ use sp_runtime::{
   testing::Header,
   traits::{BlakeTwo256, IdentityLookup},
 };
+use frame_system::EnsureRoot;
 
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;
 type Block = frame_system::mocking::MockBlock<Test>;
@@ -44,6 +45,7 @@ construct_runtime!(
     System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
     Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
     Assets: pallet_assets::{Pallet, Call, Storage, Event<T>},
+    RBAC: pallet_rbac::{Pallet, Call, Storage, Event<T>},
   }
 );
 
@@ -77,6 +79,27 @@ impl frame_system::Config for Test {
   type MaxConsumers = ConstU32<2>;
 }
 
+parameter_types! {
+  pub const MaxScopesPerPallet: u32 = 2;
+  pub const MaxRolesPerPallet: u32 = 6;
+  pub const RoleMaxLen: u32 = 25;
+  pub const PermissionMaxLen: u32 = 25;
+  pub const MaxPermissionsPerRole: u32 = 30;
+  pub const MaxRolesPerUser: u32 = 2;
+  pub const MaxUsersPerRole: u32 = 2;
+}
+impl pallet_rbac::Config for Test {
+  type RuntimeEvent = RuntimeEvent;
+  type RemoveOrigin = EnsureRoot<Self::AccountId>;
+  type MaxScopesPerPallet = MaxScopesPerPallet;
+  type MaxRolesPerPallet = MaxRolesPerPallet;
+  type RoleMaxLen = RoleMaxLen;
+  type PermissionMaxLen = PermissionMaxLen;
+  type MaxPermissionsPerRole = MaxPermissionsPerRole;
+  type MaxRolesPerUser = MaxRolesPerUser;
+  type MaxUsersPerRole = MaxUsersPerRole;
+}
+
 impl pallet_balances::Config for Test {
   type Balance = u64;
   type DustRemoval = ();
@@ -108,6 +131,7 @@ impl Config for Test {
   type RuntimeEvent = RuntimeEvent;
   type Balance = u64;
   type AssetId = u32;
+  type Rbac = RBAC;
   type AssetIdParameter = u32;
   type Currency = Balances;
   type CreateOrigin = AsEnsureOriginWithArg<frame_system::EnsureSigned<u64>>;
