@@ -143,6 +143,8 @@ impl<T: Config> Offer<T> {
   }
 }
 
+// ! Arguments
+
 #[derive(Encode, Decode, Clone, Eq, PartialEq, RuntimeDebugNoBound, TypeInfo)]
 #[scale_info(skip_type_params(T))]
 #[codec(mel_bound())]
@@ -172,6 +174,29 @@ pub enum KillStorageArgs {
   AfloatTransactions,
 }
 
+#[derive(CloneNoBound, Encode, Decode, RuntimeDebugNoBound, TypeInfo, MaxEncodedLen, PartialEq)]
+#[scale_info(skip_type_params(T))]
+#[codec(mel_bound())]
+pub enum CreateAsset<T: Config> {
+  New { asset_id: T::AssetId, min_balance: T::Balance },
+  Existing { asset_id: T::AssetId },
+}
+
+#[derive(Encode, Decode, Clone, PartialEq, RuntimeDebugNoBound, TypeInfo)]
+#[scale_info(skip_type_params(T))]
+#[codec(mel_bound())]
+pub enum InitialSetupArgs<T: Config> {
+  All {
+    creator: T::AccountId,
+    admin: T::AccountId,
+    asset: CreateAsset<T>,
+  },
+  Roles {
+    creator: T::AccountId,
+    admin: T::AccountId,
+  },
+}
+
 // ! Transaction structures
 
 #[derive(CloneNoBound, Encode, Decode, RuntimeDebugNoBound, TypeInfo, MaxEncodedLen, PartialEq)]
@@ -195,13 +220,6 @@ pub struct Transaction<T: Config> {
   pub completed: bool,
 }
 
-#[derive(CloneNoBound, Encode, Decode, RuntimeDebugNoBound, TypeInfo, MaxEncodedLen, PartialEq)]
-#[scale_info(skip_type_params(T))]
-#[codec(mel_bound())]
-pub enum CreateAsset<T: Config> {
-  New { asset_id: T::AssetId, min_balance: T::Balance },
-  Existing { asset_id: T::AssetId },
-}
 
 // ! Roles structures
 
