@@ -533,7 +533,6 @@ fn update_shared_document_metadata_works() {
 		));
 		assert_shared_doc(&shared_doc1);
 		System::assert_has_event(Event::<Test>::SharedDocUpdated(shared_doc1).into());
-
 	});
 }
 
@@ -971,7 +970,8 @@ fn remove_group_member_works_for_admin_removing_member_he_added() {
 		add_group_member(creator, group, member_authorizer, GroupRole::Admin);
 		let member_to_remove = 4;
 		setup_vault(member_to_remove);
-		let group_member = add_group_member(member_authorizer, group, member_to_remove, GroupRole::Member);
+		let group_member =
+			add_group_member(member_authorizer, group, member_to_remove, GroupRole::Member);
 
 		assert_ok!(ConfidentialDocs::remove_group_member(
 			RuntimeOrigin::signed(member_authorizer),
@@ -980,7 +980,10 @@ fn remove_group_member_works_for_admin_removing_member_he_added() {
 		));
 		assert_eq!(ConfidentialDocs::group_members(group, member_to_remove), None);
 		let expected_member_groups = Vec::<<Test as system::Config>::AccountId>::new();
-		assert_eq!(ConfidentialDocs::member_groups(member_to_remove).into_inner(), expected_member_groups);
+		assert_eq!(
+			ConfidentialDocs::member_groups(member_to_remove).into_inner(),
+			expected_member_groups
+		);
 		System::assert_has_event(Event::<Test>::GroupMemberRemoved(group_member).into());
 	});
 }
@@ -1030,11 +1033,7 @@ fn remove_group_member_should_fail_for_trying_to_remove_owner() {
 		setup_group(creator, group);
 
 		assert_noop!(
-			ConfidentialDocs::remove_group_member(
-				RuntimeOrigin::signed(creator),
-				group,
-				creator
-			),
+			ConfidentialDocs::remove_group_member(RuntimeOrigin::signed(creator), group, creator),
 			Error::<Test>::NoPermission
 		);
 	});
@@ -1065,7 +1064,6 @@ fn remove_group_member_should_fail_for_role_member_as_authorizer() {
 	});
 }
 
-
 #[test]
 fn remove_group_member_should_fail_for_admin_removing_member_he_did_not_add() {
 	new_test_ext().execute_with(|| {
@@ -1090,5 +1088,3 @@ fn remove_group_member_should_fail_for_admin_removing_member_he_did_not_add() {
 		);
 	});
 }
-
-
