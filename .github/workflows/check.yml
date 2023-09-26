@@ -36,6 +36,12 @@ jobs:
           rustup update nightly
           rustup update stable
           rustup target add wasm32-unknown-unknown --toolchain nightly
+
+      - name: Check format
+        run: |
+          rustup component add rustfmt
+          cargo fmt --all -- --check
+
       - name: Check Build
         run: |
           SKIP_WASM_BUILD=1 cargo check --release
