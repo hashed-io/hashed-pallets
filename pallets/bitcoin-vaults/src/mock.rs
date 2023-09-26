@@ -1,20 +1,22 @@
 use crate as pallet_bitcoin_vaults;
-use frame_support::{parameter_types, traits::ConstU32};
-use frame_support::traits::{ConstU64};
+use frame_support::{
+	parameter_types,
+	traits::{ConstU32, ConstU64},
+};
 use frame_system::EnsureRoot;
 //use frame_system as system;
 use pallet_balances;
 use sp_core::H256;
 //use sp_keystore::{testing::KeyStore, KeystoreExt, SyncCryptoStore};
 use sp_runtime::{
-	testing::{Header,TestXt},
-	traits::{BlakeTwo256, IdentifyAccount, IdentityLookup, Extrinsic as ExtrinsicT, Verify},
+	testing::{Header, TestXt},
+	traits::{BlakeTwo256, Extrinsic as ExtrinsicT, IdentifyAccount, IdentityLookup, Verify},
 	//RuntimeAppPublic,
 };
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;
 type Block = frame_system::mocking::MockBlock<Test>;
 //use sp_runtime::generic::SignedPayload;
-use sp_core::sr25519::{Signature,};
+use sp_core::sr25519::Signature;
 
 // Configure a mock runtime to test the pallet.
 frame_support::construct_runtime!(
@@ -59,7 +61,7 @@ impl pallet_bitcoin_vaults::Config for Test {
 	type PSBTMaxLen = PSBTMaxLen;
 	type MaxVaultsPerUser = MaxVaultsPerUser;
 	type MaxCosignersPerVault = MaxCosignersPerVault;
-	type VaultDescriptionMaxLen =VaultDescriptionMaxLen;
+	type VaultDescriptionMaxLen = VaultDescriptionMaxLen;
 	type OutputDescriptorMaxLen = OutputDescriptorMaxLen;
 	type MaxProposalsPerVault = MaxProposalsPerVault;
 }
@@ -94,7 +96,6 @@ where
 	}
 }
 
-
 parameter_types! {
 	pub const BlockHashCount: u64 = 250;
 	pub const SS58Prefix: u8 = 42;
@@ -127,12 +128,12 @@ impl frame_system::Config for Test {
 	type MaxConsumers = ConstU32<16>;
 }
 
-pub fn test_pub(n : u8) -> sp_core::sr25519::Public {
+pub fn test_pub(n: u8) -> sp_core::sr25519::Public {
 	sp_core::sr25519::Public::from_raw([n; 32])
 }
 
 // Build genesis storage according to the mock runtime.
- pub fn new_test_ext() -> sp_io::TestExternalities {
+pub fn new_test_ext() -> sp_io::TestExternalities {
 	let mut t = frame_system::GenesisConfig::default().build_storage::<Test>().unwrap();
 	pallet_balances::GenesisConfig::<Test> {
 		balances: vec![(test_pub(1), 10000), (test_pub(2), 1000), (test_pub(3), 1000)],
@@ -140,5 +141,4 @@ pub fn test_pub(n : u8) -> sp_core::sr25519::Public {
 	.assimilate_storage(&mut t)
 	.unwrap();
 	t.into()
-
- }
+}
