@@ -193,24 +193,29 @@ pub mod pallet {
 			// Ensure sudo origin
 			let _ = T::RemoveOrigin::ensure_origin(origin.clone())?;
 			match args {
-				InitialSetupArgs::All { creator, admin, asset } => Ok(()),
+				InitialSetupArgs::All { creator, admin, asset } => {
+					pallet_fruniques::Pallet::<T>::do_initial_setup()?;
+					pallet_gated_marketplace::Pallet::<T>::do_initial_setup()?;
+
+					Self::do_create_afloat_frunique(
+						RawOrigin::Signed(creator.clone()).into(),
+						admin.clone(),
+					)?;
+
+					// add permissions to admin
+					Self::add_to_afloat_collection(admin.clone(), FruniqueRole::Admin)?;
+
+					Self::do_create_afloat_marketplace(creator.clone(), admin)?;
+
+					Self::do_create_afloat_asset(creator, asset)?;
+
+					Ok(())
+				},
 				InitialSetupArgs::Roles { creator, admin } => {
 					Self::do_setup_roles(creator, admin)?;
 					Ok(())
 				},
 			}
-
-			// Self::do_create_afloat_frunique(
-			// 	RawOrigin::Signed(creator.clone()).into(),
-			// 	admin.clone(),
-			// )?;
-
-			// pallet_fruniques::Pallet::<T>::do_initial_setup()?;
-
-			// pallet_gated_marketplace::Pallet::<T>::do_initial_setup()?;
-
-			// Self::add_to_afloat_collection(admin.clone(), FruniqueRole::Admin)?;
-			// Self::do_create_marketplace(creator)?;
 
 			// Ok(())
 		}

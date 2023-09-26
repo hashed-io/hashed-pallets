@@ -1,11 +1,10 @@
 use super::*;
-use sp_runtime::{traits::StaticLookup, Permill};
-use pallet_gated_marketplace::types::Marketplace;
 use crate::types::*;
 use frame_support::{pallet_prelude::*, traits::UnixTime};
 use frame_system::{pallet_prelude::*, RawOrigin};
 use pallet_fruniques::types::{Attributes, CollectionDescription, FruniqueRole, ParentInfo};
-use pallet_gated_marketplace::types::MarketplaceRole;
+use pallet_gated_marketplace::types::{Marketplace, MarketplaceRole};
+use sp_runtime::{traits::StaticLookup, Permill};
 // use frame_support::traits::OriginTrait;
 use core::convert::TryInto;
 use frame_support::{sp_io::hashing::blake2_256, traits::Time};
@@ -23,7 +22,6 @@ impl<T: Config> Pallet<T> {
 		creator: T::AccountId,
 		admin: T::AccountId,
 	) -> DispatchResult {
-
 		let asset_id = AfloatAssetId::<T>::get().expect("AfloatAssetId should be set");
 
 		let label: BoundedVec<u8, T::LabelMaxLen> =
@@ -70,7 +68,7 @@ impl<T: Config> Pallet<T> {
 		}
 	}
 
-	pub fn do_setup_asset(asset: CreateAsset<T>, creator: T::AccountId) -> DispatchResult {
+	pub fn do_create_afloat_asset(creator: T::AccountId, asset: CreateAsset<T>) -> DispatchResult {
 		let asset_id = match asset {
 			CreateAsset::New { asset_id, min_balance } => {
 				pallet_mapped_assets::Pallet::<T>::create(
