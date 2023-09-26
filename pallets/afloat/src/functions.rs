@@ -91,7 +91,11 @@ impl<T: Config> Pallet<T> {
 		AfloatAssetId::<T>::put(asset_id.clone());
 		Ok(())
 	}
-
+	/// This functions sets up the roles for the Afloat pallet.
+	/// Inputs
+	/// - `creator`: The `AccountId` of the user who is the creator of the marketplace, frunique
+	///   collection the asset.
+	/// - `admin`: The `AccountId` of the user who will be the admin.
 	pub fn do_setup_roles(creator: T::AccountId, admin: T::AccountId) -> DispatchResult {
 		Self::initialize_rbac()?;
 

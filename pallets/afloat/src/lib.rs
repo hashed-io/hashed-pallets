@@ -216,7 +216,6 @@ pub mod pallet {
 					Ok(())
 				},
 			}
-
 		}
 
 		#[pallet::call_index(1)]
