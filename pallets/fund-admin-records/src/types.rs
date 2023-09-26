@@ -5,14 +5,10 @@ pub type HashedInfo = BoundedVec<u8, ConstU32<400>>;
 pub type Id = [u8; 32];
 pub type ProjectId = BoundedVec<u8, ConstU32<70>>;
 pub type CreationDate = u64;
-pub type RecordCollection<T> = BoundedVec<(
-	ProjectId,
-	HashedInfo,
-	TableType,
-	RecordType,
-), <T as Config>::MaxRecordsAtTime>;
+pub type RecordCollection<T> =
+	BoundedVec<(ProjectId, HashedInfo, TableType, RecordType), <T as Config>::MaxRecordsAtTime>;
 
-#[derive(Encode, Decode, RuntimeDebugNoBound, TypeInfo, MaxEncodedLen,)]
+#[derive(Encode, Decode, RuntimeDebugNoBound, TypeInfo, MaxEncodedLen)]
 #[scale_info(skip_type_params(MaxLen))]
 #[codec(mel_bound())]
 pub struct RecordData {
@@ -23,15 +19,19 @@ pub struct RecordData {
 	pub creation_date: CreationDate,
 }
 
-#[derive(Encode, Decode, Clone, Eq, PartialEq, RuntimeDebugNoBound, MaxEncodedLen, TypeInfo, Copy)]
+#[derive(
+	Encode, Decode, Clone, Eq, PartialEq, RuntimeDebugNoBound, MaxEncodedLen, TypeInfo, Copy,
+)]
 pub enum TableType {
-  Drawdown,
-  RecoveryDrawdown,
-  Revenue,
-  RecoveryRevenue,
+	Drawdown,
+	RecoveryDrawdown,
+	Revenue,
+	RecoveryRevenue,
 }
 
-#[derive(Encode, Decode, Clone, Eq, PartialEq, RuntimeDebugNoBound, MaxEncodedLen, TypeInfo, Copy)]
+#[derive(
+	Encode, Decode, Clone, Eq, PartialEq, RuntimeDebugNoBound, MaxEncodedLen, TypeInfo, Copy,
+)]
 pub enum RecordType {
 	Creation,
 	Submit,
@@ -39,5 +39,5 @@ pub enum RecordType {
 	Reject,
 	Recovery,
 	Cancel,
-	Confirm
+	Confirm,
 }
