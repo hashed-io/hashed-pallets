@@ -184,7 +184,7 @@ impl<T: Config> Pallet<T> {
 		let marketplace_id =
 			AfloatMarketPlaceId::<T>::get().ok_or(Error::<T>::MarketPlaceIdNotFound)?;
 
-		Self::add_to_afloat_collection(user_address.clone(), FruniqueRole::Collaborator)?;
+		Self::do_add_account_to_afloat_frunique(user_address.clone(), FruniqueRole::Collaborator)?;
 		pallet_gated_marketplace::Pallet::<T>::self_enroll(user_address, marketplace_id)?;
 
 		Ok(())
@@ -763,7 +763,10 @@ impl<T: Config> Pallet<T> {
 		)
 	}
 
-	pub fn add_to_afloat_collection(invitee: T::AccountId, role: FruniqueRole) -> DispatchResult {
+	pub fn do_add_account_to_afloat_frunique(
+		invitee: T::AccountId,
+		role: FruniqueRole,
+	) -> DispatchResult {
 		let collection_id =
 			AfloatCollectionId::<T>::get().ok_or(Error::<T>::CollectionIdNotFound)?;
 		pallet_fruniques::Pallet::<T>::insert_auth_in_frunique_collection(

@@ -203,7 +203,7 @@ pub mod pallet {
 					)?;
 
 					// add permissions to admin
-					Self::add_to_afloat_collection(admin.clone(), FruniqueRole::Admin)?;
+					Self::do_add_account_to_afloat_frunique(admin.clone(), FruniqueRole::Admin)?;
 
 					Self::do_create_afloat_marketplace(creator.clone(), admin)?;
 
