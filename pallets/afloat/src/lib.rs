@@ -15,13 +15,11 @@ pub mod types;
 pub mod pallet {
 	use frame_support::{
 		pallet_prelude::*,
-		sp_io::hashing::blake2_256,
 		traits::{Currency, UnixTime},
 	};
 	use frame_system::{pallet_prelude::*, RawOrigin};
 	use pallet_fruniques::types::{Attributes, CollectionDescription, FruniqueRole, ParentInfo};
 	use pallet_gated_marketplace::types::*;
-	use sp_runtime::{traits::StaticLookup, Permill};
 	const STORAGE_VERSION: StorageVersion = StorageVersion::new(1);
 
 	use crate::types::*;
@@ -56,16 +54,26 @@ pub mod pallet {
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(super) fn deposit_event)]
 	pub enum Event<T: Config> {
-		SomethingStored(u32, T::AccountId),
+		// New user created
 		NewUser(T::AccountId),
+		// User edited
 		UserEdited(T::AccountId),
+		// User deleted
 		UserDeleted(T::AccountId),
+		// A sell created taken by an user
 		SellOrderCreated(T::AccountId),
+		// A buy created taken by an user
 		BuyOrderCreated(T::AccountId),
+		// A ell order taken by an user
 		SellOrderTaken(T::AccountId),
+		// A buy order taken by an user
 		BuyOrderTaken(T::AccountId),
+		// Updated balance to an account (who updated the balance, the account, the balance)
 		AfloatBalanceSet(T::AccountId, T::AccountId, T::Balance),
+		// A new admin is added (who added the admin, the admin)
 		AdminAdded(T::AccountId, T::AccountId),
+		// A user is assigned to a role (who assigned the role, the user, the role)
+		UserAssignedToRoleAdded(T::AccountId, T::AccountId, AfloatRole),
 	}
 
 	// Errors inform users that something went wrong.
@@ -398,6 +406,22 @@ pub mod pallet {
 		pub fn cancel_offer(origin: OriginFor<T>, order_id: StorageId) -> DispatchResult {
 			let who = ensure_signed(origin.clone())?;
 			Self::do_cancel_offer(who, order_id)
+		}
+
+		#[pallet::call_index(12)]
+		#[pallet::weight(Weight::from_parts(10_000,0) + T::DbWeight::get().reads_writes(1,1))]
+		pub fn assign_user_to_role(
+			origin: OriginFor<T>,
+			user_address: T::AccountId,
+			role: AfloatRole,
+		) -> DispatchResult {
+			let who = ensure_signed(origin.clone())?;
+			let is_admin_or_owner = Self::is_admin_or_owner(who.clone())?;
+			ensure!(is_admin_or_owner, Error::<T>::Unauthorized);
+			ensure!(UserInfo::<T>::contains_key(user_address.clone()), Error::<T>::UserNotFound);
+			Self::give_role_to_user(user_address.clone(), role.clone())?;
+			Self::deposit_event(Event::UserAssignedToRoleAdded(who, user_address, role));
+			Ok(())
 		}
 	}
 }
