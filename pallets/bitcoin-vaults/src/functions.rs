@@ -1,18 +1,19 @@
 use super::*;
 use crate::types::*;
-use frame_support::pallet_prelude::*;
-use frame_support::sp_io::hashing::blake2_256;
+use frame_support::{pallet_prelude::*, sp_io::hashing::blake2_256};
 use frame_system::offchain::{SendUnsignedTransaction, Signer};
-use lite_json::json::{JsonValue, NumberValue};
-use lite_json::parse_json;
-use lite_json::Serialize as jsonSerialize;
-use sp_runtime::offchain::{http, Duration};
-use sp_runtime::sp_std::str;
-use sp_runtime::sp_std::vec::Vec;
-use sp_runtime::traits::BlockNumberProvider;
+use lite_json::{
+	json::{JsonValue, NumberValue},
+	parse_json, Serialize as jsonSerialize,
+};
+use sp_runtime::{
+	offchain::{http, Duration},
+	sp_std::{str, vec::Vec},
+	traits::BlockNumberProvider,
+};
 
 impl<T: Config> Pallet<T> {
-	/*---- Extrinsics  ----*/
+	/* ---- Extrinsics  ---- */
 	/// Use with caution
 	pub fn do_remove_xpub(who: T::AccountId) -> DispatchResult {
 		let old_hash = <XpubsByOwner<T>>::take(who.clone()).ok_or(Error::<T>::XPubNotFound)?;
@@ -32,7 +33,7 @@ impl<T: Config> Pallet<T> {
 		vault_members.clone().into_iter().try_for_each(|acc| {
 			// check if all users have an xpub
 			if !<XpubsByOwner<T>>::contains_key(acc.clone()) {
-				return Err(Error::<T>::XPubNotFound);
+				return Err(Error::<T>::XPubNotFound)
 			}
 			<VaultsBySigner<T>>::try_mutate(acc, |vault_vec| vault_vec.try_push(vault_id.clone()))
 				.map_err(|_| Error::<T>::SignerVaultLimit)
@@ -152,8 +153,8 @@ impl<T: Config> Pallet<T> {
 		ensure!(vault.is_vault_member(&signer), Error::<T>::SignerPermissionsNeeded);
 		// if its finalized then fire error "already finalized" or "already broadcasted"
 		ensure!(
-			proposal.status.eq(&ProposalStatus::Pending)
-				|| proposal.status.eq(&ProposalStatus::Finalized),
+			proposal.status.eq(&ProposalStatus::Pending) ||
+				proposal.status.eq(&ProposalStatus::Finalized),
 			Error::<T>::PendingProposalRequired
 		);
 		// signs must be greater or equal than threshold
@@ -252,7 +253,7 @@ impl<T: Config> Pallet<T> {
 	pub fn do_remove_proof(vault_id: [u8; 32]) {
 		<ProofOfReserves<T>>::remove(vault_id)
 	}
-	/*---- Utilities ----*/
+	/* ---- Utilities ---- */
 
 	// check if the xpub is free to take/update or if its owned by the account
 	pub fn get_xpub_status(who: T::AccountId, xpub_hash: [u8; 32]) -> XpubStatus {
@@ -264,7 +265,7 @@ impl<T: Config> Pallet<T> {
 				}
 			} else {
 				// xpub registered and the account doesnt own it: unavailable
-				return XpubStatus::Taken;
+				return XpubStatus::Taken
 			}
 			// Does the user owns the registered xpub? if yes, available
 		}
@@ -279,7 +280,7 @@ impl<T: Config> Pallet<T> {
 		Ok(())
 	}
 
-	/*---- Offchain extrinsics ----*/
+	/* ---- Offchain extrinsics ---- */
 
 	pub fn do_insert_descriptors(
 		vault_id: [u8; 32],
@@ -332,14 +333,14 @@ impl<T: Config> Pallet<T> {
 		Self::deposit_event(Event::ProposalTxIdStored(proposal_id));
 		Ok(())
 	}
-	/*---- Offchain utilities ----*/
+	/* ---- Offchain utilities ---- */
 
 	pub fn get_pending_vaults() -> Vec<[u8; 32]> {
 		<Vaults<T>>::iter()
 			.filter_map(|(entry, vault)| {
-				if vault.descriptors.output_descriptor.is_empty()
-					&& (vault.offchain_status.eq(&BDKStatus::<T::VaultDescriptionMaxLen>::Pending)
-						|| vault.offchain_status.eq(
+				if vault.descriptors.output_descriptor.is_empty() &&
+					(vault.offchain_status.eq(&BDKStatus::<T::VaultDescriptionMaxLen>::Pending) ||
+						vault.offchain_status.eq(
 							&BDKStatus::<T::VaultDescriptionMaxLen>::RecoverableError(
 								BoundedVec::<u8, T::VaultDescriptionMaxLen>::default(),
 							),
@@ -355,11 +356,11 @@ impl<T: Config> Pallet<T> {
 	pub fn get_pending_proposals() -> Vec<[u8; 32]> {
 		<Proposals<T>>::iter()
 			.filter_map(|(id, proposal)| {
-				if proposal.psbt.is_empty()
-					&& (proposal
+				if proposal.psbt.is_empty() &&
+					(proposal
 						.offchain_status
-						.eq(&BDKStatus::<T::VaultDescriptionMaxLen>::Pending)
-						|| proposal.offchain_status.eq(
+						.eq(&BDKStatus::<T::VaultDescriptionMaxLen>::Pending) ||
+						proposal.offchain_status.eq(
 							&BDKStatus::<T::VaultDescriptionMaxLen>::RecoverableError(
 								BoundedVec::<u8, T::VaultDescriptionMaxLen>::default(),
 							),
@@ -392,7 +393,7 @@ impl<T: Config> Pallet<T> {
 		<Proposals<T>>::iter()
 			.filter_map(|(id, p)| {
 				if p.can_be_finalized() {
-					return Some(id);
+					return Some(id)
 				}
 				None
 			})
@@ -433,13 +434,13 @@ impl<T: Config> Pallet<T> {
 				let vec_body = response.body().collect::<Vec<u8>>();
 				let msj_str =
 					str::from_utf8(vec_body.as_slice()).unwrap_or("Error 400: Bad request");
-				return Err(Self::build_offchain_err(false, msj_str));
+				return Err(Self::build_offchain_err(false, msj_str))
 			},
 			500..=599 => {
 				let vec_body = response.body().collect::<Vec<u8>>();
 				let msj_str =
 					str::from_utf8(vec_body.as_slice()).unwrap_or("Error 500: Server error");
-				return Err(Self::build_offchain_err(false, msj_str));
+				return Err(Self::build_offchain_err(false, msj_str))
 			},
 			_ => return Err(Self::build_offchain_err(true, "Unknown error")),
 		}
@@ -494,7 +495,8 @@ impl<T: Config> Pallet<T> {
 
 	/// Parse the descriptors from the given JSON string using `lite-json`.
 	///
-	/// Returns `None` when parsing failed or `Some((descriptor, change_descriptor))` when parsing is successful.
+	/// Returns `None` when parsing failed or `Some((descriptor, change_descriptor))` when parsing
+	/// is successful.
 	fn parse_vault_descriptors(body_str: &str) -> Result<(Vec<u8>, Vec<u8>), OffchainStatus> {
 		let val = parse_json(body_str);
 		match val.ok() {
@@ -715,13 +717,14 @@ impl<T: Config> Pallet<T> {
 	// pub fn bdk_gen_finalized_proposal(proposal_id: [u8;32])-> Result<Vec<u8>,OffchainStatus >{
 	//     let raw_json = Self::gen_finalize_json_body(proposal_id)?;
 	//     let request_body =
-	//         str::from_utf8(raw_json.as_slice()).map_err(|_| Self::build_offchain_err(false, "Request body is not UTF-8") )?;
+	//         str::from_utf8(raw_json.as_slice()).map_err(|_| Self::build_offchain_err(false,
+	// "Request body is not UTF-8") )?;
 
 	//     let url = [<BDKServicesURL<T>>::get().to_vec(), b"/finalize_trx".encode()].concat();
 
 	//     let response_body = Self::http_post(
-	//         str::from_utf8(url.as_slice()).map_err(|_| Self::build_offchain_err(false, "URL is not UTF-8") )?,
-	//         request_body
+	//         str::from_utf8(url.as_slice()).map_err(|_| Self::build_offchain_err(false, "URL is
+	// not UTF-8") )?,         request_body
 	//     )?;
 	//     // The psbt is not a json object, its a byte blob
 	//     Ok(response_body)
@@ -819,7 +822,7 @@ impl<T: Config> Pallet<T> {
 	}
 }
 
-/*--- Block Number provider section. Needed to implement locks on offchain storage*/
+/* --- Block Number provider section. Needed to implement locks on offchain storage */
 impl<T: Config> BlockNumberProvider for Pallet<T> {
 	type BlockNumber = T::BlockNumber;
 

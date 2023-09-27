@@ -68,10 +68,7 @@ impl pallet_fund_admin_records::Config for Test {
 	type MaxRecordsAtTime = MaxRecordsAtTime;
 }
 
-
-parameter_types! {
-
-}
+parameter_types! {}
 
 impl pallet_timestamp::Config for Test {
 	type Moment = u64;

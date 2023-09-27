@@ -3,8 +3,8 @@ use frame_support::parameter_types;
 use frame_system as system;
 use sp_core::H256;
 use sp_runtime::{
-  testing::Header,
-  traits::{BlakeTwo256, IdentityLookup},
+	testing::Header,
+	traits::{BlakeTwo256, IdentityLookup},
 };
 
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;
@@ -14,15 +14,15 @@ use frame_system::EnsureRoot;
 // Configure a mock runtime to test the pallet.
 frame_support::construct_runtime!(
   pub enum Test where
-    Block = Block,
-    NodeBlock = Block,
-    UncheckedExtrinsic = UncheckedExtrinsic,
+	Block = Block,
+	NodeBlock = Block,
+	UncheckedExtrinsic = UncheckedExtrinsic,
   {
-    System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
-    FundAdmin: pallet_fund_admin::{Pallet, Call, Storage, Event<T>},
-    Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent},
-    RBAC: pallet_rbac::{Pallet, Call, Storage, Event<T>},
-    Balances: pallet_balances::{Pallet, Call, Storage, Event<T>},
+	System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
+	FundAdmin: pallet_fund_admin::{Pallet, Call, Storage, Event<T>},
+	Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent},
+	RBAC: pallet_rbac::{Pallet, Call, Storage, Event<T>},
+	Balances: pallet_balances::{Pallet, Call, Storage, Event<T>},
   }
 );
 
@@ -32,15 +32,15 @@ parameter_types! {
 }
 
 impl pallet_balances::Config for Test {
-  type Balance = u64;
-  type DustRemoval = ();
-  type RuntimeEvent = RuntimeEvent;
-  type ExistentialDeposit = ExistentialDeposit;
-  type AccountStore = System;
-  type WeightInfo = ();
-  type MaxLocks = ();
-  type MaxReserves = MaxReserves;
-  type ReserveIdentifier = [u8; 8];
+	type Balance = u64;
+	type DustRemoval = ();
+	type RuntimeEvent = RuntimeEvent;
+	type ExistentialDeposit = ExistentialDeposit;
+	type AccountStore = System;
+	type WeightInfo = ();
+	type MaxLocks = ();
+	type MaxReserves = MaxReserves;
+	type ReserveIdentifier = [u8; 8];
 }
 
 parameter_types! {
@@ -49,30 +49,30 @@ parameter_types! {
 }
 
 impl system::Config for Test {
-  type BaseCallFilter = frame_support::traits::Everything;
-  type BlockWeights = ();
-  type BlockLength = ();
-  type DbWeight = ();
-  type RuntimeOrigin = RuntimeOrigin;
-  type RuntimeCall = RuntimeCall;
-  type Index = u64;
-  type BlockNumber = u64;
-  type Hash = H256;
-  type Hashing = BlakeTwo256;
-  type AccountId = u64;
-  type Lookup = IdentityLookup<Self::AccountId>;
-  type Header = Header;
-  type RuntimeEvent = RuntimeEvent;
-  type BlockHashCount = BlockHashCount;
-  type Version = ();
-  type PalletInfo = PalletInfo;
-  type OnNewAccount = ();
-  type OnKilledAccount = ();
-  type SystemWeightInfo = ();
-  type SS58Prefix = SS58Prefix;
-  type OnSetCode = ();
-  type MaxConsumers = frame_support::traits::ConstU32<16>;
-  type AccountData = pallet_balances::AccountData<u64>;
+	type BaseCallFilter = frame_support::traits::Everything;
+	type BlockWeights = ();
+	type BlockLength = ();
+	type DbWeight = ();
+	type RuntimeOrigin = RuntimeOrigin;
+	type RuntimeCall = RuntimeCall;
+	type Index = u64;
+	type BlockNumber = u64;
+	type Hash = H256;
+	type Hashing = BlakeTwo256;
+	type AccountId = u64;
+	type Lookup = IdentityLookup<Self::AccountId>;
+	type Header = Header;
+	type RuntimeEvent = RuntimeEvent;
+	type BlockHashCount = BlockHashCount;
+	type Version = ();
+	type PalletInfo = PalletInfo;
+	type OnNewAccount = ();
+	type OnKilledAccount = ();
+	type SystemWeightInfo = ();
+	type SS58Prefix = SS58Prefix;
+	type OnSetCode = ();
+	type MaxConsumers = frame_support::traits::ConstU32<16>;
+	type AccountData = pallet_balances::AccountData<u64>;
 }
 
 parameter_types! {
@@ -101,41 +101,41 @@ parameter_types! {
 }
 
 impl pallet_fund_admin::Config for Test {
-  type RuntimeEvent = RuntimeEvent;
-  type RemoveOrigin = EnsureRoot<Self::AccountId>;
-  type Timestamp = Timestamp;
-  type Moment = u64;
-  type Rbac = RBAC;
-  type Currency = Balances;
+	type RuntimeEvent = RuntimeEvent;
+	type RemoveOrigin = EnsureRoot<Self::AccountId>;
+	type Timestamp = Timestamp;
+	type Moment = u64;
+	type Rbac = RBAC;
+	type Currency = Balances;
 
-  type MaxDocuments = MaxDocuments;
-  type MaxProjectsPerUser = MaxProjectsPerUser;
-  type MaxUserPerProject = MaxUserPerProject;
-  type MaxBuildersPerProject = MaxBuildersPerProject;
-  type MaxInvestorsPerProject = MaxInvestorsPerProject;
-  type MaxIssuersPerProject = MaxIssuersPerProject;
-  type MaxRegionalCenterPerProject = MaxRegionalCenterPerProject;
-  type MaxDrawdownsPerProject = MaxDrawdownsPerProject;
-  type MaxTransactionsPerDrawdown = MaxTransactionsPerDrawdown;
-  type MaxRegistrationsAtTime = MaxRegistrationsAtTime;
-  type MaxExpendituresPerProject = MaxExpendituresPerProject;
-  type MaxProjectsPerInvestor = MaxProjectsPerInvestor;
-  type MaxBanksPerProject = MaxBanksPerProject;
-  type MaxJobEligiblesByProject = MaxJobEligiblesByProject;
-  type MaxRevenuesByProject = MaxRevenuesByProject;
-  type MaxTransactionsPerRevenue = MaxTransactionsPerRevenue;
-  type MaxStatusChangesPerDrawdown = MaxStatusChangesPerDrawdown;
-  type MaxStatusChangesPerRevenue = MaxStatusChangesPerRevenue;
-  type MaxRecoveryChanges = MaxRecoveryChanges;
-  type MinAdminBalance = MinAdminBalance;
-  type TransferAmount = TransferAmount;
+	type MaxDocuments = MaxDocuments;
+	type MaxProjectsPerUser = MaxProjectsPerUser;
+	type MaxUserPerProject = MaxUserPerProject;
+	type MaxBuildersPerProject = MaxBuildersPerProject;
+	type MaxInvestorsPerProject = MaxInvestorsPerProject;
+	type MaxIssuersPerProject = MaxIssuersPerProject;
+	type MaxRegionalCenterPerProject = MaxRegionalCenterPerProject;
+	type MaxDrawdownsPerProject = MaxDrawdownsPerProject;
+	type MaxTransactionsPerDrawdown = MaxTransactionsPerDrawdown;
+	type MaxRegistrationsAtTime = MaxRegistrationsAtTime;
+	type MaxExpendituresPerProject = MaxExpendituresPerProject;
+	type MaxProjectsPerInvestor = MaxProjectsPerInvestor;
+	type MaxBanksPerProject = MaxBanksPerProject;
+	type MaxJobEligiblesByProject = MaxJobEligiblesByProject;
+	type MaxRevenuesByProject = MaxRevenuesByProject;
+	type MaxTransactionsPerRevenue = MaxTransactionsPerRevenue;
+	type MaxStatusChangesPerDrawdown = MaxStatusChangesPerDrawdown;
+	type MaxStatusChangesPerRevenue = MaxStatusChangesPerRevenue;
+	type MaxRecoveryChanges = MaxRecoveryChanges;
+	type MinAdminBalance = MinAdminBalance;
+	type TransferAmount = TransferAmount;
 }
 
 impl pallet_timestamp::Config for Test {
-  type Moment = u64;
-  type OnTimestampSet = ();
-  type MinimumPeriod = ();
-  type WeightInfo = ();
+	type Moment = u64;
+	type OnTimestampSet = ();
+	type MinimumPeriod = ();
+	type WeightInfo = ();
 }
 
 parameter_types! {
@@ -148,25 +148,25 @@ parameter_types! {
   pub const MaxUsersPerRole: u32 = 2500;
 }
 impl pallet_rbac::Config for Test {
-  type RuntimeEvent = RuntimeEvent;
-  type MaxScopesPerPallet = MaxScopesPerPallet;
-  type MaxRolesPerPallet = MaxRolesPerPallet;
-  type RoleMaxLen = RoleMaxLen;
-  type PermissionMaxLen = PermissionMaxLen;
-  type MaxPermissionsPerRole = MaxPermissionsPerRole;
-  type MaxRolesPerUser = MaxRolesPerUser;
-  type MaxUsersPerRole = MaxUsersPerRole;
-  type RemoveOrigin = EnsureRoot<Self::AccountId>;
+	type RuntimeEvent = RuntimeEvent;
+	type MaxScopesPerPallet = MaxScopesPerPallet;
+	type MaxRolesPerPallet = MaxRolesPerPallet;
+	type RoleMaxLen = RoleMaxLen;
+	type PermissionMaxLen = PermissionMaxLen;
+	type MaxPermissionsPerRole = MaxPermissionsPerRole;
+	type MaxRolesPerUser = MaxRolesPerUser;
+	type MaxUsersPerRole = MaxUsersPerRole;
+	type RemoveOrigin = EnsureRoot<Self::AccountId>;
 }
 
 // Build genesis storage according to the mock runtime.
 pub fn new_test_ext() -> sp_io::TestExternalities {
-  let balance_amount = InitialAdminBalance::get();
-  let mut t = frame_system::GenesisConfig::default().build_storage::<Test>().unwrap();
-  pallet_balances::GenesisConfig::<Test> { balances: vec![(1, balance_amount)] }
-    .assimilate_storage(&mut t)
-    .expect("assimilate_storage failed");
-  let mut t: sp_io::TestExternalities = t.into();
-  t.execute_with(|| FundAdmin::do_initial_setup().expect("Error on configuring initial setup"));
-  t
+	let balance_amount = InitialAdminBalance::get();
+	let mut t = frame_system::GenesisConfig::default().build_storage::<Test>().unwrap();
+	pallet_balances::GenesisConfig::<Test> { balances: vec![(1, balance_amount)] }
+		.assimilate_storage(&mut t)
+		.expect("assimilate_storage failed");
+	let mut t: sp_io::TestExternalities = t.into();
+	t.execute_with(|| FundAdmin::do_initial_setup().expect("Error on configuring initial setup"));
+	t
 }
