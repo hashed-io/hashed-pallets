@@ -45,6 +45,9 @@ impl<T: Config> Pallet<T> {
 		Ok(())
 	}
 
+	/// Creates a new marketplace
+	/// The owner and admin are added to the marketplace as authorities
+	/// The asset_id is the currency of the marketplace and it's assumed to exist
 	pub fn do_create_marketplace(
 		origin: OriginFor<T>,
 		admin: T::AccountId,
@@ -53,22 +56,12 @@ impl<T: Config> Pallet<T> {
 		let owner = ensure_signed(origin.clone())?;
 		// Gen market id
 		let marketplace_id = marketplace.using_encoded(blake2_256);
-		//Get asset id
-		let asset_id = marketplace.asset_id;
-		let min_balance: T::Balance = T::Balance::from(1u32);
 
 		// ensure the generated id is unique
 		ensure!(
 			!<Marketplaces<T>>::contains_key(marketplace_id),
 			Error::<T>::MarketplaceAlreadyExists
 		);
-		// Create asset
-		// pallet_mapped_assets::Pallet::<T>::create(
-		// 	origin,
-		// 	asset_id,
-		// 	T::Lookup::unlookup(owner.clone()),
-		// 	min_balance,
-		// )?;
 		//Insert on marketplaces and marketplaces by auth
 		<T as pallet::Config>::Rbac::create_scope(Self::pallet_id(), marketplace_id)?;
 		Self::insert_in_auth_market_lists(owner.clone(), MarketplaceRole::Owner, marketplace_id)?;
