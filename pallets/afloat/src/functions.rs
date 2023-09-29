@@ -856,6 +856,8 @@ impl<T: Config> Pallet<T> {
 
 		Self::give_role_to_user(user_address.clone(), AfloatRole::Admin)?;
 
+		Self::do_add_account_to_afloat_frunique(user_address.clone(), FruniqueRole::Admin)?;
+
 		Self::deposit_event(Event::AdminAdded(authority, user_address));
 		Ok(())
 	}

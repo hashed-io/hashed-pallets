@@ -197,6 +197,8 @@ pub enum CreateAsset<T: Config> {
 pub enum InitialSetupArgs<T: Config> {
 	All { creator: T::AccountId, admin: T::AccountId, asset: CreateAsset<T> },
 	Roles { creator: T::AccountId, admin: T::AccountId },
+	AddAfloatRole { who: T::AccountId, role: AfloatRole },
+	AddFruniqueRole { who: T::AccountId, role: AfloatRole },
 }
 
 // ! Transaction structures

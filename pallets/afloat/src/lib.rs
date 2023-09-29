@@ -223,6 +223,14 @@ pub mod pallet {
 					Self::do_setup_roles(creator, admin)?;
 					Ok(())
 				},
+				InitialSetupArgs::AddAfloatRole { who, role } => {
+					Self::give_role_to_user(who, role)?;
+					Ok(())
+				},
+				InitialSetupArgs::AddFruniqueRole { who, role } => {
+					Self::do_add_account_to_afloat_frunique(who, FruniqueRole::Admin)?;
+					Ok(())
+				},
 			}
 		}
 
