@@ -228,7 +228,7 @@ pub mod pallet {
 					Ok(())
 				},
 				InitialSetupArgs::AddFruniqueRole { who, role } => {
-					Self::do_add_account_to_afloat_frunique(who, FruniqueRole::Admin)?;
+					Self::do_add_account_to_afloat_frunique(who, role)?;
 					Ok(())
 				},
 			}
