@@ -1,5 +1,6 @@
 use super::*;
 use frame_support::{pallet_prelude::*, sp_io::hashing::blake2_256};
+use pallet_fruniques::types::FruniqueRole;
 use sp_runtime::sp_std::vec::Vec;
 
 pub type ShortString = BoundedVec<u8, ConstU32<55>>;
@@ -197,6 +198,8 @@ pub enum CreateAsset<T: Config> {
 pub enum InitialSetupArgs<T: Config> {
 	All { creator: T::AccountId, admin: T::AccountId, asset: CreateAsset<T> },
 	Roles { creator: T::AccountId, admin: T::AccountId },
+	AddAfloatRole { who: T::AccountId, role: AfloatRole },
+	AddFruniqueRole { who: T::AccountId, role: FruniqueRole },
 }
 
 // ! Transaction structures
