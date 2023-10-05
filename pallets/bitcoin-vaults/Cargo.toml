@@ -13,6 +13,8 @@ repository = "https://github.com/hashed-io/hashed-pallets"
 targets = ["x86_64-unknown-linux-gnu"]
 
 [dependencies]
+log = "0.4"
+serde = { version = "1.0.188", default-features = false, features = ["derive"] }
 codec = { package = "parity-scale-codec", version = "3.6.1", default-features = false, features = [
 	"derive",
 ] }
@@ -24,6 +26,7 @@ frame-support = { version = "4.0.0-dev", default-features = false, git = "https:
 frame-system = { version = "4.0.0-dev", default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v1.0.0" }
 lite-json = { version = "0.2", default-features = false }
 sp-keystore = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v1.0.0", default-features = false, optional = true }
+sp-std = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v1.0.0", default-features = false }
 
 [dev-dependencies]
 sp-core = { version = "21.0.0", git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v1.0.0" }
@@ -35,11 +38,15 @@ pallet-balances = { git = "https://github.com/paritytech/substrate", branch = "p
 default = ["std"]
 std = [
 	"codec/std",
-	"frame-benchmarking?/std",
+	"serde/std",
+	"scale-info/std",
 	"frame-support/std",
 	"frame-system/std",
-	"scale-info/std",
+	"frame-benchmarking/std",
 	"pallet-balances/std",
+	"sp-core/std",
+	"sp-io/std",
+	"sp-std/std",
 	"lite-json/std",
 	"sp-keystore/std",
 ]
