@@ -1,7 +1,7 @@
 use crate as pallet_gated_marketplace;
 use frame_support::{
 	parameter_types,
-	traits::{AsEnsureOriginWithArg, ConstU32, ConstU64, GenesisBuild},
+	traits::{AsEnsureOriginWithArg, BuildGenesisConfig, ConstU32, ConstU64},
 };
 use frame_system as system;
 use sp_core::H256;
