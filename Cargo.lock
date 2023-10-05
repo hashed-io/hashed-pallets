@@ -1727,13 +1727,16 @@ dependencies = [
  "frame-support",
  "frame-system",
  "lite-json",
+ "log",
  "pallet-balances",
  "parity-scale-codec",
  "scale-info",
+ "serde",
  "sp-core",
  "sp-io",
  "sp-keystore",
  "sp-runtime",
+ "sp-std",
 ]
 
 [[package]]
