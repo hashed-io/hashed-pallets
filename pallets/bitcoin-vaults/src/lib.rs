@@ -51,7 +51,7 @@ pub mod pallet {
 	}
 
 	#[pallet::genesis_build]
-	impl<T: Config> GenesisBuild<T> for GenesisConfig {
+	impl<T: Config> BuildGenesisConfig<T> for GenesisConfig {
 		fn build(&self) {
 			<BDKServicesURL<T>>::put(
 				BoundedVec::<u8, ConstU32<32>>::try_from(self.bdk_services_url.clone())
