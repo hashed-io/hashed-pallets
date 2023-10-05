@@ -16,12 +16,17 @@ mod types;
 
 #[frame_support::pallet]
 pub mod pallet {
+	use super::*;
 	use frame_support::{pallet_prelude::*, traits::Time};
 	use frame_system::pallet_prelude::*;
 	use sp_runtime::traits::Scale;
 
 	use crate::types::*;
 	const STORAGE_VERSION: StorageVersion = StorageVersion::new(1);
+
+	#[pallet::pallet]
+	#[pallet::storage_version(STORAGE_VERSION)]
+	pub struct Pallet<T>(_);
 
 	#[pallet::config]
 	pub trait Config: frame_system::Config {
@@ -42,10 +47,6 @@ pub mod pallet {
 		#[pallet::constant]
 		type MaxRecordsAtTime: Get<u32>;
 	}
-
-	#[pallet::pallet]
-	#[pallet::storage_version(STORAGE_VERSION)]
-	pub struct Pallet<T>(_);
 
 	/* --- Onchain storage section --- */
 	#[pallet::storage]
@@ -79,7 +80,7 @@ pub mod pallet {
 	pub enum Error<T> {
 		/// The record id already exists
 		IdAlreadyExists,
-		/// Timestamp was not genereated correctly
+		/// Timestamp was not generated correctly
 		TimestampError,
 		/// Signer account is not set
 		SignerAccountNotSet,
@@ -93,7 +94,7 @@ pub mod pallet {
 		ProjectIdExceededMaxLength,
 		/// Hashed info exceeded max length
 		HashedInfoExceededMaxLength,
-		/// Maximun number of registrations at a time reached
+		/// Maximum number of registrations at a time reached
 		MaxRegistrationsAtATimeReached,
 	}
 
@@ -107,7 +108,7 @@ pub mod pallet {
 		/// * `origin` - The sender of the transaction
 		/// * `signer_account` - The account id of the signer
 		/// Returns `Ok` if the operation is successful, `Err` otherwise.
-		#[pallet::call_index(1)]
+		#[pallet::call_index(0)]
 		#[pallet::weight(Weight::from_parts(10_000,0) + T::DbWeight::get().writes(10))]
 		pub fn set_signer_account(origin: OriginFor<T>, account: T::AccountId) -> DispatchResult {
 			T::RemoveOrigin::ensure_origin(origin)?;
@@ -129,7 +130,7 @@ pub mod pallet {
 		///   function executes successfully without any error, it will return `Ok(())`. If there is
 		///   an error, it will return `Err(error)`, where `error` is an instance of the
 		///   `DispatchError` class.
-		#[pallet::call_index(2)]
+		#[pallet::call_index(1)]
 		#[pallet::weight(Weight::from_parts(10_000,0) + T::DbWeight::get().writes(10))]
 		pub fn add_record(origin: OriginFor<T>, records: RecordCollection<T>) -> DispatchResult {
 			let who = ensure_signed(origin.clone())?;
@@ -154,7 +155,7 @@ pub mod pallet {
 		///
 		/// ### Considerations:
 		/// - This function is only available to the `admin` with sudo access.
-		#[pallet::call_index(3)]
+		#[pallet::call_index(2)]
 		#[pallet::weight(Weight::from_parts(10_000,0) + T::DbWeight::get().writes(10))]
 		pub fn kill_storage(origin: OriginFor<T>) -> DispatchResult {
 			T::RemoveOrigin::ensure_origin(origin.clone())?;
