@@ -127,12 +127,12 @@ pub mod v1 {
 				current_version.put::<Pallet<T>>();
 
 				log::info!(
-          target: LOG_TARGET,
-          "Upgraded {} DrawdownData<T> from {} initial drawdowns, storage to version {:?}",
-          count_drawdowns,
-          translated_drawdowns,
-          current_version
-        );
+				  target: LOG_TARGET,
+				  "Upgraded {} DrawdownData<T> from {} initial drawdowns, storage to version {:?}",
+				  count_drawdowns,
+				  translated_drawdowns,
+				  current_version
+				);
 
 				log::info!(
 					target: LOG_TARGET,
