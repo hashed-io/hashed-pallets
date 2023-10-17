@@ -20,7 +20,11 @@ pub mod types;
 #[frame_support::pallet]
 pub mod pallet {
 	use crate::types::*;
-	use frame_support::pallet_prelude::{ValueQuery, *};
+	use frame_support::{
+		pallet_prelude::{ValueQuery, *},
+		sp_io::hashing::blake2_256,
+		traits::Get,
+	};
 	use frame_system::pallet_prelude::*;
 	use sp_runtime::sp_std::vec::Vec;
 

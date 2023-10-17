@@ -20,7 +20,7 @@ pub mod pallet {
 	//#[cfg(feature = "std")]
 	//use frame_support::serde::{Deserialize, Serialize};
 	use crate::types::*;
-	use frame_support::{pallet_prelude::BoundedVec, sp_io::hashing::blake2_256, traits::Get};
+	use frame_support::{pallet_prelude::*, sp_io::hashing::blake2_256, traits::Get};
 	use frame_system::{
 		offchain::{AppCrypto, CreateSignedTransaction, SignedPayload, Signer},
 		pallet_prelude::*,

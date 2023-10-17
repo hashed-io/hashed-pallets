@@ -1,14 +1,14 @@
 [workspace]
 members = [
-    'pallets/bitcoin-vaults',
-    'pallets/confidential-docs',
-    'pallets/rbac',
-    'pallets/fruniques',
-    'pallets/gated-marketplace',
-    'pallets/mapped-assets',
-    'pallets/afloat',
-    'pallets/fund-admin',
-    'pallets/fund-admin-records',
+	'pallets/confidential-docs',
+	'pallets/rbac',
+	'pallets/fruniques',
+	'pallets/gated-marketplace',
+	'pallets/mapped-assets',
+	'pallets/afloat',
+	'pallets/fund-admin',
+	'pallets/fund-admin-records',
 ]
+
 [profile.release]
 panic = 'unwind'
