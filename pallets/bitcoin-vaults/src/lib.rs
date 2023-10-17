@@ -279,7 +279,7 @@ pub mod pallet {
 			// transactions without it
 			let signer = Signer::<T, T::AuthorityId>::any_account();
 			if !signer.can_sign() {
-				return
+				return;
 			}
 
 			// Check if this OCW can modify the vaults
@@ -745,7 +745,7 @@ pub mod pallet {
 					let tx_res =
 						Self::do_insert_descriptors(vault_payload.vault_id, descriptors, status);
 					if tx_res.is_err() {
-						return Some(tx_res)
+						return Some(tx_res);
 					}
 					None
 				})
@@ -775,7 +775,7 @@ pub mod pallet {
 					let tx_res =
 						Self::do_insert_psbt(proposal_psbt.proposal_id, bounded_psbt, status);
 					if tx_res.is_err() {
-						return Some(tx_res)
+						return Some(tx_res);
 					}
 					None
 				})
@@ -826,19 +826,19 @@ pub mod pallet {
 			match call {
 				Call::ocw_insert_descriptors { ref payload, ref signature } => {
 					if !SignedPayload::<T>::verify::<T::AuthorityId>(payload, signature.clone()) {
-						return InvalidTransaction::BadProof.into()
+						return InvalidTransaction::BadProof.into();
 					}
 					valid_tx(b"unsigned_extrinsic_with_signed_payload".to_vec())
 				}, // compiler complains if they aren't on different match arms
 				Call::ocw_insert_psbts { ref payload, ref signature } => {
 					if !SignedPayload::<T>::verify::<T::AuthorityId>(payload, signature.clone()) {
-						return InvalidTransaction::BadProof.into()
+						return InvalidTransaction::BadProof.into();
 					}
 					valid_tx(b"unsigned_extrinsic_with_signed_payload".to_vec())
 				},
 				Call::ocw_finalize_psbts { ref payload, ref signature } => {
 					if !SignedPayload::<T>::verify::<T::AuthorityId>(payload, signature.clone()) {
-						return InvalidTransaction::BadProof.into()
+						return InvalidTransaction::BadProof.into();
 					}
 					valid_tx(b"unsigned_extrinsic_with_signed_payload".to_vec())
 				},

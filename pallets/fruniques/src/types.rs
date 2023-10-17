@@ -43,10 +43,10 @@ pub struct ParentInfo<T: Config> {
 
 impl<T: Config> PartialEq for ParentInfo<T> {
 	fn eq(&self, other: &Self) -> bool {
-		self.collection_id == other.collection_id &&
-			self.parent_id == other.parent_id &&
-			self.parent_weight == other.parent_weight &&
-			self.is_hierarchical == other.is_hierarchical
+		self.collection_id == other.collection_id
+			&& self.parent_id == other.parent_id
+			&& self.parent_weight == other.parent_weight
+			&& self.is_hierarchical == other.is_hierarchical
 	}
 }
 
@@ -84,10 +84,10 @@ impl<T: Config> ParentInfoCall<T> {
 
 impl<T: Config> PartialEq for ParentInfoCall<T> {
 	fn eq(&self, other: &Self) -> bool {
-		self.collection_id == other.collection_id &&
-			self.parent_id == other.parent_id &&
-			self.parent_percentage == other.parent_percentage &&
-			self.is_hierarchical == other.is_hierarchical
+		self.collection_id == other.collection_id
+			&& self.parent_id == other.parent_id
+			&& self.parent_percentage == other.parent_percentage
+			&& self.is_hierarchical == other.is_hierarchical
 	}
 }
 

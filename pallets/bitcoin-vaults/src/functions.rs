@@ -33,7 +33,7 @@ impl<T: Config> Pallet<T> {
 		vault_members.clone().into_iter().try_for_each(|acc| {
 			// check if all users have an xpub
 			if !<XpubsByOwner<T>>::contains_key(acc.clone()) {
-				return Err(Error::<T>::XPubNotFound)
+				return Err(Error::<T>::XPubNotFound);
 			}
 			<VaultsBySigner<T>>::try_mutate(acc, |vault_vec| vault_vec.try_push(vault_id.clone()))
 				.map_err(|_| Error::<T>::SignerVaultLimit)
@@ -153,8 +153,8 @@ impl<T: Config> Pallet<T> {
 		ensure!(vault.is_vault_member(&signer), Error::<T>::SignerPermissionsNeeded);
 		// if its finalized then fire error "already finalized" or "already broadcasted"
 		ensure!(
-			proposal.status.eq(&ProposalStatus::Pending) ||
-				proposal.status.eq(&ProposalStatus::Finalized),
+			proposal.status.eq(&ProposalStatus::Pending)
+				|| proposal.status.eq(&ProposalStatus::Finalized),
 			Error::<T>::PendingProposalRequired
 		);
 		// signs must be greater or equal than threshold
@@ -265,7 +265,7 @@ impl<T: Config> Pallet<T> {
 				}
 			} else {
 				// xpub registered and the account doesnt own it: unavailable
-				return XpubStatus::Taken
+				return XpubStatus::Taken;
 			}
 			// Does the user owns the registered xpub? if yes, available
 		}
@@ -338,9 +338,9 @@ impl<T: Config> Pallet<T> {
 	pub fn get_pending_vaults() -> Vec<[u8; 32]> {
 		<Vaults<T>>::iter()
 			.filter_map(|(entry, vault)| {
-				if vault.descriptors.output_descriptor.is_empty() &&
-					(vault.offchain_status.eq(&BDKStatus::<T::VaultDescriptionMaxLen>::Pending) ||
-						vault.offchain_status.eq(
+				if vault.descriptors.output_descriptor.is_empty()
+					&& (vault.offchain_status.eq(&BDKStatus::<T::VaultDescriptionMaxLen>::Pending)
+						|| vault.offchain_status.eq(
 							&BDKStatus::<T::VaultDescriptionMaxLen>::RecoverableError(
 								BoundedVec::<u8, T::VaultDescriptionMaxLen>::default(),
 							),
@@ -356,11 +356,11 @@ impl<T: Config> Pallet<T> {
 	pub fn get_pending_proposals() -> Vec<[u8; 32]> {
 		<Proposals<T>>::iter()
 			.filter_map(|(id, proposal)| {
-				if proposal.psbt.is_empty() &&
-					(proposal
+				if proposal.psbt.is_empty()
+					&& (proposal
 						.offchain_status
-						.eq(&BDKStatus::<T::VaultDescriptionMaxLen>::Pending) ||
-						proposal.offchain_status.eq(
+						.eq(&BDKStatus::<T::VaultDescriptionMaxLen>::Pending)
+						|| proposal.offchain_status.eq(
 							&BDKStatus::<T::VaultDescriptionMaxLen>::RecoverableError(
 								BoundedVec::<u8, T::VaultDescriptionMaxLen>::default(),
 							),
@@ -393,7 +393,7 @@ impl<T: Config> Pallet<T> {
 		<Proposals<T>>::iter()
 			.filter_map(|(id, p)| {
 				if p.can_be_finalized() {
-					return Some(id)
+					return Some(id);
 				}
 				None
 			})
@@ -434,13 +434,13 @@ impl<T: Config> Pallet<T> {
 				let vec_body = response.body().collect::<Vec<u8>>();
 				let msj_str =
 					str::from_utf8(vec_body.as_slice()).unwrap_or("Error 400: Bad request");
-				return Err(Self::build_offchain_err(false, msj_str))
+				return Err(Self::build_offchain_err(false, msj_str));
 			},
 			500..=599 => {
 				let vec_body = response.body().collect::<Vec<u8>>();
 				let msj_str =
 					str::from_utf8(vec_body.as_slice()).unwrap_or("Error 500: Server error");
-				return Err(Self::build_offchain_err(false, msj_str))
+				return Err(Self::build_offchain_err(false, msj_str));
 			},
 			_ => return Err(Self::build_offchain_err(true, "Unknown error")),
 		}

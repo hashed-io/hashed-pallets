@@ -62,7 +62,7 @@ impl<T: Config> Pallet<T> {
 	) -> AttributeValue<T> {
 		if let Some(a) = pallet_uniques::Pallet::<T>::attribute(class_id, instance_id, key) {
 			return BoundedVec::<u8, T::ValueLimit>::try_from(a)
-				.expect("Error on converting the attribute to BoundedVec")
+				.expect("Error on converting the attribute to BoundedVec");
 		}
 		BoundedVec::<u8, T::ValueLimit>::default()
 	}
@@ -80,14 +80,14 @@ impl<T: Config> Pallet<T> {
 
 	pub fn collection_exists(class_id: &T::CollectionId) -> bool {
 		if let Some(_owner) = pallet_uniques::Pallet::<T>::collection_owner(*class_id) {
-			return true
+			return true;
 		}
 		false
 	}
 
 	pub fn instance_exists(class_id: &T::CollectionId, instance_id: &T::ItemId) -> bool {
 		if let Some(_owner) = pallet_uniques::Pallet::<T>::owner(*class_id, *instance_id) {
-			return true
+			return true;
 		}
 		false
 	}
@@ -314,7 +314,7 @@ impl<T: Config> Pallet<T> {
 		Self::do_mint(collection, owner.clone(), metadata.clone(), attributes)?;
 
 		if let Some(ref parent_info) = parent_info {
-			return Self::do_nft_division(collection, item, metadata, parent_info, owner)
+			return Self::do_nft_division(collection, item, metadata, parent_info, owner);
 		}
 
 		let frunique_data = FruniqueData {
