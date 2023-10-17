@@ -404,8 +404,9 @@ pub mod pallet {
 			let who = ensure_signed(origin)?;
 			match block_args {
 				BlockUserArgs::BlockUser(user) => Self::do_block_user(who, marketplace_id, user),
-				BlockUserArgs::UnblockUser(user) =>
-					Self::do_unblock_user(who, marketplace_id, user),
+				BlockUserArgs::UnblockUser(user) => {
+					Self::do_unblock_user(who, marketplace_id, user)
+				},
 			}
 		}
 
@@ -818,10 +819,12 @@ pub mod pallet {
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 			match redeem {
-				RedeemArgs::AskForRedemption { collection_id, item_id } =>
-					return Self::do_ask_for_redeem(who, marketplace, collection_id, item_id),
-				RedeemArgs::AcceptRedemption(redemption_id) =>
-					return Self::do_accept_redeem(who, marketplace, redemption_id),
+				RedeemArgs::AskForRedemption { collection_id, item_id } => {
+					return Self::do_ask_for_redeem(who, marketplace, collection_id, item_id)
+				},
+				RedeemArgs::AcceptRedemption(redemption_id) => {
+					return Self::do_accept_redeem(who, marketplace, redemption_id)
+				},
 			}
 		}
 
