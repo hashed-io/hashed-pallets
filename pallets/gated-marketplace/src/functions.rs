@@ -176,7 +176,7 @@ impl<T: Config> Pallet<T> {
 			AccountOrApplication::Application(application_id) => <ApplicationsByAccount<T>>::iter()
 				.find_map(|(acc, m_id, app_id)| {
 					if m_id == marketplace_id && app_id == application_id {
-						return Some(acc);
+						return Some(acc)
 					}
 					None
 				})
@@ -271,7 +271,7 @@ impl<T: Config> Pallet<T> {
 		match authority_type {
 			MarketplaceRole::Owner => {
 				ensure!(Self::owner_exist(marketplace_id), Error::<T>::OwnerNotFound);
-				return Err(Error::<T>::CantRemoveOwner.into());
+				return Err(Error::<T>::CantRemoveOwner.into())
 			},
 			MarketplaceRole::Admin => {
 				// Admins can not delete themselves
@@ -338,7 +338,7 @@ impl<T: Config> Pallet<T> {
 		if let Some(a) = pallet_uniques::Pallet::<T>::owner(collection_id, item_id) {
 			ensure!(a == authority, Error::<T>::NotOwner);
 		} else {
-			return Err(Error::<T>::CollectionNotFound.into());
+			return Err(Error::<T>::CollectionNotFound.into())
 		}
 
 		//ensure the price is valid
@@ -414,7 +414,7 @@ impl<T: Config> Pallet<T> {
 		if let Some(a) = pallet_uniques::Pallet::<T>::owner(collection_id, item_id) {
 			ensure!(a != authority, Error::<T>::CannotCreateOffer);
 		} else {
-			return Err(Error::<T>::CollectionNotFound.into());
+			return Err(Error::<T>::CollectionNotFound.into())
 		}
 
 		//ensure the holder of NFT is in the same marketplace as the caller making the offer
@@ -1128,12 +1128,10 @@ impl<T: Config> Pallet<T> {
 			.map_err(|_| Error::<T>::ApplicationNotFound)?;
 
 		match application.status {
-			ApplicationStatus::Pending => {
-				return Err(Error::<T>::ApplicationStatusStillPending.into())
-			},
-			ApplicationStatus::Approved => {
-				return Err(Error::<T>::ApplicationHasAlreadyBeenApproved.into())
-			},
+			ApplicationStatus::Pending =>
+				return Err(Error::<T>::ApplicationStatusStillPending.into()),
+			ApplicationStatus::Approved =>
+				return Err(Error::<T>::ApplicationHasAlreadyBeenApproved.into()),
 			ApplicationStatus::Rejected => {
 				//If status is Rejected, we need to delete the previous application from all the
 				// storage sources.
@@ -1219,10 +1217,10 @@ impl<T: Config> Pallet<T> {
 			for offer in offers {
 				let offer_info = <OffersInfo<T>>::get(offer).ok_or(Error::<T>::OfferNotFound)?;
 				//ensure the offer_type is SellOrder, because this vector also contains buy offers.
-				if offer_info.marketplace_id == marketplace_id
-					&& offer_info.offer_type == OfferType::SellOrder
+				if offer_info.marketplace_id == marketplace_id &&
+					offer_info.offer_type == OfferType::SellOrder
 				{
-					return Err(Error::<T>::OfferAlreadyExists.into());
+					return Err(Error::<T>::OfferAlreadyExists.into())
 				}
 			}
 		}
@@ -1242,7 +1240,7 @@ impl<T: Config> Pallet<T> {
 		//We need to check if the owner is in the marketplace
 		if let Some(owner) = pallet_uniques::Pallet::<T>::owner(*class_id, *instance_id) {
 			if Self::is_authorized(owner, marketplace_id, Permission::EnlistSellOffer).is_ok() {
-				return Ok(());
+				return Ok(())
 			}
 		}
 		Err(Error::<T>::OwnerNotInMarketplace.into())
@@ -1298,7 +1296,7 @@ impl<T: Config> Pallet<T> {
 		if let Some(a) = pallet_uniques::Pallet::<T>::owner(collection_id, item_id) {
 			ensure!(a == who, Error::<T>::NotOwner);
 		} else {
-			return Err(Error::<T>::CollectionNotFound.into());
+			return Err(Error::<T>::CollectionNotFound.into())
 		}
 
 		let redemption_data: RedemptionData<T> = RedemptionData {

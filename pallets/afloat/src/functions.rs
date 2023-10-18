@@ -64,7 +64,7 @@ impl<T: Config> Pallet<T> {
 			AfloatCollectionId::<T>::put(collection_id);
 			Ok(())
 		} else {
-			return Err(Error::<T>::FailedToCreateFruniquesCollection.into());
+			return Err(Error::<T>::FailedToCreateFruniquesCollection.into())
 		}
 	}
 
@@ -461,8 +461,8 @@ impl<T: Config> Pallet<T> {
 		);
 		//ensure user has enough afloat balance
 		ensure!(
-			Self::do_get_afloat_balance(who.clone())
-				>= offer.price_per_credit * tax_credit_amount.into(),
+			Self::do_get_afloat_balance(who.clone()) >=
+				offer.price_per_credit * tax_credit_amount.into(),
 			Error::<T>::NotEnoughAfloatBalanceAvailable
 		);
 		let zero_balance: T::Balance = Zero::zero();
@@ -609,7 +609,7 @@ impl<T: Config> Pallet<T> {
 		let tax_credit_amount_u32 = if let Ok(amount) = transaction.tax_credit_amount.try_into() {
 			amount
 		} else {
-			return Err(Error::<T>::TaxCreditAmountOverflow.into());
+			return Err(Error::<T>::TaxCreditAmountOverflow.into())
 		};
 
 		let child_offer_id = pallet_gated_marketplace::Pallet::<T>::do_enlist_sell_offer(
@@ -713,7 +713,7 @@ impl<T: Config> Pallet<T> {
 		<AfloatOffers<T>>::try_mutate(offer_id, |offer| -> DispatchResult {
 			let offer = offer.as_mut().ok_or(Error::<T>::OfferNotFound)?;
 			if transaction.tax_credit_amount > offer.tax_credit_amount_remaining {
-				return Err(Error::<T>::Underflow.into());
+				return Err(Error::<T>::Underflow.into())
 			}
 			offer.tax_credit_amount_remaining =
 				offer.tax_credit_amount_remaining - transaction.tax_credit_amount;
