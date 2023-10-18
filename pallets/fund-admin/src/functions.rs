@@ -1606,8 +1606,8 @@ impl<T: Config> Pallet<T> {
 			DrawdownsInfo::<T>::get(drawdown_id).ok_or(Error::<T>::DrawdownNotFound)?;
 
 		ensure!(
-			drawdown_data.drawdown_type == DrawdownType::ConstructionLoan
-				|| drawdown_data.drawdown_type == DrawdownType::DeveloperEquity,
+			drawdown_data.drawdown_type == DrawdownType::ConstructionLoan ||
+				drawdown_data.drawdown_type == DrawdownType::DeveloperEquity,
 			Error::<T>::DrawdownTypeNotSupportedForBulkUpload
 		);
 
@@ -2843,7 +2843,7 @@ impl<T: Config> Pallet<T> {
 		// Check if the user role trying to be assigned matches the actual user role from UsersInfo
 		// storage
 		if user_data.role != role {
-			return Err(Error::<T>::UserCannotHaveMoreThanOneRole.into());
+			return Err(Error::<T>::UserCannotHaveMoreThanOneRole.into())
 		}
 
 		// Match user role. Check the max numbers of projects a user can be assigned to
@@ -2851,7 +2851,7 @@ impl<T: Config> Pallet<T> {
 			ProxyRole::Administrator => {
 				// Can't assign an administrator role account to a project, admins are scoped
 				// globally
-				return Err(Error::<T>::CannotAddAdminRole.into());
+				return Err(Error::<T>::CannotAddAdminRole.into())
 			},
 			ProxyRole::Investor => {
 				// Investors can be assigned to a maximum of 1 project
@@ -2896,9 +2896,8 @@ impl<T: Config> Pallet<T> {
 				match drawdown_data.status {
 					DrawdownStatus::Draft => Ok(()),
 					DrawdownStatus::Rejected => Ok(()),
-					DrawdownStatus::Submitted => {
-						Err(Error::<T>::CannotPerformActionOnSubmittedDrawdown.into())
-					},
+					DrawdownStatus::Submitted =>
+						Err(Error::<T>::CannotPerformActionOnSubmittedDrawdown.into()),
 					DrawdownStatus::Approved => {
 						// Ensure admin permissions
 						if Self::is_authorized(
@@ -3226,9 +3225,8 @@ impl<T: Config> Pallet<T> {
 		match revenue_data.status {
 			RevenueStatus::Draft => Ok(()),
 			RevenueStatus::Rejected => Ok(()),
-			RevenueStatus::Submitted => {
-				Err(Error::<T>::CannotPerformActionOnSubmittedRevenue.into())
-			},
+			RevenueStatus::Submitted =>
+				Err(Error::<T>::CannotPerformActionOnSubmittedRevenue.into()),
 			RevenueStatus::Approved => {
 				// Ensure admin permission
 				if Self::is_authorized(
@@ -3259,9 +3257,8 @@ impl<T: Config> Pallet<T> {
 		match revenue_transaction_data.status {
 			RevenueTransactionStatus::Draft => Ok(()),
 			RevenueTransactionStatus::Rejected => Ok(()),
-			RevenueTransactionStatus::Submitted => {
-				Err(Error::<T>::CannotPerformActionOnSubmittedRevenueTransaction.into())
-			},
+			RevenueTransactionStatus::Submitted =>
+				Err(Error::<T>::CannotPerformActionOnSubmittedRevenueTransaction.into()),
 			RevenueTransactionStatus::Approved => {
 				// Ensure admin permissions
 				if Self::is_authorized(
@@ -3456,7 +3453,7 @@ impl<T: Config> Pallet<T> {
 			T::Currency::transfer(&admin, &user, T::TransferAmount::get(), KeepAlive)?;
 			Ok(())
 		} else {
-			return Ok(());
+			return Ok(())
 		}
 	}
 
@@ -3632,8 +3629,8 @@ impl<T: Config> Pallet<T> {
 				let transaction_data = TransactionsInfo::<T>::get(transaction_id)
 					.ok_or(Error::<T>::TransactionNotFound)?;
 
-				if transaction_data.status != TransactionStatus::Approved
-					&& transaction_data.status != TransactionStatus::Confirmed
+				if transaction_data.status != TransactionStatus::Approved &&
+					transaction_data.status != TransactionStatus::Confirmed
 				{
 					<TransactionsInfo<T>>::try_mutate::<_, _, DispatchError, _>(
 						transaction_id,
