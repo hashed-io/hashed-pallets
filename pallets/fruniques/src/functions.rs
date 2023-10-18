@@ -182,15 +182,15 @@ impl<T: Config> Pallet<T> {
 	where
 		<T as pallet_uniques::Config>::ItemId: From<u32>,
 	{
-		let nex_item: ItemId = <NextFrunique<T>>::try_get(collection).unwrap_or(0);
-		<NextFrunique<T>>::insert(collection, nex_item + 1);
+		let nex_item: ItemId = <NextFrunique<T>>::try_get(collection.clone()).unwrap_or(0);
+		<NextFrunique<T>>::insert(collection.clone(), nex_item + 1);
 
 		let item = Self::u32_to_instance_id(nex_item);
-		pallet_uniques::Pallet::<T>::do_mint(collection, item, owner, |_| Ok(()))?;
+		pallet_uniques::Pallet::<T>::do_mint(collection.clone(), item, owner, |_| Ok(()))?;
 
 		pallet_uniques::Pallet::<T>::set_metadata(
 			frame_system::RawOrigin::Root.into(),
-			collection,
+			collection.clone(),
 			item.clone(),
 			metadata,
 			false,
@@ -382,7 +382,7 @@ impl<T: Config> Pallet<T> {
 			verified_by: None,
 		};
 
-		<FruniqueInfo<T>>::insert(collection, item, frunique_data);
+		<FruniqueInfo<T>>::insert(collection.clone(), item, frunique_data);
 
 		let frunique_child: ChildInfo<T> = ChildInfo {
 			collection_id: collection,
@@ -422,13 +422,14 @@ impl<T: Config> Pallet<T> {
 		ensure!(Self::collection_exists(&collection), Error::<T>::CollectionNotFound);
 		ensure!(Self::instance_exists(&collection, &item), Error::<T>::FruniqueNotFound);
 
-		let frunique_data: FruniqueData<T> = <FruniqueInfo<T>>::try_get(collection, item).unwrap();
+		let frunique_data: FruniqueData<T> =
+			<FruniqueInfo<T>>::try_get(collection.clone(), item).unwrap();
 
 		ensure!(!frunique_data.frozen, Error::<T>::FruniqueFrozen);
 		ensure!(!frunique_data.redeemed, Error::<T>::FruniqueAlreadyRedeemed);
 
 		<FruniqueInfo<T>>::try_mutate::<_, _, _, DispatchError, _>(
-			collection,
+			collection.clone(),
 			item,
 			|frunique_data| -> DispatchResult {
 				let frunique = frunique_data.as_mut().ok_or(Error::<T>::FruniqueNotFound)?;

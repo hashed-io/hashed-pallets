@@ -37,11 +37,19 @@ pub mod pallet {
 
 		type Moment: Parameter
 			+ Default
-			+ Scale<Self::BlockNumber, Output = Self::Moment>
+			+ Scale<BlockNumberFor<Self>, Output = Self::Moment>
 			+ Copy
 			+ MaxEncodedLen
 			+ scale_info::StaticTypeInfo
 			+ Into<u64>;
+
+		// type Moment: Parameter
+		// + Default
+		// + AtLeast32Bit
+		// + Scale<BlockNumberFor<Self>, Output = Self::Moment>
+		// + Copy
+		// + MaxEncodedLen
+		// + scale_info::StaticTypeInfo;
 
 		type Timestamp: Time<Moment = Self::Moment>;
 
