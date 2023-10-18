@@ -11,7 +11,6 @@ use sp_runtime::{
 };
 /// Balance of an account.
 pub type Balance = u128;
-type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;
 type Block = frame_system::mocking::MockBlock<Test>;
 use frame_system::EnsureRoot;
 use pallet_mapped_assets::DefaultCallback;
@@ -27,9 +26,6 @@ type AssetId = u32;
 // Configure a mock runtime to test the pallet.
 frame_support::construct_runtime!(
   pub enum Test where
-	Block = Block,
-	NodeBlock = Block,
-	UncheckedExtrinsic = UncheckedExtrinsic,
   {
 	System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
 	GatedMarketplace: pallet_gated_marketplace::{Pallet, Call, Storage, Event<T>},
@@ -60,7 +56,7 @@ impl system::Config for Test {
 	type Hashing = BlakeTwo256;
 	type AccountId = u64;
 	type Lookup = IdentityLookup<Self::AccountId>;
-	type Header = Header;
+	type Block = Block;
 	type RuntimeEvent = RuntimeEvent;
 	type BlockHashCount = BlockHashCount;
 	type Version = ();
