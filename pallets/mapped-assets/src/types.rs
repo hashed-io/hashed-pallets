@@ -20,6 +20,7 @@
 use super::*;
 use frame_support::{
 	pallet_prelude::*,
+	sp_io::hashing::blake2_256,
 	traits::{fungible, tokens::ConversionToAssetBalance},
 };
 use sp_runtime::{traits::Convert, FixedPointNumber, FixedPointOperand, FixedU128};
@@ -317,5 +318,41 @@ where
 		// balance * asset.min_balance / min_balance
 		Ok(FixedU128::saturating_from_rational(asset.min_balance, min_balance)
 			.saturating_mul_int(balance))
+	}
+}
+
+#[derive(
+	Encode, Decode, Clone, Eq, PartialEq, RuntimeDebugNoBound, MaxEncodedLen, TypeInfo, Copy,
+)]
+pub enum AfloatRole {
+	Owner,
+	Admin,
+	BuyerOrSeller,
+	CPA,
+}
+
+impl Default for AfloatRole {
+	fn default() -> Self {
+		AfloatRole::BuyerOrSeller
+	}
+}
+
+impl AfloatRole {
+	pub fn to_vec(self) -> Vec<u8> {
+		match self {
+			Self::Owner => "Owner".as_bytes().to_vec(),
+			Self::Admin => "Admin".as_bytes().to_vec(),
+			Self::BuyerOrSeller => "BuyerOrSeller".as_bytes().to_vec(),
+			Self::CPA => "CPA".as_bytes().to_vec(),
+		}
+	}
+
+	pub fn id(&self) -> [u8; 32] {
+		self.to_vec().using_encoded(blake2_256)
+	}
+
+	pub fn enum_to_vec() -> Vec<Vec<u8>> {
+		use crate::types::AfloatRole::*;
+		[Owner.to_vec(), Admin.to_vec(), BuyerOrSeller.to_vec(), CPA.to_vec()].to_vec()
 	}
 }

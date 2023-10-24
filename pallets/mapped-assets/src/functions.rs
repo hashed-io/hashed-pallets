@@ -18,7 +18,7 @@
 //! Functions for the Assets pallet.
 
 use super::*;
-use frame_support::{defensive, traits::Get, BoundedVec};
+use frame_support::{defensive, sp_io::hashing::blake2_256, traits::Get, BoundedVec};
 use pallet_rbac::types::{IdOrVec, RoleBasedAccessControl};
 use scale_info::prelude::vec;
 use sp_runtime::sp_std::vec::Vec;
