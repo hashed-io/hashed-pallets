@@ -39,6 +39,7 @@ pub mod pallet {
 	/* --- Genesis Structs Section --- */
 
 	#[pallet::genesis_config]
+	#[derive(Default)]
 	pub struct GenesisConfig {
 		pub bdk_services_url: Vec<u8>,
 	}
