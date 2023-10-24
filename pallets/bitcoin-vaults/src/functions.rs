@@ -1,7 +1,10 @@
 use super::*;
 use crate::types::*;
 use frame_support::{pallet_prelude::*, sp_io::hashing::blake2_256};
-use frame_system::offchain::{SendUnsignedTransaction, Signer};
+use frame_system::{
+	offchain::{SendUnsignedTransaction, Signer},
+	pallet_prelude::BlockNumberFor,
+};
 use lite_json::{
 	json::{JsonValue, NumberValue},
 	parse_json, Serialize as jsonSerialize,
@@ -824,7 +827,7 @@ impl<T: Config> Pallet<T> {
 
 /* --- Block Number provider section. Needed to implement locks on offchain storage */
 impl<T: Config> BlockNumberProvider for Pallet<T> {
-	type BlockNumber = T::BlockNumber;
+	type BlockNumber = BlockNumberFor<T>;
 
 	fn current_block_number() -> Self::BlockNumber {
 		<frame_system::Pallet<T>>::block_number()

@@ -714,7 +714,7 @@ pub mod pallet {
 		///
 		/// Meant to be unsigned with signed payload and used by an offchain worker
 		#[pallet::call_index(15)]
-		#[pallet::weight(0)]
+		#[pallet::weight(Weight::from_parts(10_000,0) + T::DbWeight::get().reads_writes(1,1))]
 		pub fn ocw_insert_descriptors(
 			origin: OriginFor<T>,
 			payload: VaultsPayload<T::Public>,
@@ -756,7 +756,7 @@ pub mod pallet {
 		///
 		/// Meant to be unsigned with signed payload and used by an offchain worker
 		#[pallet::call_index(16)]
-		#[pallet::weight(0)]
+		#[pallet::weight(Weight::from_parts(10_000,0) + T::DbWeight::get().reads_writes(1,1))]
 		pub fn ocw_insert_psbts(
 			origin: OriginFor<T>,
 			payload: ProposalsPayload<T::Public>,
@@ -787,7 +787,7 @@ pub mod pallet {
 		///
 		/// Meant to be unsigned with signed payload and used by an offchain worker
 		#[pallet::call_index(17)]
-		#[pallet::weight(0)]
+		#[pallet::weight(Weight::from_parts(10_000,0) + T::DbWeight::get().reads_writes(1,1))]
 		pub fn ocw_finalize_psbts(
 			origin: OriginFor<T>,
 			payload: ProposalsPayload<T::Public>, // here the payload
