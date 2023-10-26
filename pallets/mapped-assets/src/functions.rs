@@ -18,6 +18,7 @@
 //! Functions for the Assets pallet.
 
 use super::*;
+use codec::Encode;
 use frame_support::{defensive, sp_io::hashing::blake2_256, traits::Get, BoundedVec};
 use pallet_rbac::types::{IdOrVec, RoleBasedAccessControl};
 use scale_info::prelude::vec;
@@ -34,6 +35,11 @@ use DeadConsequence::*;
 // The main implementation block for the module.
 impl<T: Config<I>, I: 'static> Pallet<T, I> {
 	// Public immutables
+
+	/// Checks if the asset with `id` exists.
+	pub fn does_asset_exist(id: &T::AssetId) -> bool {
+		Asset::<T, I>::contains_key(id)
+	}
 
 	/// Return the extra "sid-car" data for `id`/`who`, or `None` if the account doesn't exist.
 	pub fn adjust_extra(
@@ -417,18 +423,15 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 			if let Some(check_issuer) = maybe_check_issuer {
 				ensure!(check_issuer == details.issuer, Error::<T, I>::NoPermission);
 			}
-			debug_assert!(
-				T::Balance::max_value() - details.supply >= amount,
-				"checked in prep; qed"
-			);
+			debug_assert!(details.supply.checked_add(&amount).is_some(), "checked in prep; qed");
+
 			details.supply = details.supply.saturating_add(amount);
+
 			Ok(())
 		})?;
-		Self::deposit_event(Event::Issued {
-			asset_id: id,
-			owner: beneficiary.clone(),
-			total_supply: amount,
-		});
+
+		Self::deposit_event(Event::Issued { asset_id: id, owner: beneficiary.clone(), amount });
+
 		Ok(())
 	}
 
@@ -438,23 +441,16 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 		amount: T::Balance,
 		maybe_check_issuer: Option<T::AccountId>,
 	) -> DispatchResult {
-		Self::increase_balance(id, beneficiary, amount, |details| -> DispatchResult {
+		Self::increase_balance(id.clone(), beneficiary, amount, |details| -> DispatchResult {
 			if let Some(check_issuer) = maybe_check_issuer {
 				let is_owner = Self::is_admin_or_owner(check_issuer)?;
 				ensure!(is_owner, Error::<T, I>::NoPermission);
 			}
-			debug_assert!(
-				T::Balance::max_value() - details.supply >= amount,
-				"checked in prep; qed"
-			);
+			debug_assert!(details.supply.checked_add(&amount).is_some(), "checked in prep; qed");
 			details.supply = details.supply.saturating_add(amount);
 			Ok(())
 		})?;
-		Self::deposit_event(Event::Issued {
-			asset_id: id,
-			owner: beneficiary.clone(),
-			total_supply: amount,
-		});
+		Self::deposit_event(Event::Issued { asset_id: id, owner: beneficiary.clone(), amount });
 		Ok(())
 	}
 
@@ -559,15 +555,14 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 		target: &T::AccountId,
 		amount: T::Balance,
 		maybe_check_admin: Option<T::AccountId>,
-		f: DebitFlags,
 	) -> Result<T::Balance, DispatchError> {
-		let d = Asset::<T, I>::get(id).ok_or(Error::<T, I>::Unknown)?;
+		let d = Asset::<T, I>::get(id.clone()).ok_or(Error::<T, I>::Unknown)?;
 		ensure!(
 			d.status == AssetStatus::Live || d.status == AssetStatus::Frozen,
 			Error::<T, I>::AssetNotLive
 		);
-
-		let actual = Self::decrease_balance(id, target, amount, f, |actual, details| {
+		let f = DebitFlags { keep_alive: false, best_effort: true };
+		let actual = Self::decrease_balance(id.clone(), target, amount, f, |actual, details| {
 			// Check admin rights.
 			if let Some(check_admin) = maybe_check_admin {
 				let is_admin_or_owner = Self::is_admin_or_owner(check_admin)?;

@@ -178,7 +178,7 @@ use frame_support::{
 use frame_system::Config as SystemConfig;
 
 pub use pallet::*;
-// use pallet_rbac::types::RoleBasedAccessControl;
+use pallet_rbac::types::RoleBasedAccessControl;
 pub use weights::WeightInfo;
 
 type AccountIdLookupOf<T> = <<T as frame_system::Config>::Lookup as StaticLookup>::Source;
@@ -234,7 +234,7 @@ pub mod pallet {
 		type RuntimeEvent: From<Event<Self, I>>
 			+ IsType<<Self as frame_system::Config>::RuntimeEvent>;
 
-		// type Rbac: RoleBasedAccessControl<Self::AccountId>;
+		type Rbac: RoleBasedAccessControl<Self::AccountId>;
 		/// The units in which we record balances.
 		type Balance: Member
 			+ Parameter
@@ -382,7 +382,7 @@ pub mod pallet {
 	}
 
 	#[pallet::genesis_build]
-	impl<T: Config<I>, I: 'static> GenesisBuild<T, I> for GenesisConfig<T, I> {
+	impl<T: Config<I>, I: 'static> BuildGenesisConfig for GenesisConfig<T, I> {
 		fn build(&self) {
 			for (id, owner, is_sufficient, min_balance) in &self.assets {
 				assert!(!Asset::<T, I>::contains_key(id), "Asset id already in use");

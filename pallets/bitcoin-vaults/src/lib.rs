@@ -39,20 +39,24 @@ pub mod pallet {
 	/* --- Genesis Structs Section --- */
 
 	#[pallet::genesis_config]
-	#[derive(Default)]
-	pub struct GenesisConfig {
+	pub struct GenesisConfig<T: Config> {
 		pub bdk_services_url: Vec<u8>,
+		#[serde(skip)]
+		pub _config: sp_std::marker::PhantomData<T>,
 	}
 
 	#[cfg(feature = "std")]
-	impl Default for GenesisConfig {
+	impl<T: Config> Default for GenesisConfig<T> {
 		fn default() -> Self {
-			Self { bdk_services_url: b"https://bdk.hashed.systems".encode() }
+			Self {
+				bdk_services_url: b"https://bdk.hashed.systems".encode(),
+				_config: Default::default(),
+			}
 		}
 	}
 
 	#[pallet::genesis_build]
-	impl<T: Config> GenesisBuild<T> for GenesisConfig {
+	impl<T: Config> BuildGenesisConfig for GenesisConfig<T> {
 		fn build(&self) {
 			<BDKServicesURL<T>>::put(
 				BoundedVec::<u8, ConstU32<32>>::try_from(self.bdk_services_url.clone())
@@ -275,7 +279,7 @@ pub mod pallet {
 		/// Note that it's not guaranteed for offchain workers to run on EVERY block, there might
 		/// be cases where some blocks are skipped, or for some the worker runs twice (re-orgs),
 		/// so the code should be able to handle that.
-		fn offchain_worker(_block_number: T::BlockNumber) {
+		fn offchain_worker(_block_number: BlockNumberFor<T>) {
 			// check if the node has an account available, the offchain worker can't submit
 			// transactions without it
 			let signer = Signer::<T, T::AuthorityId>::any_account();
