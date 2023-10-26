@@ -176,6 +176,7 @@ impl Config for Test {
 	type RemoveItemsLimit = ConstU32<5>;
 	#[cfg(feature = "runtime-benchmarks")]
 	type BenchmarkHelper = ();
+	type Rbac = RBAC;
 }
 
 use std::collections::HashMap;

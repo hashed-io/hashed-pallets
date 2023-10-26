@@ -1,24 +1,20 @@
 use crate as pallet_fund_admin;
 use frame_support::parameter_types;
 use frame_system as system;
-use sp_core::H256;
+use sp_core::{ConstU64, H256};
 use sp_runtime::{
-	testing::Header,
 	traits::{BlakeTwo256, IdentityLookup},
+	BuildStorage,
 };
 
-type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;
 type Block = frame_system::mocking::MockBlock<Test>;
 use frame_system::EnsureRoot;
 
 // Configure a mock runtime to test the pallet.
 frame_support::construct_runtime!(
-  pub enum Test where
-	Block = Block,
-	NodeBlock = Block,
-	UncheckedExtrinsic = UncheckedExtrinsic,
+  pub enum Test
   {
-	System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
+	System: frame_system::{Pallet, Call, Config<T>, Storage, Event<T>},
 	FundAdmin: pallet_fund_admin::{Pallet, Call, Storage, Event<T>},
 	Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent},
 	RBAC: pallet_rbac::{Pallet, Call, Storage, Event<T>},
@@ -26,21 +22,20 @@ frame_support::construct_runtime!(
   }
 );
 
-parameter_types! {
-  pub const ExistentialDeposit: u64 = 1;
-  pub const MaxReserves: u32 = 50;
-}
-
 impl pallet_balances::Config for Test {
 	type Balance = u64;
 	type DustRemoval = ();
 	type RuntimeEvent = RuntimeEvent;
-	type ExistentialDeposit = ExistentialDeposit;
+	type ExistentialDeposit = ConstU64<1>;
 	type AccountStore = System;
 	type WeightInfo = ();
 	type MaxLocks = ();
-	type MaxReserves = MaxReserves;
+	type MaxReserves = ();
 	type ReserveIdentifier = [u8; 8];
+	type RuntimeHoldReason = ();
+	type FreezeIdentifier = ();
+	type MaxHolds = ();
+	type MaxFreezes = ();
 }
 
 parameter_types! {
@@ -55,13 +50,12 @@ impl system::Config for Test {
 	type DbWeight = ();
 	type RuntimeOrigin = RuntimeOrigin;
 	type RuntimeCall = RuntimeCall;
-	type Index = u64;
-	type BlockNumber = u64;
+	type Nonce = u64;
 	type Hash = H256;
 	type Hashing = BlakeTwo256;
 	type AccountId = u64;
 	type Lookup = IdentityLookup<Self::AccountId>;
-	type Header = Header;
+	type Block = Block;
 	type RuntimeEvent = RuntimeEvent;
 	type BlockHashCount = BlockHashCount;
 	type Version = ();
@@ -162,7 +156,7 @@ impl pallet_rbac::Config for Test {
 // Build genesis storage according to the mock runtime.
 pub fn new_test_ext() -> sp_io::TestExternalities {
 	let balance_amount = InitialAdminBalance::get();
-	let mut t = frame_system::GenesisConfig::default().build_storage::<Test>().unwrap();
+	let mut t = frame_system::GenesisConfig::<Test>::default().build_storage().unwrap();
 	pallet_balances::GenesisConfig::<Test> { balances: vec![(1, balance_amount)] }
 		.assimilate_storage(&mut t)
 		.expect("assimilate_storage failed");
