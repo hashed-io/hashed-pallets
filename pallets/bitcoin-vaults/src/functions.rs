@@ -474,6 +474,7 @@ impl<T: Config> Pallet<T> {
 			fraction: 0,
 			fraction_length: 0,
 			exponent: 0,
+			negative: false,
 		};
 		body.push(("threshold".chars().collect::<Vec<char>>(), JsonValue::Number(threshold)));
 		let vault_signers = vault.cosigners.clone().to_vec();
@@ -573,16 +574,18 @@ impl<T: Config> Pallet<T> {
 		let vault = <Vaults<T>>::get(proposal.vault_id.clone())
 			.ok_or(Self::build_offchain_err(false, "Vault not found"))?;
 		let amount = NumberValue {
-			integer: proposal.amount.clone() as i64,
+			integer: proposal.amount.clone() as u64,
 			fraction: 0,
 			fraction_length: 0,
 			exponent: 0,
+			negative: false,
 		};
 		let fee = NumberValue {
 			integer: proposal.fee_sat_per_vb.clone().into(),
 			fraction: 0,
 			fraction_length: 0,
 			exponent: 0,
+			negative: false,
 		};
 		let to_address = str::from_utf8(proposal.to_address.as_slice())
 			.map_err(|_| {

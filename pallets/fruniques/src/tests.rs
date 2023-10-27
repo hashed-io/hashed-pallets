@@ -1,9 +1,8 @@
-use crate::{mock::*, Error};
+use crate::{mock::*, types::ParentInfoCall, Error};
 use codec::Encode;
 use core::convert::TryFrom;
-
-use crate::types::ParentInfoCall;
 use frame_support::{assert_noop, assert_ok, BoundedVec};
+use sp_runtime::BuildStorage;
 pub struct ExtBuilder;
 
 // helper function to set BoundedVec
@@ -21,7 +20,7 @@ impl Default for ExtBuilder {
 
 impl ExtBuilder {
 	pub fn build(self) -> sp_io::TestExternalities {
-		let mut t = frame_system::GenesisConfig::default().build_storage::<Test>().unwrap();
+		let mut t = frame_system::GenesisConfig::<Test>::default().build_storage().unwrap();
 		pallet_balances::GenesisConfig::<Test> {
 			balances: vec![(1, 100), (2, 20), (3, 30), (4, 40), (5, 50), (6, 60)],
 		}

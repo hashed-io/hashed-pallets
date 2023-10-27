@@ -68,7 +68,7 @@ impl<T: Config> Pallet<T> {
 	}
 
 	pub fn admin_of(class_id: &T::CollectionId, instance_id: &T::ItemId) -> Option<T::AccountId> {
-		pallet_uniques::Pallet::<T>::owner(*class_id, *instance_id)
+		pallet_uniques::Pallet::<T>::owner(class_id.clone(), *instance_id)
 	}
 
 	pub fn is_frozen(collection_id: &T::CollectionId, instance_id: &T::ItemId) -> bool {
@@ -79,14 +79,14 @@ impl<T: Config> Pallet<T> {
 	}
 
 	pub fn collection_exists(class_id: &T::CollectionId) -> bool {
-		if let Some(_owner) = pallet_uniques::Pallet::<T>::collection_owner(*class_id) {
+		if let Some(_owner) = pallet_uniques::Pallet::<T>::collection_owner(class_id.clone()) {
 			return true
 		}
 		false
 	}
 
 	pub fn instance_exists(class_id: &T::CollectionId, instance_id: &T::ItemId) -> bool {
-		if let Some(_owner) = pallet_uniques::Pallet::<T>::owner(*class_id, *instance_id) {
+		if let Some(_owner) = pallet_uniques::Pallet::<T>::owner(class_id.clone(), *instance_id) {
 			return true
 		}
 		false
@@ -164,7 +164,7 @@ impl<T: Config> Pallet<T> {
 	) -> DispatchResult {
 		pallet_uniques::Pallet::<T>::set_attribute(
 			origin,
-			*class_id.clone(),
+			class_id.clone(),
 			Some(instance_id),
 			key,
 			value,
@@ -247,7 +247,7 @@ impl<T: Config> Pallet<T> {
 
 		pallet_uniques::Pallet::<T>::burn(
 			origin,
-			*class_id,
+			class_id.clone(),
 			instance_id,
 			Some(Self::account_id_to_lookup_source(&admin.unwrap())),
 		)?;
@@ -372,7 +372,7 @@ impl<T: Config> Pallet<T> {
 		let child_percentage: Permill = parent_info.parent_weight * frunique_parent.weight;
 
 		let parent_data: ParentInfo<T> = ParentInfo {
-			collection_id: parent_info.collection_id,
+			collection_id: parent_info.collection_id.clone(),
 			parent_id: parent_info.parent_id,
 			parent_weight: child_percentage,
 			is_hierarchical: parent_info.is_hierarchical,
@@ -400,7 +400,7 @@ impl<T: Config> Pallet<T> {
 		};
 
 		<FruniqueInfo<T>>::try_mutate::<_, _, _, DispatchError, _>(
-			parent_info.collection_id,
+			parent_info.collection_id.clone(),
 			parent_info.parent_id,
 			|frunique_data| -> DispatchResult {
 				let frunique = frunique_data.as_mut().ok_or(Error::<T>::FruniqueNotFound)?;

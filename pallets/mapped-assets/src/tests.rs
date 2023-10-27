@@ -159,7 +159,7 @@ fn approval_lifecycle_works() {
 		// can't approve non-existent token
 		assert_noop!(
 			Assets::approve_transfer(RuntimeOrigin::signed(1), 0, 2, 50),
-			Error::<Test>::UnknownAsset
+			Error::<Test>::Unknown
 		);
 		// so we create it :)
 		assert_ok!(Assets::force_create(RuntimeOrigin::root(), 0, 1, true, 1));
@@ -185,7 +185,7 @@ fn transfer_approved_all_funds() {
 		// can't approve non-existent token
 		assert_noop!(
 			Assets::approve_transfer(RuntimeOrigin::signed(1), 0, 2, 50),
-			Error::<Test>::UnknownAsset
+			Error::<Test>::Unknown
 		);
 		// so we create it :)
 		assert_ok!(Assets::force_create(RuntimeOrigin::root(), 0, 1, true, 1));
@@ -788,7 +788,7 @@ fn set_metadata_should_work() {
 		// Cannot add metadata to unknown asset
 		assert_noop!(
 			Assets::set_metadata(RuntimeOrigin::signed(1), 0, vec![0u8; 10], vec![0u8; 10], 12),
-			Error::<Test>::UnknownAsset,
+			Error::<Test>::Unknown,
 		);
 		assert_ok!(Assets::force_create(RuntimeOrigin::root(), 0, 1, true, 1));
 		// Cannot add metadata to unowned asset
@@ -1094,7 +1094,7 @@ fn force_asset_status_should_work() {
 #[test]
 fn balance_conversion_should_work() {
 	new_test_ext().execute_with(|| {
-		use frame_support::traits::tokens::BalanceConversion;
+		use frame_support::traits::tokens::ConversionToAssetBalance;
 
 		let id = 42;
 		assert_ok!(Assets::force_create(RuntimeOrigin::root(), id, 1, true, 10));

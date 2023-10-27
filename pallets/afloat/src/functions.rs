@@ -8,7 +8,6 @@ use sp_runtime::{traits::StaticLookup, Permill};
 // use frame_support::traits::OriginTrait;
 use core::convert::TryInto;
 use frame_support::{sp_io::hashing::blake2_256, traits::Time};
-use pallet_mapped_assets::DebitFlags;
 use pallet_rbac::types::{IdOrVec, RoleBasedAccessControl, RoleId};
 use scale_info::prelude::vec;
 use sp_runtime::{
@@ -73,22 +72,22 @@ impl<T: Config> Pallet<T> {
 			CreateAsset::New { asset_id, min_balance } => {
 				pallet_mapped_assets::Pallet::<T>::create(
 					RawOrigin::Signed(creator.clone()).into(),
-					asset_id,
+					asset_id.clone().into(),
 					T::Lookup::unlookup(creator.clone()),
 					min_balance,
 				)?;
-				asset_id
+				asset_id.clone()
 			},
 			CreateAsset::Existing { asset_id } => {
 				ensure!(
-					pallet_mapped_assets::Pallet::<T>::does_asset_exists(asset_id),
+					pallet_mapped_assets::Pallet::<T>::does_asset_exist(&asset_id),
 					Error::<T>::AssetNotFound
 				);
-				asset_id
+				asset_id.clone()
 			},
 		};
 
-		AfloatAssetId::<T>::put(asset_id.clone());
+		AfloatAssetId::<T>::put(asset_id);
 		Ok(())
 	}
 	/// This functions sets up the roles for the Afloat pallet.
@@ -293,7 +292,6 @@ impl<T: Config> Pallet<T> {
 	) -> DispatchResult {
 		let authority = ensure_signed(origin.clone())?;
 		let asset_id = AfloatAssetId::<T>::get().expect("AfloatAssetId should be set");
-		let debit_flags = DebitFlags { keep_alive: false, best_effort: true };
 		ensure!(UserInfo::<T>::contains_key(user_address.clone()), Error::<T>::UserNotFound);
 
 		let current_balance = Self::do_get_afloat_balance(user_address.clone());
@@ -304,7 +302,6 @@ impl<T: Config> Pallet<T> {
 				&user_address.clone(),
 				diff,
 				Some(authority.clone()),
-				debit_flags,
 			)?;
 		} else if current_balance < amount {
 			let diff = amount - current_balance;
