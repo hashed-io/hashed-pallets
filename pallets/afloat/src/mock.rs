@@ -154,19 +154,19 @@ impl pallet_uniques::Config for Test {
 }
 
 impl pallet_balances::Config for Test {
-	type Balance = u128;
+	type Balance = u64;
 	type DustRemoval = ();
 	type RuntimeEvent = RuntimeEvent;
-	type ExistentialDeposit = ConstU128<100>;
+	type ExistentialDeposit = ConstU64<1>;
 	type AccountStore = System;
 	type WeightInfo = ();
 	type MaxLocks = ();
-	type MaxReserves = ConstU32<50>;
+	type MaxReserves = ();
 	type ReserveIdentifier = [u8; 8];
-	type FreezeIdentifier = ();
-	type MaxFreezes = ();
 	type RuntimeHoldReason = ();
+	type FreezeIdentifier = ();
 	type MaxHolds = ();
+	type MaxFreezes = ();
 }
 
 parameter_types! {
@@ -207,9 +207,9 @@ pub trait AssetsCallback<AssetId, AccountId> {
 
 pub struct AssetsCallbackHandle;
 impl pallet_mapped_assets::AssetsCallback<u32, u64> for AssetsCallbackHandle {
-	fn created(_id: &AssetId, _owner: &u64) {}
+	fn created(_id: &AssetId, _owner: &u64) -> Result<(), ()> {}
 
-	fn destroyed(_id: &AssetId) {}
+	fn destroyed(_id: &AssetId) -> Result<(), ()> {}
 }
 
 impl pallet_mapped_assets::Config for Test {
@@ -242,13 +242,13 @@ pub fn new_test_ext() -> sp_io::TestExternalities {
 	t.execute_with(|| {
 		Balances::make_free_balance_be(&1, 100);
 		Balances::make_free_balance_be(&2, 100);
-		Afloat::initial_setup(
-			RawOrigin::Root.into(),
-			1,
-			2,
-			CreateAsset::New { asset_id: 0, min_balance: 1 },
-		)
-		.expect("Error on GatedMarketplace configuring initial setup");
+		let args = InitialSetupArgs::All {
+			creator: 1,
+			admin: 2,
+			asset: CreateAsset::New { asset_id: 0, min_balance: 1 },
+		};
+		Afloat::initial_setup(RawOrigin::Root.into(), args)
+			.expect("Error on GatedMarketplace configuring initial setup");
 	});
 	t
 }
