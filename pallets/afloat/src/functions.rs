@@ -619,7 +619,7 @@ impl<T: Config> Pallet<T> {
 		)?;
 
 		<AfloatTransactions<T>>::try_mutate(transaction_id, |transaction| -> DispatchResult {
-			let mut transaction = transaction.as_mut().ok_or(Error::<T>::TransactionNotFound)?;
+			let transaction = transaction.as_mut().ok_or(Error::<T>::TransactionNotFound)?;
 			transaction.seller_confirmation_date = Some(confirmation_date);
 			transaction.confirmed = confirmed;
 			transaction.child_offer_id = Some(child_offer_id);
@@ -718,7 +718,7 @@ impl<T: Config> Pallet<T> {
 		})?;
 
 		<AfloatTransactions<T>>::try_mutate(transaction_id, |transaction| -> DispatchResult {
-			let mut transaction = transaction.as_mut().ok_or(Error::<T>::TransactionNotFound)?;
+			let transaction = transaction.as_mut().ok_or(Error::<T>::TransactionNotFound)?;
 			transaction.completed = true;
 			Ok(())
 		})?;
