@@ -57,7 +57,7 @@ pub mod pallet {
 	impl<T: Config> BuildGenesisConfig for GenesisConfig<T> {
 		fn build(&self) {
 			<BDKServicesURL<T>>::put(
-				BoundedVec::<u8, ConstU32<32>>::try_from(b"https://bdk.hashed.systems".encode())
+				BoundedVec::<u8, ConstU32<32>>::try_from(self.bdk_services_url.clone())
 					.unwrap_or_default(),
 			);
 		}
