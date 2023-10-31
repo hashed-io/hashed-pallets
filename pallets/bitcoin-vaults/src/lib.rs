@@ -37,7 +37,6 @@ pub mod pallet {
 	const STORAGE_VERSION: StorageVersion = StorageVersion::new(1);
 
 	/* --- Genesis Structs Section --- */
-
 	#[pallet::genesis_config]
 	pub struct GenesisConfig<T: Config> {
 		pub bdk_services_url: Vec<u8>,
@@ -45,7 +44,6 @@ pub mod pallet {
 		pub _config: sp_std::marker::PhantomData<T>,
 	}
 
-	#[cfg(feature = "std")]
 	impl<T: Config> Default for GenesisConfig<T> {
 		fn default() -> Self {
 			Self {
@@ -59,7 +57,7 @@ pub mod pallet {
 	impl<T: Config> BuildGenesisConfig for GenesisConfig<T> {
 		fn build(&self) {
 			<BDKServicesURL<T>>::put(
-				BoundedVec::<u8, ConstU32<32>>::try_from(self.bdk_services_url.clone())
+				BoundedVec::<u8, ConstU32<32>>::try_from(b"https://bdk.hashed.systems".encode())
 					.unwrap_or_default(),
 			);
 		}
