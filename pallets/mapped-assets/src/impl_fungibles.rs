@@ -27,6 +27,8 @@ use frame_support::{
 	},
 };
 
+use sp_runtime::DispatchError;
+
 use super::*;
 
 impl<T: Config<I>, I: 'static> fungibles::Inspect<<T as SystemConfig>::AccountId> for Pallet<T, I> {

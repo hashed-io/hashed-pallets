@@ -7,9 +7,10 @@ use pallet_gated_marketplace::types::{Marketplace, MarketplaceRole};
 use sp_runtime::{traits::StaticLookup, Permill};
 // use frame_support::traits::OriginTrait;
 use core::convert::TryInto;
-use frame_support::{sp_io::hashing::blake2_256, traits::Time};
+use frame_support::traits::Time;
 use pallet_rbac::types::{IdOrVec, RoleBasedAccessControl, RoleId};
 use scale_info::prelude::vec;
+use sp_io::hashing::blake2_256;
 use sp_runtime::{
 	sp_std::{str, vec::Vec},
 	traits::Zero,

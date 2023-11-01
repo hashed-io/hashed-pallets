@@ -5,8 +5,18 @@ use crate::{
 	TransactionsByRevenue, TransactionsInfo, UsersByProject, UsersInfo,
 };
 use frame_support::{
-	assert_noop, assert_ok, bounded_vec, error::BadOrigin, traits::ConstU32, BoundedVec,
+	assert_noop, assert_ok,
+	error::BadOrigin,
+	traits::{
+		tokens::{
+			fungible::Mutate,
+			Preservation::{Expendable, Preserve, Protect},
+		},
+		ConstU32,
+	},
+	BoundedVec,
 };
+use sp_core::bounded_vec;
 use sp_runtime::DispatchResult;
 
 type RbacErr = pallet_rbac::Error<Test>;
@@ -644,12 +654,8 @@ fn balances_an_administrator_goes_out_of_balance_should_fail() {
 		let admin_free_balance = Balances::free_balance(1);
 		assert_eq!(admin_free_balance, InitialAdminBalance::get() - TransferAmount::get());
 
-		Balances::transfer(
-			RuntimeOrigin::signed(1),
-			2,
-			admin_free_balance - TransferAmount::get() / 2,
-		)
-		.unwrap();
+		Balances::transfer(&1, &2, admin_free_balance - TransferAmount::get() / 2, Expendable)
+			.unwrap();
 
 		assert_noop!(
 			FundAdmin::users(
@@ -684,7 +690,7 @@ fn balances_an_administrator_does_not_have_anough_free_balance_to_perform_a_user
 		let admin_free_balance = Balances::free_balance(1);
 		assert_eq!(admin_free_balance, InitialAdminBalance::get() - TransferAmount::get());
 
-		Balances::transfer(RuntimeOrigin::signed(1), 2, admin_free_balance).unwrap();
+		Balances::transfer(&1, &2, admin_free_balance, Expendable).unwrap();
 
 		assert_noop!(
 			FundAdmin::users(

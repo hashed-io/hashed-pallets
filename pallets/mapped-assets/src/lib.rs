@@ -165,7 +165,7 @@ use sp_runtime::{
 use sp_std::prelude::*;
 
 use frame_support::{
-	dispatch::{DispatchError, DispatchResult},
+	dispatch::DispatchResult,
 	ensure,
 	pallet_prelude::DispatchResultWithPostInfo,
 	storage::KeyPrefixIterator,

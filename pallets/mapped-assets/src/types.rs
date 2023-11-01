@@ -20,9 +20,9 @@
 use super::*;
 use frame_support::{
 	pallet_prelude::*,
-	sp_io::hashing::blake2_256,
 	traits::{fungible, tokens::ConversionToAssetBalance},
 };
+use sp_io::hashing::blake2_256;
 use sp_runtime::{traits::Convert, FixedPointNumber, FixedPointOperand, FixedU128};
 
 pub(super) type DepositBalanceOf<T, I = ()> =

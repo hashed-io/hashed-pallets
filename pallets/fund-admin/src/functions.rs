@@ -1,5 +1,6 @@
 use super::*;
-use frame_support::{pallet_prelude::*, sp_io::hashing::blake2_256};
+use frame_support::{pallet_prelude::*};
+use sp_io::hashing::blake2_256;
 use scale_info::prelude::vec;
 use sp_runtime::sp_std::vec::Vec; // vec primitive // vec![] macro
 

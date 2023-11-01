@@ -1,5 +1,6 @@
 use crate::{mock::*, types::*, Error, Records};
-use frame_support::{assert_noop, assert_ok, bounded_vec};
+use frame_support::{assert_noop, assert_ok};
+use sp_core::bounded_vec;
 
 fn make_project_id(v: &str) -> ProjectId {
 	let v: ProjectId = v.as_bytes().to_vec().try_into().unwrap_or_default();

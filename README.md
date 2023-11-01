@@ -18,7 +18,7 @@ An index is a short and easy-to-remember version of an address. Claiming an inde
 
 The Recovery pallet is an M-of-N social recovery tool for users to gain access to their accounts if the private key or other authentication mechanism is lost. Through this pallet, a user is able to make calls on-behalf-of another account which they have recovered. The recovery process is protected by trusted "friends" whom the original account owner chooses. A threshold (M) out of N friends are needed to give another account access to the recoverable account.
 
-#### [Uniques (NFTs)](https://github.com/paritytech/substrate/tree/master/frame/uniques)
+#### [Uniques (NFTs)](https://github.com/paritytech/polkadot-sdk/tree/master/frame/uniques)
 
 A simple, secure module for dealing with non-fungible assets.
 
@@ -235,7 +235,7 @@ the following:
 ### Pallets
 
 The runtime in this project is constructed using many FRAME pallets that ship with the
-[core Substrate repository](https://github.com/paritytech/substrate/tree/master/frame) and a
+[core Substrate repository](https://github.com/paritytech/polkadot-sdk/tree/master/frame) and a
 template pallet that is [defined in the `pallets`](./pallets/template/src/lib.rs) directory.
 
 A FRAME pallet is compromised of a number of blockchain primitives:

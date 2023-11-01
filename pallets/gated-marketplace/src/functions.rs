@@ -1,6 +1,7 @@
 use super::*;
 use crate::types::*;
-use frame_support::{pallet_prelude::*, sp_io::hashing::blake2_256, traits::Time};
+use frame_support::{pallet_prelude::*, traits::Time};
+use sp_io::hashing::blake2_256;
 use frame_system::{pallet_prelude::*, RawOrigin};
 use pallet_rbac::types::*;
 use scale_info::prelude::vec; // vec![] macro

@@ -20,11 +20,12 @@ pub mod pallet {
 	//#[cfg(feature = "std")]
 	//use frame_support::serde::{Deserialize, Serialize};
 	use crate::types::*;
-	use frame_support::{pallet_prelude::BoundedVec, sp_io::hashing::blake2_256, traits::Get};
+	use frame_support::{pallet_prelude::BoundedVec, traits::Get};
 	use frame_system::{
 		offchain::{AppCrypto, CreateSignedTransaction, SignedPayload, Signer},
 		pallet_prelude::*,
 	};
+	use sp_io::hashing::blake2_256;
 	use sp_runtime::{
 		offchain::{
 			storage_lock::{BlockAndTime, StorageLock},
@@ -45,7 +46,7 @@ pub mod pallet {
 		pub _config: sp_std::marker::PhantomData<T>,
 	}
 
-	#[cfg(feature = "std")]
+	// #[cfg(feature = "std")]
 	impl<T: Config> Default for GenesisConfig<T> {
 		fn default() -> Self {
 			Self {

@@ -19,10 +19,11 @@
 
 use super::*;
 use codec::Encode;
-use frame_support::{defensive, sp_io::hashing::blake2_256, traits::Get, BoundedVec};
+use frame_support::{defensive, traits::Get, BoundedVec};
 use pallet_rbac::types::{IdOrVec, RoleBasedAccessControl};
 use scale_info::prelude::vec;
-use sp_runtime::sp_std::vec::Vec;
+use sp_io::hashing::blake2_256;
+use sp_runtime::{sp_std::vec::Vec, DispatchError};
 
 #[must_use]
 pub(super) enum DeadConsequence {

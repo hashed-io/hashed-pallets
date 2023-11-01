@@ -1,9 +1,10 @@
 use super::*;
 
 use crate::types::*;
-use frame_support::{sp_io::hashing::blake2_256, traits::tokens::nonfungibles::Inspect};
+use frame_support::traits::tokens::nonfungibles::Inspect;
 use frame_system::pallet_prelude::*;
 use scale_info::prelude::string::String;
+use sp_io::hashing::blake2_256;
 
 use pallet_rbac::types::*;
 
