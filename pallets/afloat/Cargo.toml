@@ -30,6 +30,7 @@ pallet-fruniques = { path = "../fruniques", default-features = false, version = 
 pallet-rbac = { path = "../rbac/", default-features = false, version = "4.0.0-dev" }
 pallet-gated-marketplace = { path = "../gated-marketplace/", default-features = false, version = "4.0.0-dev" }
 pallet-mapped-assets = { path = "../mapped-assets/", default-features = false, version = "4.0.0-dev" }
+sp-io = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.2.0", default-features = false }
 
 [dev-dependencies]
 sp-core = { default-features = false, git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.2.0" }
