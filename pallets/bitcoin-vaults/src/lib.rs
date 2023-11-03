@@ -46,7 +46,6 @@ pub mod pallet {
 		pub _config: sp_std::marker::PhantomData<T>,
 	}
 
-	// #[cfg(feature = "std")]
 	impl<T: Config> Default for GenesisConfig<T> {
 		fn default() -> Self {
 			Self {
