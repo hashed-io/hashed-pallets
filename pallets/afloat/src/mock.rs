@@ -14,7 +14,8 @@ type Block = frame_system::mocking::MockBlock<Test>;
 use frame_system::EnsureRoot;
 use system::EnsureSigned;
 
-use crate::types::CreateAsset;
+use crate::types::{CreateAsset, InitialSetupArgs};
+
 use frame_system::RawOrigin;
 type AssetId = u32;
 
