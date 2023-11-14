@@ -65,6 +65,65 @@ fn update_user_info_edit_works() {
 }
 
 #[test]
+fn kill_storage_works() {
+	new_test_ext().execute_with(|| {
+		let owner = new_account(1);
+		let admin = new_account(2);
+
+		let user1 = new_account(3);
+		let user2 = new_account(4);
+
+		Balances::make_free_balance_be(&user1, 100);
+		Balances::make_free_balance_be(&user2, 100);
+
+		let args = SignUpArgs::BuyerOrSeller {
+			cid: ShortString::try_from(b"cid".to_vec()).unwrap(),
+			cid_creator: ShortString::try_from(b"cid_creator".to_vec()).unwrap(),
+			group: ShortString::try_from(b"Group".to_vec()).unwrap(),
+		};
+
+		// Add users
+		assert_ok!(Afloat::sign_up(RawOrigin::Signed(user1.clone()).into(), args.clone()));
+		assert_ok!(Afloat::sign_up(RawOrigin::Signed(user2.clone()).into(), args.clone()));
+
+		// Ensure users exist
+		assert!(UserInfo::<Test>::contains_key(user1));
+		assert!(UserInfo::<Test>::contains_key(user2));
+
+		let kill_storage_args = KillStorageArgs::All;
+		// Kill storage with admin
+		assert_ok!(Afloat::kill_storage(RawOrigin::Signed(admin.clone()).into(), kill_storage_args));
+
+		// Ensure users no longer exist
+		assert!(!UserInfo::<Test>::contains_key(user1));
+		assert!(!UserInfo::<Test>::contains_key(user2));
+
+		// Ensure admin and owner still exists
+		assert!(UserInfo::<Test>::contains_key(admin));
+		assert!(UserInfo::<Test>::contains_key(owner));
+
+		// Add users again
+		assert_ok!(Afloat::sign_up(RawOrigin::Signed(user1.clone()).into(), args.clone()));
+		assert_ok!(Afloat::sign_up(RawOrigin::Signed(user2.clone()).into(), args.clone()));
+	});
+}
+
+#[test]
+fn kill_storage_fails_for_non_admin() {
+	new_test_ext().execute_with(|| {
+		let user = new_account(3);
+		let kill_storage_args = KillStorageArgs::All;
+
+		// Attempt to kill storage with non-admin user
+		assert_noop!(
+			Afloat::kill_storage(RawOrigin::Signed(user.clone()).into(), kill_storage_args),
+			Error::<Test>::Unauthorized
+		);
+	});
+}
+
+
+#[test]
 fn update_other_user_info_by_not_admin_fails() {
 	new_test_ext().execute_with(|| {
 		let user = new_account(3);
@@ -413,60 +472,3 @@ fn create_buy_order_works() {
 // 	});
 // }
 
-#[test]
-fn kill_storage_works() {
-	new_test_ext().execute_with(|| {
-		let owner = new_account(1);
-		let admin = new_account(2);
-
-		let user1 = new_account(3);
-		let user2 = new_account(4);
-
-		Balances::make_free_balance_be(&user1, 100);
-		Balances::make_free_balance_be(&user2, 100);
-
-		let args = SignUpArgs::BuyerOrSeller {
-			cid: ShortString::try_from(b"cid".to_vec()).unwrap(),
-			cid_creator: ShortString::try_from(b"cid_creator".to_vec()).unwrap(),
-			group: ShortString::try_from(b"Group".to_vec()).unwrap(),
-		};
-
-		// Add users
-		assert_ok!(Afloat::sign_up(RawOrigin::Signed(user1.clone()).into(), args.clone()));
-		assert_ok!(Afloat::sign_up(RawOrigin::Signed(user2.clone()).into(), args.clone()));
-
-		// Ensure users exist
-		assert!(UserInfo::<Test>::contains_key(user1));
-		assert!(UserInfo::<Test>::contains_key(user2));
-
-		let kill_storage_args = KillStorageArgs::All;
-		// Kill storage with admin
-		assert_ok!(Afloat::kill_storage(RawOrigin::Signed(admin.clone()).into(), kill_storage_args));
-
-		// Ensure users no longer exist
-		assert!(!UserInfo::<Test>::contains_key(user1));
-		assert!(!UserInfo::<Test>::contains_key(user2));
-
-		// Ensure admin and owner still exists
-		assert!(UserInfo::<Test>::contains_key(admin));
-		assert!(UserInfo::<Test>::contains_key(owner));
-
-		// Add users again
-		assert_ok!(Afloat::sign_up(RawOrigin::Signed(user1.clone()).into(), args.clone()));
-		assert_ok!(Afloat::sign_up(RawOrigin::Signed(user2.clone()).into(), args.clone()));
-	});
-}
-
-#[test]
-fn kill_storage_fails_for_non_admin() {
-	new_test_ext().execute_with(|| {
-		let user = new_account(3);
-		let kill_storage_args = KillStorageArgs::All;
-
-		// Attempt to kill storage with non-admin user
-		assert_noop!(
-			Afloat::kill_storage(RawOrigin::Signed(user.clone()).into(), kill_storage_args),
-			Error::<Test>::Unauthorized
-		);
-	});
-}
