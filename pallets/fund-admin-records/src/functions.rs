@@ -1,5 +1,6 @@
 use super::*;
-use frame_support::{pallet_prelude::*, sp_io::hashing::blake2_256, traits::Time};
+use frame_support::{pallet_prelude::*, traits::Time};
+use sp_io::hashing::blake2_256;
 
 use crate::types::*;
 

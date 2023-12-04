@@ -1,7 +1,8 @@
 use crate::{mock::*, types::*, Error, Event};
 use codec::Encode;
-use frame_support::{assert_noop, assert_ok, sp_io::hashing::blake2_256};
+use frame_support::{assert_noop, assert_ok};
 use frame_system as system;
+use sp_io::hashing::blake2_256;
 
 fn generate_user_id(id: &str) -> UserId {
 	format!("user id: {}", id).using_encoded(blake2_256)

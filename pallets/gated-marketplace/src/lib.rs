@@ -20,7 +20,7 @@ pub mod pallet {
 	use frame_system::pallet_prelude::*;
 	use sp_runtime::{traits::Scale, Permill};
 
-	const STORAGE_VERSION: StorageVersion = StorageVersion::new(1);
+	const STORAGE_VERSION: StorageVersion = StorageVersion::new(0);
 
 	use crate::types::*;
 	use pallet_rbac::types::RoleBasedAccessControl;

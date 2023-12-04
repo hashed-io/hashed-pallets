@@ -1,7 +1,7 @@
-use crate as pallet_afloat;
+use crate::{self as pallet_afloat, types::InitialSetupArgs};
 use frame_support::{
 	parameter_types,
-	traits::{AsEnsureOriginWithArg, ConstU128, ConstU32, ConstU64, Currency},
+	traits::{AsEnsureOriginWithArg, ConstU32, ConstU64, Currency},
 };
 use frame_system as system;
 use sp_core::H256;
@@ -168,6 +168,7 @@ impl pallet_balances::Config for Test {
 	type FreezeIdentifier = ();
 	type MaxHolds = ();
 	type MaxFreezes = ();
+	type RuntimeFreezeReason = ();
 }
 
 parameter_types! {
@@ -208,9 +209,13 @@ pub trait AssetsCallback<AssetId, AccountId> {
 
 pub struct AssetsCallbackHandle;
 impl pallet_mapped_assets::AssetsCallback<u32, u64> for AssetsCallbackHandle {
-	fn created(_id: &AssetId, _owner: &u64) -> Result<(), ()> {}
+	fn created(_id: &AssetId, _owner: &u64) -> Result<(), ()> {
+		Ok(())
+	}
 
-	fn destroyed(_id: &AssetId) -> Result<(), ()> {}
+	fn destroyed(_id: &AssetId) -> Result<(), ()> {
+		Ok(())
+	}
 }
 
 impl pallet_mapped_assets::Config for Test {

@@ -1,7 +1,8 @@
 use super::*;
-use frame_support::{pallet_prelude::*, sp_io::hashing::blake2_256};
+use frame_support::pallet_prelude::*;
 use frame_system::offchain::{SignedPayload, SigningTypes};
 use sp_core::crypto::KeyTypeId;
+use sp_io::hashing::blake2_256;
 use sp_runtime::sp_std::vec::Vec;
 
 pub type Description<T> = BoundedVec<u8, <T as Config>::VaultDescriptionMaxLen>;

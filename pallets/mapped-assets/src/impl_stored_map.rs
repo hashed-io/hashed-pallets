@@ -18,6 +18,7 @@
 //! Assets pallet's `StoredMap` implementation.
 
 use super::*;
+use sp_runtime::DispatchError;
 
 impl<T: Config<I>, I: 'static> StoredMap<(T::AssetId, T::AccountId), T::Extra> for Pallet<T, I> {
 	fn get(id_who: &(T::AssetId, T::AccountId)) -> T::Extra {

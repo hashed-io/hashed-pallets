@@ -24,7 +24,7 @@ pub mod pallet {
 	use frame_system::pallet_prelude::*;
 	use sp_runtime::sp_std::vec::Vec;
 
-	const STORAGE_VERSION: StorageVersion = StorageVersion::new(1);
+	const STORAGE_VERSION: StorageVersion = StorageVersion::new(0);
 
 	#[pallet::config]
 	pub trait Config: frame_system::Config {

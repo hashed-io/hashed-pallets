@@ -20,11 +20,12 @@ pub mod pallet {
 	//#[cfg(feature = "std")]
 	//use frame_support::serde::{Deserialize, Serialize};
 	use crate::types::*;
-	use frame_support::{pallet_prelude::BoundedVec, sp_io::hashing::blake2_256, traits::Get};
+	use frame_support::{pallet_prelude::BoundedVec, traits::Get};
 	use frame_system::{
 		offchain::{AppCrypto, CreateSignedTransaction, SignedPayload, Signer},
 		pallet_prelude::*,
 	};
+	use sp_io::hashing::blake2_256;
 	use sp_runtime::{
 		offchain::{
 			storage_lock::{BlockAndTime, StorageLock},
@@ -34,9 +35,10 @@ pub mod pallet {
 		transaction_validity::{InvalidTransaction, TransactionValidity, ValidTransaction},
 	};
 
-	const STORAGE_VERSION: StorageVersion = StorageVersion::new(1);
+	const STORAGE_VERSION: StorageVersion = StorageVersion::new(0);
 
 	/* --- Genesis Structs Section --- */
+
 	#[pallet::genesis_config]
 	pub struct GenesisConfig<T: Config> {
 		pub bdk_services_url: Vec<u8>,
