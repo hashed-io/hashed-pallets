@@ -240,11 +240,11 @@ pub mod pallet {
 			match args {
 				KillStorageArgs::All => {
 					Self::do_delete_all_users()?;
-					<AfloatMarketPlaceId<T>>::kill();
 					<AfloatCollectionId<T>>::kill();
 					<AfloatAssetId<T>>::kill();
 					let _ = <AfloatOffers<T>>::clear(1000, None);
 					let _ = <AfloatTransactions<T>>::clear(1000, None);
+					<AfloatMarketPlaceId<T>>::kill();
 				},
 				KillStorageArgs::UserInfo => {
 					Self::do_delete_all_users()?;

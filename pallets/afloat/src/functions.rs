@@ -793,7 +793,7 @@ impl<T: Config> Pallet<T> {
 
 	pub fn remove_from_afloat_marketplace(invitee: T::AccountId) -> DispatchResult {
 		let marketplace_id =
-			AfloatMarketPlaceId::<T>::get().ok_or(Error::<T>::MarketPlaceIdNotFound)?;
+			AfloatMarketPlaceId::<T>::get().ok_or("Marketplace not found")?;
 		pallet_gated_marketplace::Pallet::<T>::remove_from_market_lists(
 			invitee,
 			MarketplaceRole::Participant,
