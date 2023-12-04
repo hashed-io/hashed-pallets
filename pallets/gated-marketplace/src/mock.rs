@@ -1,4 +1,7 @@
 use crate as pallet_gated_marketplace;
+use frame_system::RawOrigin;
+use sp_runtime::traits::Lookup;
+
 use frame_support::{
 	parameter_types,
 	traits::{AsEnsureOriginWithArg, ConstU32, ConstU64},
@@ -191,6 +194,9 @@ pub fn new_test_ext() -> sp_io::TestExternalities {
 		GatedMarketplace::do_initial_setup()
 			.expect("Error on GatedMarketplace configuring initial setup");
 		Fruniques::do_initial_setup().expect("Error on Fruniques configuring initial setup");
+		Assets::force_create(
+					RuntimeOrigin::root(), 1, 1, false, 1,
+		).expect("Error on creating asset");
 	});
 	t
 }
