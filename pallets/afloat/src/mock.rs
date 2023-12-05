@@ -1,4 +1,4 @@
-use crate::{self as pallet_afloat, types::InitialSetupArgs};
+use crate::{self as pallet_afloat};
 use frame_support::{
 	parameter_types,
 	traits::{AsEnsureOriginWithArg, ConstU32, ConstU64, Currency},
