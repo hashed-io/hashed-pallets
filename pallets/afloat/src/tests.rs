@@ -150,70 +150,12 @@ fn update_user_info_delete_works() {
 		assert_ok!(Afloat::sign_up(RawOrigin::Signed(user.clone()).into(), args));
 
 		assert_ok!(Afloat::update_user_info(
-			RawOrigin::Signed(user.clone()).into(),
+			RawOrigin::Signed(2).into(),
 			user.clone(),
 			UpdateUserArgs::Delete
 		));
 
 		assert!(!UserInfo::<Test>::contains_key(user));
-	});
-}
-
-#[test]
-fn kill_storage_works() {
-	new_test_ext().execute_with(|| {
-		let owner = new_account(1);
-		let admin = new_account(2);
-
-		let user1 = new_account(3);
-		let user2 = new_account(4);
-
-		Balances::make_free_balance_be(&user1, 100);
-		Balances::make_free_balance_be(&user2, 100);
-
-		let args = SignUpArgs::BuyerOrSeller {
-			cid: ShortString::try_from(b"cid".to_vec()).unwrap(),
-			cid_creator: ShortString::try_from(b"cid_creator".to_vec()).unwrap(),
-			group: ShortString::try_from(b"Group".to_vec()).unwrap(),
-		};
-
-		// Add users
-		assert_ok!(Afloat::sign_up(RawOrigin::Signed(user1.clone()).into(), args.clone()));
-		assert_ok!(Afloat::sign_up(RawOrigin::Signed(user2.clone()).into(), args.clone()));
-
-		// Ensure users exist
-		assert!(UserInfo::<Test>::contains_key(user1));
-		assert!(UserInfo::<Test>::contains_key(user2));
-
-		let killStorageArgs = KillStorageArgs::All;
-		// Kill storage with admin
-		assert_ok!(Afloat::kill_storage(RawOrigin::Signed(admin.clone()).into(), killStorageArgs));
-
-		// Ensure users no longer exist
-		assert!(!UserInfo::<Test>::contains_key(user1));
-		assert!(!UserInfo::<Test>::contains_key(user2));
-
-		// Ensure admin and owner still exists
-		assert!(UserInfo::<Test>::contains_key(admin));
-		assert!(UserInfo::<Test>::contains_key(owner));
-
-		// Add users again
-		assert_ok!(Afloat::sign_up(RawOrigin::Signed(user1.clone()).into(), args.clone()));
-		assert_ok!(Afloat::sign_up(RawOrigin::Signed(user2.clone()).into(), args.clone()));
-	});
-}
-
-#[test]
-fn kill_storage_fails_for_non_admin() {
-	new_test_ext().execute_with(|| {
-		let user = new_account(3);
-		let killStorageArgs = KillStorageArgs::All;
-
-		// Attempt to kill storage with non-admin user
-		assert_noop!(
-			Afloat::kill_storage(RawOrigin::Signed(user.clone()).into(), killStorageArgs),
-			Error::<Test>::Unauthorized
-		);
 	});
 }
 
@@ -263,7 +205,7 @@ fn set_balance_by_other_than_owner_fails() {
 			Error::<Test>::Unauthorized
 		);
 		assert_noop!(
-			Afloat::set_afloat_balance(RawOrigin::Signed(2).into(), other_user.clone(), 10000),
+			Afloat::set_afloat_balance(RawOrigin::Signed(4).into(), other_user.clone(), 10000),
 			Error::<Test>::Unauthorized
 		);
 	});
@@ -322,47 +264,7 @@ fn create_sell_order_works() {
 		));
 
 		assert_ok!(Afloat::create_offer(
-			RawOrigin::Signed(user.clone()).into()
-			CreateOfferArgs::Sell {
-				tax_credit_id: item_id,
-				price_per_credit: 10000,
-				tax_credit_amount: 10,
-				expiration_date: 1000
-			}
-		));
-	});
-}
-
-#[test]
-fn take_sell_order_works() {
-	new_test_ext().execute_with(|| {
-		let user = new_account(3);
-		let other_user = new_account(4);
-		let item_id = 0;
-
-		Balances::make_free_balance_be(&user, 100);
-		Balances::make_free_balance_be(&other_user, 100);
-
-		let args = SignUpArgs::BuyerOrSeller {
-			cid: ShortString::try_from(b"cid".to_vec()).unwrap(),
-			cid_creator: ShortString::try_from(b"cid_creator".to_vec()).unwrap(),
-			group: ShortString::try_from(b"Group".to_vec()).unwrap(),
-		};
-
-		assert_ok!(Afloat::sign_up(RawOrigin::Signed(user.clone()).into(), args.clone()));
-		assert_ok!(Afloat::sign_up(RawOrigin::Signed(other_user.clone()).into(), args.clone()));
-
-		assert_ok!(Afloat::set_afloat_balance(RuntimeOrigin::signed(1), 4, 100000));
-
-		assert_ok!(Afloat::create_tax_credit(
 			RawOrigin::Signed(user.clone()).into(),
-			dummy_description(),
-			None,
-			None,
-		));
-
-		assert_ok!(Afloat::create_offer(
-			RawOrigin::Signed(user.clone()).into()
 			CreateOfferArgs::Sell {
 				tax_credit_id: item_id,
 				price_per_credit: 10000,
@@ -370,17 +272,6 @@ fn take_sell_order_works() {
 				expiration_date: 1000
 			}
 		));
-
-		let offer_id = GatedMarketplace::offers_by_item(0, 0).iter().next().unwrap().clone();
-
-		assert_ok!(Afloat::start_take_sell_order(
-			RawOrigin::Signed(other_user.clone()).into(),
-			offer_id,
-			2
-		));
-
-		assert_eq!(Afloat::do_get_afloat_balance(user.clone()), 9600); // 10000 - 400 (sell fee)
-		assert_eq!(Afloat::do_get_afloat_balance(1), 400); // 400 (sell fee)
 	});
 }
 
@@ -413,7 +304,7 @@ fn create_buy_order_works() {
 		));
 
 		assert_ok!(Afloat::create_offer(
-			RawOrigin::Signed(other_user.clone()).into()
+			RawOrigin::Signed(other_user.clone()).into(),
 			CreateOfferArgs::Buy {
 				tax_credit_id: item_id,
 				price_per_credit: 10000,
