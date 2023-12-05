@@ -35,7 +35,7 @@ pub mod pallet {
 		transaction_validity::{InvalidTransaction, TransactionValidity, ValidTransaction},
 	};
 
-	const STORAGE_VERSION: StorageVersion = StorageVersion::new(1);
+	const STORAGE_VERSION: StorageVersion = StorageVersion::new(0);
 
 	/* --- Genesis Structs Section --- */
 

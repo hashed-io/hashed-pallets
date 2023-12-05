@@ -194,9 +194,8 @@ pub fn new_test_ext() -> sp_io::TestExternalities {
 		GatedMarketplace::do_initial_setup()
 			.expect("Error on GatedMarketplace configuring initial setup");
 		Fruniques::do_initial_setup().expect("Error on Fruniques configuring initial setup");
-		Assets::force_create(
-					RuntimeOrigin::root(), 1, 1, false, 1,
-		).expect("Error on creating asset");
+		Assets::force_create(RuntimeOrigin::root(), 1, 1, false, 1)
+			.expect("Error on creating asset");
 	});
 	t
 }

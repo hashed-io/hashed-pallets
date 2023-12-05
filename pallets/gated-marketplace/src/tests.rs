@@ -2474,7 +2474,7 @@ fn enlist_buy_offer_an_item_can_receive_multiple_buy_offers() {
 // 			1,
 // 		));
 
-		// assert_ok!(Assets::mint(RuntimeOrigin::signed(1), 1, 1, 10000));
+// assert_ok!(Assets::mint(RuntimeOrigin::signed(1), 1, 1, 10000));
 // 		assert_ok!(Assets::mint(RuntimeOrigin::signed(1), 1, 2, 10000));
 
 // 		let m_id = get_marketplace_id("my marketplace", 500, 600, 1);

@@ -24,7 +24,7 @@ pub mod pallet {
 
 	// use frame_support::PalletId;
 
-	const STORAGE_VERSION: StorageVersion = StorageVersion::new(1);
+	const STORAGE_VERSION: StorageVersion = StorageVersion::new(0);
 
 	use pallet_rbac::types::RoleBasedAccessControl;
 	/// Configure the pallet by specifying the parameters and types on which it depends.

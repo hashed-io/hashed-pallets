@@ -361,4 +361,3 @@ fn create_buy_order_works() {
 // 		assert_eq!(Afloat::do_get_afloat_balance(1), 200); // 200 (buy fee)
 // 	});
 // }
-
