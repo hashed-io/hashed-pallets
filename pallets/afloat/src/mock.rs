@@ -1,4 +1,4 @@
-use crate::{self as pallet_afloat, types::InitialSetupArgs};
+use crate::{self as pallet_afloat};
 use frame_support::{
 	parameter_types,
 	traits::{AsEnsureOriginWithArg, ConstU32, ConstU64, Currency},
@@ -14,7 +14,8 @@ type Block = frame_system::mocking::MockBlock<Test>;
 use frame_system::EnsureRoot;
 use system::EnsureSigned;
 
-use crate::types::CreateAsset;
+use crate::types::{CreateAsset, InitialSetupArgs};
+
 use frame_system::RawOrigin;
 type AssetId = u32;
 
