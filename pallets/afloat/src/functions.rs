@@ -7,10 +7,10 @@ use pallet_gated_marketplace::types::{Marketplace, MarketplaceRole};
 use sp_runtime::{traits::StaticLookup, Permill};
 // use frame_support::traits::OriginTrait;
 use core::convert::TryInto;
-use frame_support::{sp_io::hashing::blake2_256, traits::Time};
-use pallet_mapped_assets::DebitFlags;
+use frame_support::traits::Time;
 use pallet_rbac::types::{IdOrVec, RoleBasedAccessControl, RoleId};
 use scale_info::prelude::vec;
+use sp_io::hashing::blake2_256;
 use sp_runtime::{
 	sp_std::{str, vec::Vec},
 	traits::Zero,
@@ -64,7 +64,7 @@ impl<T: Config> Pallet<T> {
 			AfloatCollectionId::<T>::put(collection_id);
 			Ok(())
 		} else {
-			return Err(Error::<T>::FailedToCreateFruniquesCollection.into());
+			return Err(Error::<T>::FailedToCreateFruniquesCollection.into())
 		}
 	}
 
@@ -73,22 +73,22 @@ impl<T: Config> Pallet<T> {
 			CreateAsset::New { asset_id, min_balance } => {
 				pallet_mapped_assets::Pallet::<T>::create(
 					RawOrigin::Signed(creator.clone()).into(),
-					asset_id,
+					asset_id.clone().into(),
 					T::Lookup::unlookup(creator.clone()),
 					min_balance,
 				)?;
-				asset_id
+				asset_id.clone()
 			},
 			CreateAsset::Existing { asset_id } => {
 				ensure!(
-					pallet_mapped_assets::Pallet::<T>::does_asset_exists(asset_id),
+					pallet_mapped_assets::Pallet::<T>::does_asset_exist(&asset_id),
 					Error::<T>::AssetNotFound
 				);
-				asset_id
+				asset_id.clone()
 			},
 		};
 
-		AfloatAssetId::<T>::put(asset_id.clone());
+		AfloatAssetId::<T>::put(asset_id);
 		Ok(())
 	}
 	/// This functions sets up the roles for the Afloat pallet.
@@ -293,7 +293,6 @@ impl<T: Config> Pallet<T> {
 	) -> DispatchResult {
 		let authority = ensure_signed(origin.clone())?;
 		let asset_id = AfloatAssetId::<T>::get().expect("AfloatAssetId should be set");
-		let debit_flags = DebitFlags { keep_alive: false, best_effort: true };
 		ensure!(UserInfo::<T>::contains_key(user_address.clone()), Error::<T>::UserNotFound);
 
 		let current_balance = Self::do_get_afloat_balance(user_address.clone());
@@ -304,7 +303,6 @@ impl<T: Config> Pallet<T> {
 				&user_address.clone(),
 				diff,
 				Some(authority.clone()),
-				debit_flags,
 			)?;
 		} else if current_balance < amount {
 			let diff = amount - current_balance;
@@ -461,8 +459,8 @@ impl<T: Config> Pallet<T> {
 		);
 		//ensure user has enough afloat balance
 		ensure!(
-			Self::do_get_afloat_balance(who.clone())
-				>= offer.price_per_credit * tax_credit_amount.into(),
+			Self::do_get_afloat_balance(who.clone()) >=
+				offer.price_per_credit * tax_credit_amount.into(),
 			Error::<T>::NotEnoughAfloatBalanceAvailable
 		);
 		let zero_balance: T::Balance = Zero::zero();
@@ -609,7 +607,7 @@ impl<T: Config> Pallet<T> {
 		let tax_credit_amount_u32 = if let Ok(amount) = transaction.tax_credit_amount.try_into() {
 			amount
 		} else {
-			return Err(Error::<T>::TaxCreditAmountOverflow.into());
+			return Err(Error::<T>::TaxCreditAmountOverflow.into())
 		};
 
 		let child_offer_id = pallet_gated_marketplace::Pallet::<T>::do_enlist_sell_offer(
@@ -622,7 +620,7 @@ impl<T: Config> Pallet<T> {
 		)?;
 
 		<AfloatTransactions<T>>::try_mutate(transaction_id, |transaction| -> DispatchResult {
-			let mut transaction = transaction.as_mut().ok_or(Error::<T>::TransactionNotFound)?;
+			let transaction = transaction.as_mut().ok_or(Error::<T>::TransactionNotFound)?;
 			transaction.seller_confirmation_date = Some(confirmation_date);
 			transaction.confirmed = confirmed;
 			transaction.child_offer_id = Some(child_offer_id);
@@ -713,7 +711,7 @@ impl<T: Config> Pallet<T> {
 		<AfloatOffers<T>>::try_mutate(offer_id, |offer| -> DispatchResult {
 			let offer = offer.as_mut().ok_or(Error::<T>::OfferNotFound)?;
 			if transaction.tax_credit_amount > offer.tax_credit_amount_remaining {
-				return Err(Error::<T>::Underflow.into());
+				return Err(Error::<T>::Underflow.into())
 			}
 			offer.tax_credit_amount_remaining =
 				offer.tax_credit_amount_remaining - transaction.tax_credit_amount;
@@ -721,7 +719,7 @@ impl<T: Config> Pallet<T> {
 		})?;
 
 		<AfloatTransactions<T>>::try_mutate(transaction_id, |transaction| -> DispatchResult {
-			let mut transaction = transaction.as_mut().ok_or(Error::<T>::TransactionNotFound)?;
+			let transaction = transaction.as_mut().ok_or(Error::<T>::TransactionNotFound)?;
 			transaction.completed = true;
 			Ok(())
 		})?;
@@ -794,8 +792,7 @@ impl<T: Config> Pallet<T> {
 	}
 
 	pub fn remove_from_afloat_marketplace(invitee: T::AccountId) -> DispatchResult {
-		let marketplace_id =
-			AfloatMarketPlaceId::<T>::get().ok_or(Error::<T>::MarketPlaceIdNotFound)?;
+		let marketplace_id = AfloatMarketPlaceId::<T>::get().ok_or("Marketplace not found")?;
 		pallet_gated_marketplace::Pallet::<T>::remove_from_market_lists(
 			invitee,
 			MarketplaceRole::Participant,

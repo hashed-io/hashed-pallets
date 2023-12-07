@@ -1,4 +1,4 @@
-use crate as pallet_afloat;
+use crate::{self as pallet_afloat};
 use frame_support::{
 	parameter_types,
 	traits::{AsEnsureOriginWithArg, ConstU32, ConstU64, Currency},
@@ -6,15 +6,16 @@ use frame_support::{
 use frame_system as system;
 use sp_core::H256;
 use sp_runtime::{
-	testing::Header,
 	traits::{BlakeTwo256, IdentityLookup},
+	BuildStorage,
 };
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;
 type Block = frame_system::mocking::MockBlock<Test>;
 use frame_system::EnsureRoot;
 use system::EnsureSigned;
 
-use crate::types::CreateAsset;
+use crate::types::{CreateAsset, InitialSetupArgs};
+
 use frame_system::RawOrigin;
 type AssetId = u32;
 
@@ -25,12 +26,9 @@ parameter_types! {
 
 // Configure a mock runtime to test the pallet.
 frame_support::construct_runtime!(
-  pub enum Test where
-	Block = Block,
-	NodeBlock = Block,
-	UncheckedExtrinsic = UncheckedExtrinsic,
+  pub enum Test
   {
-	System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
+	System: frame_system::{Pallet, Call, Config<T>, Storage, Event<T>},
 	GatedMarketplace: pallet_gated_marketplace::{Pallet, Call, Storage, Event<T>},
 	Uniques: pallet_uniques::{Pallet, Call, Storage, Event<T>},
 	Fruniques: pallet_fruniques::{Pallet, Call, Storage, Event<T>},
@@ -49,13 +47,12 @@ impl system::Config for Test {
 	type DbWeight = ();
 	type RuntimeOrigin = RuntimeOrigin;
 	type RuntimeCall = RuntimeCall;
-	type Index = u64;
-	type BlockNumber = u64;
+	type Nonce = u64;
 	type Hash = H256;
 	type Hashing = BlakeTwo256;
 	type AccountId = u64;
 	type Lookup = IdentityLookup<Self::AccountId>;
-	type Header = Header;
+	type Block = Block;
 	type RuntimeEvent = RuntimeEvent;
 	type BlockHashCount = BlockHashCount;
 	type Version = ();
@@ -157,21 +154,21 @@ impl pallet_uniques::Config for Test {
 	type Locker = ();
 }
 
-parameter_types! {
-  pub const ExistentialDeposit: u64 = 1;
-  pub const MaxReserves: u32 = 50;
-}
-
 impl pallet_balances::Config for Test {
 	type Balance = u64;
 	type DustRemoval = ();
 	type RuntimeEvent = RuntimeEvent;
-	type ExistentialDeposit = ExistentialDeposit;
+	type ExistentialDeposit = ConstU64<1>;
 	type AccountStore = System;
 	type WeightInfo = ();
 	type MaxLocks = ();
-	type MaxReserves = MaxReserves;
+	type MaxReserves = ();
 	type ReserveIdentifier = [u8; 8];
+	type RuntimeHoldReason = ();
+	type FreezeIdentifier = ();
+	type MaxHolds = ();
+	type MaxFreezes = ();
+	type RuntimeFreezeReason = ();
 }
 
 parameter_types! {
@@ -212,9 +209,13 @@ pub trait AssetsCallback<AssetId, AccountId> {
 
 pub struct AssetsCallbackHandle;
 impl pallet_mapped_assets::AssetsCallback<u32, u64> for AssetsCallbackHandle {
-	fn created(_id: &AssetId, _owner: &u64) {}
+	fn created(_id: &AssetId, _owner: &u64) -> Result<(), ()> {
+		Ok(())
+	}
 
-	fn destroyed(_id: &AssetId) {}
+	fn destroyed(_id: &AssetId) -> Result<(), ()> {
+		Ok(())
+	}
 }
 
 impl pallet_mapped_assets::Config for Test {
@@ -236,8 +237,6 @@ impl pallet_mapped_assets::Config for Test {
 	type CallbackHandle = AssetsCallbackHandle;
 	type Extra = ();
 	type RemoveItemsLimit = ConstU32<5>;
-	type MaxReserves = MaxReserves;
-	type ReserveIdentifier = u32;
 	type Rbac = RBAC;
 }
 
@@ -245,17 +244,17 @@ impl pallet_mapped_assets::Config for Test {
 pub fn new_test_ext() -> sp_io::TestExternalities {
 	// TODO: get initial conf?
 	let mut t: sp_io::TestExternalities =
-		frame_system::GenesisConfig::default().build_storage::<Test>().unwrap().into();
+		frame_system::GenesisConfig::<Test>::default().build_storage().unwrap().into();
 	t.execute_with(|| {
 		Balances::make_free_balance_be(&1, 100);
 		Balances::make_free_balance_be(&2, 100);
-		Afloat::initial_setup(
-			RawOrigin::Root.into(),
-			1,
-			2,
-			CreateAsset::New { asset_id: 0, min_balance: 1 },
-		)
-		.expect("Error on GatedMarketplace configuring initial setup");
+		let args = InitialSetupArgs::All {
+			creator: 1,
+			admin: 2,
+			asset: CreateAsset::New { asset_id: 0, min_balance: 1 },
+		};
+		Afloat::initial_setup(RawOrigin::Root.into(), args)
+			.expect("Error on GatedMarketplace configuring initial setup");
 	});
 	t
 }

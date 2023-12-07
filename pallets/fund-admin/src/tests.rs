@@ -5,8 +5,18 @@ use crate::{
 	TransactionsByRevenue, TransactionsInfo, UsersByProject, UsersInfo,
 };
 use frame_support::{
-	assert_noop, assert_ok, bounded_vec, error::BadOrigin, traits::ConstU32, BoundedVec,
+	assert_noop, assert_ok,
+	error::BadOrigin,
+	traits::{
+		tokens::{
+			fungible::Mutate,
+			Preservation::{Expendable, Preserve, Protect},
+		},
+		ConstU32,
+	},
+	BoundedVec,
 };
+use sp_core::bounded_vec;
 use sp_runtime::DispatchResult;
 
 type RbacErr = pallet_rbac::Error<Test>;
@@ -376,8 +386,8 @@ fn get_drawdown_id(
 
 	for i in 0..drawdonws_by_project.len() {
 		let drawdown_data = DrawdownsInfo::<Test>::get(drawdonws_by_project[i]).unwrap();
-		if drawdown_data.drawdown_type == drawdown_type
-			&& drawdown_data.drawdown_number == drawdown_number
+		if drawdown_data.drawdown_type == drawdown_type &&
+			drawdown_data.drawdown_number == drawdown_number
 		{
 			drawdown_id = drawdonws_by_project[i];
 		}
@@ -412,9 +422,9 @@ fn get_transaction_id(
 
 	for i in 0..transactions_by_drawdown.len() {
 		let transaction_data = TransactionsInfo::<Test>::get(transactions_by_drawdown[i]).unwrap();
-		if transaction_data.project_id == project_id
-			&& transaction_data.drawdown_id == drawdown_id
-			&& transaction_data.expenditure_id == expenditure_id
+		if transaction_data.project_id == project_id &&
+			transaction_data.drawdown_id == drawdown_id &&
+			transaction_data.expenditure_id == expenditure_id
 		{
 			transaction_id = transactions_by_drawdown[i];
 		}
@@ -459,9 +469,9 @@ fn get_revenue_transaction_id(
 	for i in 0..transactions_by_revenue.len() {
 		let revenue_transaction_data =
 			RevenueTransactionsInfo::<Test>::get(transactions_by_revenue[i]).unwrap();
-		if revenue_transaction_data.project_id == project_id
-			&& revenue_transaction_data.revenue_id == revenue_id
-			&& revenue_transaction_data.job_eligible_id == job_eligible_id
+		if revenue_transaction_data.project_id == project_id &&
+			revenue_transaction_data.revenue_id == revenue_id &&
+			revenue_transaction_data.job_eligible_id == job_eligible_id
 		{
 			revenue_transaction_id = transactions_by_revenue[i];
 		}
@@ -644,12 +654,8 @@ fn balances_an_administrator_goes_out_of_balance_should_fail() {
 		let admin_free_balance = Balances::free_balance(1);
 		assert_eq!(admin_free_balance, InitialAdminBalance::get() - TransferAmount::get());
 
-		Balances::transfer(
-			RuntimeOrigin::signed(1),
-			2,
-			admin_free_balance - TransferAmount::get() / 2,
-		)
-		.unwrap();
+		Balances::transfer(&1, &2, admin_free_balance - TransferAmount::get() / 2, Expendable)
+			.unwrap();
 
 		assert_noop!(
 			FundAdmin::users(
@@ -684,7 +690,7 @@ fn balances_an_administrator_does_not_have_anough_free_balance_to_perform_a_user
 		let admin_free_balance = Balances::free_balance(1);
 		assert_eq!(admin_free_balance, InitialAdminBalance::get() - TransferAmount::get());
 
-		Balances::transfer(RuntimeOrigin::signed(1), 2, admin_free_balance).unwrap();
+		Balances::transfer(&1, &2, admin_free_balance, Expendable).unwrap();
 
 		assert_noop!(
 			FundAdmin::users(
@@ -1888,7 +1894,7 @@ fn expenditures_add_a_hard_cost_budget_expenditure_for_a_given_project_works() {
 				.unwrap();
 			if expenditure_data.name == make_field_name("Expenditure Test: HardCost") {
 				target_expenditure_id = expenditure_id;
-				break;
+				break
 			}
 		}
 
@@ -1949,7 +1955,7 @@ fn expenditures_add_a_softcost_budget_expenditure_for_a_given_project_works() {
 				.unwrap();
 			if expenditure_data.name == make_field_name("Expenditure Test: SoftCost") {
 				target_expenditure_id = expenditure_id;
-				break;
+				break
 			}
 		}
 
@@ -2010,7 +2016,7 @@ fn expenditures_add_an_operational_budget_expenditure_for_a_given_project_works(
 				.unwrap();
 			if expenditure_data.name == make_field_name("Expenditure Test: Operational") {
 				target_expenditure_id = expenditure_id;
-				break;
+				break
 			}
 		}
 
@@ -2071,7 +2077,7 @@ fn expenditures_add_an_others_budget_expenditure_for_a_given_project_works() {
 				.unwrap();
 			if expenditure_data.name == make_field_name("Expenditure Test: Others") {
 				target_expenditure_id = expenditure_id;
-				break;
+				break
 			}
 		}
 
@@ -2270,7 +2276,7 @@ fn expenditures_edit_a_given_expenditure_works() {
 
 			if expenditure_data.name == make_field_name("Expenditure Test: Hard Cost") {
 				target_expenditure_id = expenditure_id;
-				break;
+				break
 			}
 		}
 
@@ -2444,7 +2450,7 @@ fn expenditures_admnistrator_tries_to_update_a_non_existent_expenditure_should_f
 
 			if expenditure_data.name == make_field_name("Expenditure Test: Hard Cost") {
 				target_expenditure_id = expenditure_id;
-				break;
+				break
 			}
 		}
 
@@ -2522,7 +2528,7 @@ fn expenditures_delete_a_selected_expenditure_works() {
 
 			if expenditure_data.name == make_field_name("Expenditure Test: Hard Cost") {
 				target_expenditure_id = expenditure_id;
-				break;
+				break
 			}
 		}
 

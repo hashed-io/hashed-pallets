@@ -20,7 +20,7 @@ pub mod pallet {
 	use frame_system::pallet_prelude::*;
 	use sp_runtime::{traits::Scale, Permill};
 
-	const STORAGE_VERSION: StorageVersion = StorageVersion::new(1);
+	const STORAGE_VERSION: StorageVersion = StorageVersion::new(0);
 
 	use crate::types::*;
 	use pallet_rbac::types::RoleBasedAccessControl;
@@ -37,7 +37,7 @@ pub mod pallet {
 
 		type Moment: Parameter
 			+ Default
-			+ Scale<Self::BlockNumber, Output = Self::Moment>
+			+ Scale<BlockNumberFor<Self>, Output = Self::Moment>
 			+ Copy
 			+ MaxEncodedLen
 			+ scale_info::StaticTypeInfo
@@ -404,9 +404,8 @@ pub mod pallet {
 			let who = ensure_signed(origin)?;
 			match block_args {
 				BlockUserArgs::BlockUser(user) => Self::do_block_user(who, marketplace_id, user),
-				BlockUserArgs::UnblockUser(user) => {
-					Self::do_unblock_user(who, marketplace_id, user)
-				},
+				BlockUserArgs::UnblockUser(user) =>
+					Self::do_unblock_user(who, marketplace_id, user),
 			}
 		}
 
@@ -819,12 +818,10 @@ pub mod pallet {
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 			match redeem {
-				RedeemArgs::AskForRedemption { collection_id, item_id } => {
-					return Self::do_ask_for_redeem(who, marketplace, collection_id, item_id)
-				},
-				RedeemArgs::AcceptRedemption(redemption_id) => {
-					return Self::do_accept_redeem(who, marketplace, redemption_id)
-				},
+				RedeemArgs::AskForRedemption { collection_id, item_id } =>
+					return Self::do_ask_for_redeem(who, marketplace, collection_id, item_id),
+				RedeemArgs::AcceptRedemption(redemption_id) =>
+					return Self::do_accept_redeem(who, marketplace, redemption_id),
 			}
 		}
 

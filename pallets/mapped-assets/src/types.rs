@@ -1,6 +1,6 @@
 // This file is part of Substrate.
 
-// Copyright (C) 2017-2022 Parity Technologies (UK) Ltd.
+// Copyright (C) Parity Technologies (UK) Ltd.
 // SPDX-License-Identifier: Apache-2.0
 
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,15 +20,21 @@
 use super::*;
 use frame_support::{
 	pallet_prelude::*,
-	sp_io::hashing::blake2_256,
-	traits::{fungible, tokens::BalanceConversion},
+	traits::{fungible, tokens::ConversionToAssetBalance},
 };
+use sp_io::hashing::blake2_256;
 use sp_runtime::{traits::Convert, FixedPointNumber, FixedPointOperand, FixedU128};
 
 pub(super) type DepositBalanceOf<T, I = ()> =
 	<<T as Config<I>>::Currency as Currency<<T as SystemConfig>::AccountId>>::Balance;
-pub(super) type AssetAccountOf<T, I> =
-	AssetAccount<<T as Config<I>>::Balance, DepositBalanceOf<T, I>, <T as Config<I>>::Extra>;
+pub(super) type AssetAccountOf<T, I> = AssetAccount<
+	<T as Config<I>>::Balance,
+	DepositBalanceOf<T, I>,
+	<T as Config<I>>::Extra,
+	<T as SystemConfig>::AccountId,
+>;
+pub(super) type ExistenceReasonOf<T, I> =
+	ExistenceReason<DepositBalanceOf<T, I>, <T as SystemConfig>::AccountId>;
 
 /// AssetStatus holds the current state of the asset. It could either be Live and available for use,
 /// or in a Destroying state.
@@ -44,7 +50,7 @@ pub(super) enum AssetStatus {
 }
 
 #[derive(Clone, Encode, Decode, Eq, PartialEq, RuntimeDebug, MaxEncodedLen, TypeInfo)]
-pub struct AssetDetails<Balance: AtLeast32BitUnsigned + Copy, AccountId, DepositBalance> {
+pub struct AssetDetails<Balance, AccountId, DepositBalance> {
 	/// Can change `owner`, `issuer`, `freezer` and `admin` accounts.
 	pub(super) owner: AccountId,
 	/// Can mint tokens.
@@ -55,8 +61,6 @@ pub struct AssetDetails<Balance: AtLeast32BitUnsigned + Copy, AccountId, Deposit
 	pub(super) freezer: AccountId,
 	/// The total supply across all accounts.
 	pub(super) supply: Balance,
-	/// The total reserved balance across all accounts
-	pub(super) reserved: Balance,
 	/// The balance deposited for this asset. This pays for the data stored here.
 	pub(super) deposit: DepositBalance,
 	/// The ED for virtual accounts.
@@ -70,26 +74,8 @@ pub struct AssetDetails<Balance: AtLeast32BitUnsigned + Copy, AccountId, Deposit
 	pub(super) sufficients: u32,
 	/// The total number of approvals.
 	pub(super) approvals: u32,
-	/// Whether the asset is frozen for non-admin transfers.
-	pub(super) is_frozen: bool,
 	/// The status of the asset
 	pub(super) status: AssetStatus,
-}
-
-impl<Balance: AtLeast32BitUnsigned + Copy, AccountId, DepositBalance>
-	AssetDetails<Balance, AccountId, DepositBalance>
-{
-	/* 	pub fn destroy_witness(&self) -> DestroyWitness {
-	  DestroyWitness {
-		accounts: self.accounts,
-		sufficients: self.sufficients,
-		approvals: self.approvals,
-	  }
-	} */
-
-	pub fn free_supply(&self) -> Balance {
-		self.supply.saturating_sub(self.reserved)
-	}
 }
 
 /// Data concerning an approval.
@@ -104,26 +90,38 @@ pub struct Approval<Balance, DepositBalance> {
 
 #[test]
 fn ensure_bool_decodes_to_consumer_or_sufficient() {
-	assert_eq!(false.encode(), ExistenceReason::<()>::Consumer.encode());
-	assert_eq!(true.encode(), ExistenceReason::<()>::Sufficient.encode());
+	assert_eq!(false.encode(), ExistenceReason::<(), ()>::Consumer.encode());
+	assert_eq!(true.encode(), ExistenceReason::<(), ()>::Sufficient.encode());
 }
 
+/// The reason for an account's existence within an asset class.
 #[derive(Clone, Encode, Decode, Eq, PartialEq, RuntimeDebug, MaxEncodedLen, TypeInfo)]
-pub enum ExistenceReason<Balance> {
+pub enum ExistenceReason<Balance, AccountId> {
+	/// A consumer reference was used to create this account.
 	#[codec(index = 0)]
 	Consumer,
+	/// The asset class is `sufficient` for account existence.
 	#[codec(index = 1)]
 	Sufficient,
+	/// The account holder has placed a deposit to exist within an asset class.
 	#[codec(index = 2)]
 	DepositHeld(Balance),
+	/// A deposit was placed for this account to exist, but it has been refunded.
 	#[codec(index = 3)]
 	DepositRefunded,
+	/// Some other `AccountId` has placed a deposit to make this account exist.
+	/// An account with such a reason might not be referenced in `system`.
+	#[codec(index = 4)]
+	DepositFrom(AccountId, Balance),
 }
 
-impl<Balance> ExistenceReason<Balance> {
+impl<Balance, AccountId> ExistenceReason<Balance, AccountId>
+where
+	AccountId: Clone,
+{
 	pub(crate) fn take_deposit(&mut self) -> Option<Balance> {
 		if !matches!(self, ExistenceReason::DepositHeld(_)) {
-			return None;
+			return None
 		}
 		if let ExistenceReason::DepositHeld(deposit) =
 			sp_std::mem::replace(self, ExistenceReason::DepositRefunded)
@@ -133,18 +131,56 @@ impl<Balance> ExistenceReason<Balance> {
 			None
 		}
 	}
+
+	pub(crate) fn take_deposit_from(&mut self) -> Option<(AccountId, Balance)> {
+		if !matches!(self, ExistenceReason::DepositFrom(..)) {
+			return None
+		}
+		if let ExistenceReason::DepositFrom(depositor, deposit) =
+			sp_std::mem::replace(self, ExistenceReason::DepositRefunded)
+		{
+			Some((depositor, deposit))
+		} else {
+			None
+		}
+	}
+}
+
+#[test]
+fn ensure_bool_decodes_to_liquid_or_frozen() {
+	assert_eq!(false.encode(), AccountStatus::Liquid.encode());
+	assert_eq!(true.encode(), AccountStatus::Frozen.encode());
+}
+
+/// The status of an asset account.
+#[derive(Clone, Encode, Decode, Eq, PartialEq, RuntimeDebug, MaxEncodedLen, TypeInfo)]
+pub enum AccountStatus {
+	/// Asset account can receive and transfer the assets.
+	Liquid,
+	/// Asset account cannot transfer the assets.
+	Frozen,
+	/// Asset account cannot receive and transfer the assets.
+	Blocked,
+}
+impl AccountStatus {
+	/// Returns `true` if frozen or blocked.
+	pub(crate) fn is_frozen(&self) -> bool {
+		matches!(self, AccountStatus::Frozen | AccountStatus::Blocked)
+	}
+	/// Returns `true` if blocked.
+	pub(crate) fn is_blocked(&self) -> bool {
+		matches!(self, AccountStatus::Blocked)
+	}
 }
 
 #[derive(Clone, Encode, Decode, Eq, PartialEq, RuntimeDebug, MaxEncodedLen, TypeInfo)]
-pub struct AssetAccount<Balance, DepositBalance, Extra> {
-	/// The free balance.
+pub struct AssetAccount<Balance, DepositBalance, Extra, AccountId> {
+	/// The balance.
 	pub(super) balance: Balance,
-	/// The reserved balance.
-	pub(super) reserved: Balance,
-	/// Whether the account is frozen.
-	pub(super) is_frozen: bool,
+	/// The status of the account.
+	pub(super) status: AccountStatus,
 	/// The reason for the existence of the account.
-	pub(super) reason: ExistenceReason<DepositBalance>,
+	pub(super) reason: ExistenceReason<DepositBalance, AccountId>,
 	/// Additional "sidecar" data, in case some other pallet wants to use this storage item.
 	pub(super) extra: Extra,
 }
@@ -164,20 +200,6 @@ pub struct AssetMetadata<DepositBalance, BoundedString> {
 	/// Whether the asset metadata may be changed by a non Force origin.
 	pub(super) is_frozen: bool,
 }
-
-/* /// Witness data for the destroy transactions.
-#[derive(Copy, Clone, Encode, Decode, Eq, PartialEq, RuntimeDebug, MaxEncodedLen, TypeInfo)]
-pub struct DestroyWitness {
-  /// The number of accounts holding the asset.
-  #[codec(compact)]
-  pub(super) accounts: u32,
-  /// The number of accounts holding the asset with a self-sufficient reference.
-  #[codec(compact)]
-  pub(super) sufficients: u32,
-  /// The number of transfer-approvals of the asset.
-  #[codec(compact)]
-  pub(super) approvals: u32,
-} */
 
 /// Trait for allowing a minimum balance on the account to be specified, beyond the
 /// `minimum_balance` of the asset. This is additive - the `minimum_balance` of the asset must be
@@ -226,14 +248,14 @@ pub(super) struct TransferFlags {
 }
 
 #[derive(Copy, Clone, PartialEq, Eq)]
-pub struct DebitFlags {
+pub(super) struct DebitFlags {
 	/// The debited account must stay alive at the end of the operation; an error is returned if
 	/// this cannot be achieved legally.
-	pub keep_alive: bool,
+	pub(super) keep_alive: bool,
 	/// Less than the amount specified needs be debited by the operation for it to be considered
 	/// successful. If `false`, then the amount debited will always be at least the amount
 	/// specified.
-	pub best_effort: bool,
+	pub(super) best_effort: bool,
 }
 
 impl From<TransferFlags> for DebitFlags {
@@ -265,7 +287,7 @@ type BalanceOf<F, T> = <F as fungible::Inspect<AccountIdOf<T>>>::Balance;
 /// Converts a balance value into an asset balance based on the ratio between the fungible's
 /// minimum balance and the minimum asset balance.
 pub struct BalanceToAssetBalance<F, T, CON, I = ()>(PhantomData<(F, T, CON, I)>);
-impl<F, T, CON, I> BalanceConversion<BalanceOf<F, T>, AssetIdOf<T, I>, AssetBalanceOf<T, I>>
+impl<F, T, CON, I> ConversionToAssetBalance<BalanceOf<F, T>, AssetIdOf<T, I>, AssetBalanceOf<T, I>>
 	for BalanceToAssetBalance<F, T, CON, I>
 where
 	F: fungible::Inspect<AccountIdOf<T>>,
@@ -297,15 +319,6 @@ where
 		Ok(FixedU128::saturating_from_rational(asset.min_balance, min_balance)
 			.saturating_mul_int(balance))
 	}
-}
-
-/// Store named reserved balance.
-#[derive(Encode, Decode, Clone, PartialEq, Eq, RuntimeDebug, MaxEncodedLen, TypeInfo)]
-pub struct ReserveData<ReserveIdentifier, Balance> {
-	/// The identifier for the named reserve.
-	pub id: ReserveIdentifier,
-	/// The amount of the named reserve.
-	pub amount: Balance,
 }
 
 #[derive(

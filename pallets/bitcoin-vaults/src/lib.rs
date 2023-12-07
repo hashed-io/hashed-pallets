@@ -20,11 +20,12 @@ pub mod pallet {
 	//#[cfg(feature = "std")]
 	//use frame_support::serde::{Deserialize, Serialize};
 	use crate::types::*;
-	use frame_support::{pallet_prelude::BoundedVec, sp_io::hashing::blake2_256, traits::Get};
+	use frame_support::{pallet_prelude::BoundedVec, traits::Get};
 	use frame_system::{
 		offchain::{AppCrypto, CreateSignedTransaction, SignedPayload, Signer},
 		pallet_prelude::*,
 	};
+	use sp_io::hashing::blake2_256;
 	use sp_runtime::{
 		offchain::{
 			storage_lock::{BlockAndTime, StorageLock},
@@ -34,24 +35,28 @@ pub mod pallet {
 		transaction_validity::{InvalidTransaction, TransactionValidity, ValidTransaction},
 	};
 
-	const STORAGE_VERSION: StorageVersion = StorageVersion::new(1);
+	const STORAGE_VERSION: StorageVersion = StorageVersion::new(0);
 
 	/* --- Genesis Structs Section --- */
 
 	#[pallet::genesis_config]
-	pub struct GenesisConfig {
+	pub struct GenesisConfig<T: Config> {
 		pub bdk_services_url: Vec<u8>,
+		#[serde(skip)]
+		pub _config: sp_std::marker::PhantomData<T>,
 	}
 
-	#[cfg(feature = "std")]
-	impl Default for GenesisConfig {
+	impl<T: Config> Default for GenesisConfig<T> {
 		fn default() -> Self {
-			Self { bdk_services_url: b"https://bdk.hashed.systems".encode() }
+			Self {
+				bdk_services_url: b"https://bdk.hashed.systems".encode(),
+				_config: Default::default(),
+			}
 		}
 	}
 
 	#[pallet::genesis_build]
-	impl<T: Config> GenesisBuild<T> for GenesisConfig {
+	impl<T: Config> BuildGenesisConfig for GenesisConfig<T> {
 		fn build(&self) {
 			<BDKServicesURL<T>>::put(
 				BoundedVec::<u8, ConstU32<32>>::try_from(self.bdk_services_url.clone())
@@ -274,12 +279,12 @@ pub mod pallet {
 		/// Note that it's not guaranteed for offchain workers to run on EVERY block, there might
 		/// be cases where some blocks are skipped, or for some the worker runs twice (re-orgs),
 		/// so the code should be able to handle that.
-		fn offchain_worker(_block_number: T::BlockNumber) {
+		fn offchain_worker(_block_number: BlockNumberFor<T>) {
 			// check if the node has an account available, the offchain worker can't submit
 			// transactions without it
 			let signer = Signer::<T, T::AuthorityId>::any_account();
 			if !signer.can_sign() {
-				return;
+				return
 			}
 
 			// Check if this OCW can modify the vaults
@@ -714,7 +719,7 @@ pub mod pallet {
 		///
 		/// Meant to be unsigned with signed payload and used by an offchain worker
 		#[pallet::call_index(15)]
-		#[pallet::weight(0)]
+		#[pallet::weight(Weight::from_parts(10_000,0) + T::DbWeight::get().reads_writes(1,1))]
 		pub fn ocw_insert_descriptors(
 			origin: OriginFor<T>,
 			payload: VaultsPayload<T::Public>,
@@ -745,7 +750,7 @@ pub mod pallet {
 					let tx_res =
 						Self::do_insert_descriptors(vault_payload.vault_id, descriptors, status);
 					if tx_res.is_err() {
-						return Some(tx_res);
+						return Some(tx_res)
 					}
 					None
 				})
@@ -756,7 +761,7 @@ pub mod pallet {
 		///
 		/// Meant to be unsigned with signed payload and used by an offchain worker
 		#[pallet::call_index(16)]
-		#[pallet::weight(0)]
+		#[pallet::weight(Weight::from_parts(10_000,0) + T::DbWeight::get().reads_writes(1,1))]
 		pub fn ocw_insert_psbts(
 			origin: OriginFor<T>,
 			payload: ProposalsPayload<T::Public>,
@@ -775,7 +780,7 @@ pub mod pallet {
 					let tx_res =
 						Self::do_insert_psbt(proposal_psbt.proposal_id, bounded_psbt, status);
 					if tx_res.is_err() {
-						return Some(tx_res);
+						return Some(tx_res)
 					}
 					None
 				})
@@ -787,7 +792,7 @@ pub mod pallet {
 		///
 		/// Meant to be unsigned with signed payload and used by an offchain worker
 		#[pallet::call_index(17)]
-		#[pallet::weight(0)]
+		#[pallet::weight(Weight::from_parts(10_000,0) + T::DbWeight::get().reads_writes(1,1))]
 		pub fn ocw_finalize_psbts(
 			origin: OriginFor<T>,
 			payload: ProposalsPayload<T::Public>, // here the payload
@@ -826,19 +831,19 @@ pub mod pallet {
 			match call {
 				Call::ocw_insert_descriptors { ref payload, ref signature } => {
 					if !SignedPayload::<T>::verify::<T::AuthorityId>(payload, signature.clone()) {
-						return InvalidTransaction::BadProof.into();
+						return InvalidTransaction::BadProof.into()
 					}
 					valid_tx(b"unsigned_extrinsic_with_signed_payload".to_vec())
 				}, // compiler complains if they aren't on different match arms
 				Call::ocw_insert_psbts { ref payload, ref signature } => {
 					if !SignedPayload::<T>::verify::<T::AuthorityId>(payload, signature.clone()) {
-						return InvalidTransaction::BadProof.into();
+						return InvalidTransaction::BadProof.into()
 					}
 					valid_tx(b"unsigned_extrinsic_with_signed_payload".to_vec())
 				},
 				Call::ocw_finalize_psbts { ref payload, ref signature } => {
 					if !SignedPayload::<T>::verify::<T::AuthorityId>(payload, signature.clone()) {
-						return InvalidTransaction::BadProof.into();
+						return InvalidTransaction::BadProof.into()
 					}
 					valid_tx(b"unsigned_extrinsic_with_signed_payload".to_vec())
 				},

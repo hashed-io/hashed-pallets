@@ -65,7 +65,7 @@ Now that you have an idea for the environment, dive deeper into both the Rust tr
    - [PolkaWallet Flutter SDK](https://github.com/polkawallet-io/sdk)
    - [Front End template](https://github.com/substrate-developer-hub/substrate-front-end-template) from Parity
 
-2. Review tooling for data caching and query -[Useful API sidecar](https://github.com/paritytech/substrate-api-sidecar) from Parity -[Awesome Substrate tools section](https://substrate.io/ecosystem/resources/awesome-substrate/#tools)
+2. Review tooling for data caching and query -[Useful API sidecar](https://github.com/paritytech/polkadot-sdk-api-sidecar) from Parity -[Awesome Substrate tools section](https://substrate.io/ecosystem/resources/awesome-substrate/#tools)
 
 ### Tools and Tips
 

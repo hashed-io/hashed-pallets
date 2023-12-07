@@ -1,9 +1,10 @@
 use super::*;
 
 use crate::types::*;
-use frame_support::{sp_io::hashing::blake2_256, traits::tokens::nonfungibles::Inspect};
+use frame_support::traits::tokens::nonfungibles::Inspect;
 use frame_system::pallet_prelude::*;
 use scale_info::prelude::string::String;
+use sp_io::hashing::blake2_256;
 
 use pallet_rbac::types::*;
 
@@ -62,13 +63,13 @@ impl<T: Config> Pallet<T> {
 	) -> AttributeValue<T> {
 		if let Some(a) = pallet_uniques::Pallet::<T>::attribute(class_id, instance_id, key) {
 			return BoundedVec::<u8, T::ValueLimit>::try_from(a)
-				.expect("Error on converting the attribute to BoundedVec");
+				.expect("Error on converting the attribute to BoundedVec")
 		}
 		BoundedVec::<u8, T::ValueLimit>::default()
 	}
 
 	pub fn admin_of(class_id: &T::CollectionId, instance_id: &T::ItemId) -> Option<T::AccountId> {
-		pallet_uniques::Pallet::<T>::owner(*class_id, *instance_id)
+		pallet_uniques::Pallet::<T>::owner(class_id.clone(), *instance_id)
 	}
 
 	pub fn is_frozen(collection_id: &T::CollectionId, instance_id: &T::ItemId) -> bool {
@@ -79,15 +80,15 @@ impl<T: Config> Pallet<T> {
 	}
 
 	pub fn collection_exists(class_id: &T::CollectionId) -> bool {
-		if let Some(_owner) = pallet_uniques::Pallet::<T>::collection_owner(*class_id) {
-			return true;
+		if let Some(_owner) = pallet_uniques::Pallet::<T>::collection_owner(class_id.clone()) {
+			return true
 		}
 		false
 	}
 
 	pub fn instance_exists(class_id: &T::CollectionId, instance_id: &T::ItemId) -> bool {
-		if let Some(_owner) = pallet_uniques::Pallet::<T>::owner(*class_id, *instance_id) {
-			return true;
+		if let Some(_owner) = pallet_uniques::Pallet::<T>::owner(class_id.clone(), *instance_id) {
+			return true
 		}
 		false
 	}
@@ -164,7 +165,7 @@ impl<T: Config> Pallet<T> {
 	) -> DispatchResult {
 		pallet_uniques::Pallet::<T>::set_attribute(
 			origin,
-			*class_id,
+			class_id.clone(),
 			Some(instance_id),
 			key,
 			value,
@@ -182,15 +183,15 @@ impl<T: Config> Pallet<T> {
 	where
 		<T as pallet_uniques::Config>::ItemId: From<u32>,
 	{
-		let nex_item: ItemId = <NextFrunique<T>>::try_get(collection).unwrap_or(0);
-		<NextFrunique<T>>::insert(collection, nex_item + 1);
+		let nex_item: ItemId = <NextFrunique<T>>::try_get(collection.clone()).unwrap_or(0);
+		<NextFrunique<T>>::insert(collection.clone(), nex_item + 1);
 
 		let item = Self::u32_to_instance_id(nex_item);
-		pallet_uniques::Pallet::<T>::do_mint(collection, item, owner, |_| Ok(()))?;
+		pallet_uniques::Pallet::<T>::do_mint(collection.clone(), item, owner, |_| Ok(()))?;
 
 		pallet_uniques::Pallet::<T>::set_metadata(
 			frame_system::RawOrigin::Root.into(),
-			collection,
+			collection.clone(),
 			item.clone(),
 			metadata,
 			false,
@@ -200,7 +201,7 @@ impl<T: Config> Pallet<T> {
 			for (key, value) in attributes {
 				pallet_uniques::Pallet::<T>::set_attribute(
 					frame_system::RawOrigin::Root.into(),
-					collection,
+					collection.clone(),
 					Some(item),
 					key,
 					value,
@@ -247,7 +248,7 @@ impl<T: Config> Pallet<T> {
 
 		pallet_uniques::Pallet::<T>::burn(
 			origin,
-			*class_id,
+			class_id.clone(),
 			instance_id,
 			Some(Self::account_id_to_lookup_source(&admin.unwrap())),
 		)?;
@@ -272,15 +273,23 @@ impl<T: Config> Pallet<T> {
 		let scope_id = class_id.using_encoded(blake2_256);
 		T::Rbac::create_scope(Self::pallet_id(), scope_id)?;
 
-		Self::insert_auth_in_frunique_collection(owner.clone(), class_id, FruniqueRole::Owner)?;
+		Self::insert_auth_in_frunique_collection(
+			owner.clone(),
+			class_id.clone(),
+			FruniqueRole::Owner,
+		)?;
 
 		pallet_uniques::Pallet::<T>::do_create_collection(
-			class_id,
+			class_id.clone(),
 			owner.clone(),
 			admin.clone(),
 			T::CollectionDeposit::get(),
 			false,
-			pallet_uniques::Event::Created { collection: class_id, creator: admin.clone(), owner },
+			pallet_uniques::Event::Created {
+				collection: class_id.clone(),
+				creator: admin.clone(),
+				owner,
+			},
 		)?;
 
 		pallet_uniques::Pallet::<T>::set_collection_metadata(
@@ -308,13 +317,13 @@ impl<T: Config> Pallet<T> {
 	{
 		ensure!(Self::collection_exists(&collection), Error::<T>::CollectionNotFound);
 
-		let nex_item: ItemId = <NextFrunique<T>>::try_get(collection).unwrap_or(0);
+		let nex_item: ItemId = <NextFrunique<T>>::try_get(collection.clone()).unwrap_or(0);
 		let item = Self::u32_to_instance_id(nex_item);
 
-		Self::do_mint(collection, owner.clone(), metadata.clone(), attributes)?;
+		Self::do_mint(collection.clone(), owner.clone(), metadata.clone(), attributes)?;
 
 		if let Some(ref parent_info) = parent_info {
-			return Self::do_nft_division(collection, item, metadata, parent_info, owner);
+			return Self::do_nft_division(collection.clone(), item, metadata, parent_info, owner)
 		}
 
 		let frunique_data = FruniqueData {
@@ -329,7 +338,7 @@ impl<T: Config> Pallet<T> {
 			verified_by: None,
 		};
 
-		<FruniqueInfo<T>>::insert(collection, item, frunique_data);
+		<FruniqueInfo<T>>::insert(collection.clone(), item, frunique_data);
 		<FruniqueRoots<T>>::insert(collection, item, true);
 
 		Ok(())
@@ -364,7 +373,7 @@ impl<T: Config> Pallet<T> {
 		let child_percentage: Permill = parent_info.parent_weight * frunique_parent.weight;
 
 		let parent_data: ParentInfo<T> = ParentInfo {
-			collection_id: parent_info.collection_id,
+			collection_id: parent_info.collection_id.clone(),
 			parent_id: parent_info.parent_id,
 			parent_weight: child_percentage,
 			is_hierarchical: parent_info.is_hierarchical,
@@ -382,7 +391,7 @@ impl<T: Config> Pallet<T> {
 			verified_by: None,
 		};
 
-		<FruniqueInfo<T>>::insert(collection, item, frunique_data);
+		<FruniqueInfo<T>>::insert(collection.clone(), item, frunique_data);
 
 		let frunique_child: ChildInfo<T> = ChildInfo {
 			collection_id: collection,
@@ -392,7 +401,7 @@ impl<T: Config> Pallet<T> {
 		};
 
 		<FruniqueInfo<T>>::try_mutate::<_, _, _, DispatchError, _>(
-			parent_info.collection_id,
+			parent_info.collection_id.clone(),
 			parent_info.parent_id,
 			|frunique_data| -> DispatchResult {
 				let frunique = frunique_data.as_mut().ok_or(Error::<T>::FruniqueNotFound)?;
@@ -422,13 +431,14 @@ impl<T: Config> Pallet<T> {
 		ensure!(Self::collection_exists(&collection), Error::<T>::CollectionNotFound);
 		ensure!(Self::instance_exists(&collection, &item), Error::<T>::FruniqueNotFound);
 
-		let frunique_data: FruniqueData<T> = <FruniqueInfo<T>>::try_get(collection, item).unwrap();
+		let frunique_data: FruniqueData<T> =
+			<FruniqueInfo<T>>::try_get(collection.clone(), item).unwrap();
 
 		ensure!(!frunique_data.frozen, Error::<T>::FruniqueFrozen);
 		ensure!(!frunique_data.redeemed, Error::<T>::FruniqueAlreadyRedeemed);
 
 		<FruniqueInfo<T>>::try_mutate::<_, _, _, DispatchError, _>(
-			collection,
+			collection.clone(),
 			item,
 			|frunique_data| -> DispatchResult {
 				let frunique = frunique_data.as_mut().ok_or(Error::<T>::FruniqueNotFound)?;

@@ -21,7 +21,7 @@ pub mod pallet {
 	use sp_runtime::traits::Scale;
 
 	use crate::types::*;
-	const STORAGE_VERSION: StorageVersion = StorageVersion::new(1);
+	const STORAGE_VERSION: StorageVersion = StorageVersion::new(0);
 
 	#[pallet::config]
 	pub trait Config: frame_system::Config {
@@ -29,7 +29,7 @@ pub mod pallet {
 
 		type Moment: Parameter
 			+ Default
-			+ Scale<Self::BlockNumber, Output = Self::Moment>
+			+ Scale<BlockNumberFor<Self>, Output = Self::Moment>
 			+ Copy
 			+ MaxEncodedLen
 			+ scale_info::StaticTypeInfo

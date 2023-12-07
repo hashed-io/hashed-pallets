@@ -1,9 +1,10 @@
 use super::*;
 use crate::types::*;
-use frame_support::{pallet_prelude::*, sp_io::hashing::blake2_256, traits::Time};
+use frame_support::{pallet_prelude::*, traits::Time};
 use frame_system::{pallet_prelude::*, RawOrigin};
 use pallet_rbac::types::*;
 use scale_info::prelude::vec; // vec![] macro
+use sp_io::hashing::blake2_256;
 use sp_runtime::sp_std::vec::Vec; // vec primitive
 use sp_runtime::{traits::StaticLookup, Permill};
 
@@ -176,7 +177,7 @@ impl<T: Config> Pallet<T> {
 			AccountOrApplication::Application(application_id) => <ApplicationsByAccount<T>>::iter()
 				.find_map(|(acc, m_id, app_id)| {
 					if m_id == marketplace_id && app_id == application_id {
-						return Some(acc);
+						return Some(acc)
 					}
 					None
 				})
@@ -271,7 +272,7 @@ impl<T: Config> Pallet<T> {
 		match authority_type {
 			MarketplaceRole::Owner => {
 				ensure!(Self::owner_exist(marketplace_id), Error::<T>::OwnerNotFound);
-				return Err(Error::<T>::CantRemoveOwner.into());
+				return Err(Error::<T>::CantRemoveOwner.into())
 			},
 			MarketplaceRole::Admin => {
 				// Admins can not delete themselves
@@ -335,10 +336,10 @@ impl<T: Config> Pallet<T> {
 		ensure!(<Marketplaces<T>>::contains_key(marketplace_id), Error::<T>::MarketplaceNotFound);
 		Self::is_authorized(authority.clone(), &marketplace_id, Permission::EnlistSellOffer)?;
 		//ensure the collection exists
-		if let Some(a) = pallet_uniques::Pallet::<T>::owner(collection_id, item_id) {
+		if let Some(a) = pallet_uniques::Pallet::<T>::owner(collection_id.clone(), item_id) {
 			ensure!(a == authority, Error::<T>::NotOwner);
 		} else {
-			return Err(Error::<T>::CollectionNotFound.into());
+			return Err(Error::<T>::CollectionNotFound.into())
 		}
 
 		//ensure the price is valid
@@ -349,7 +350,7 @@ impl<T: Config> Pallet<T> {
 			Self::get_timestamp_in_milliseconds().ok_or(Error::<T>::TimestampError)?;
 
 		//create an offer_id
-		let offer_id = (marketplace_id, authority.clone(), collection_id, creation_date)
+		let offer_id = (marketplace_id, authority.clone(), collection_id.clone(), creation_date)
 			.using_encoded(blake2_256);
 
 		//create offer structure
@@ -359,7 +360,7 @@ impl<T: Config> Pallet<T> {
 
 		let offer_data = OfferData::<T> {
 			marketplace_id,
-			collection_id,
+			collection_id: collection_id.clone(),
 			item_id,
 			creator: authority.clone(),
 			price,
@@ -372,11 +373,13 @@ impl<T: Config> Pallet<T> {
 		};
 
 		//ensure there is no a previous sell offer for this item
-		Self::can_this_item_receive_sell_orders(collection_id, item_id, marketplace_id)?;
+		Self::can_this_item_receive_sell_orders(collection_id.clone(), item_id, marketplace_id)?;
 
 		//insert in OffersByItem
-		<OffersByItem<T>>::try_mutate(collection_id, item_id, |offers| offers.try_push(offer_id))
-			.map_err(|_| Error::<T>::OfferStorageError)?;
+		<OffersByItem<T>>::try_mutate(collection_id.clone(), item_id, |offers| {
+			offers.try_push(offer_id)
+		})
+		.map_err(|_| Error::<T>::OfferStorageError)?;
 
 		//insert in OffersByAccount
 		<OffersByAccount<T>>::try_mutate(authority, |offers| offers.try_push(offer_id))
@@ -411,10 +414,10 @@ impl<T: Config> Pallet<T> {
 		//ensure the collection exists
 		//For this case user doesn't need to be the owner of the collection
 		//but the owner of the item cannot create a buy offer for their own collection
-		if let Some(a) = pallet_uniques::Pallet::<T>::owner(collection_id, item_id) {
+		if let Some(a) = pallet_uniques::Pallet::<T>::owner(collection_id.clone(), item_id) {
 			ensure!(a != authority, Error::<T>::CannotCreateOffer);
 		} else {
-			return Err(Error::<T>::CollectionNotFound.into());
+			return Err(Error::<T>::CollectionNotFound.into())
 		}
 
 		//ensure the holder of NFT is in the same marketplace as the caller making the offer
@@ -444,7 +447,7 @@ impl<T: Config> Pallet<T> {
 			Self::get_timestamp_in_milliseconds().ok_or(Error::<T>::TimestampError)?;
 
 		//create an offer_id
-		let offer_id = (marketplace_id, authority.clone(), collection_id, creation_date)
+		let offer_id = (marketplace_id, authority.clone(), collection_id.clone(), creation_date)
 			.using_encoded(blake2_256);
 
 		//create offer structure
@@ -452,7 +455,7 @@ impl<T: Config> Pallet<T> {
 			<Marketplaces<T>>::get(marketplace_id).ok_or(Error::<T>::MarketplaceNotFound)?;
 		let offer_data = OfferData::<T> {
 			marketplace_id,
-			collection_id,
+			collection_id: collection_id.clone(),
 			item_id,
 			creator: authority.clone(),
 			price,
@@ -466,8 +469,10 @@ impl<T: Config> Pallet<T> {
 
 		//insert in OffersByItem
 		//An item can receive multiple buy offers
-		<OffersByItem<T>>::try_mutate(collection_id, item_id, |offers| offers.try_push(offer_id))
-			.map_err(|_| Error::<T>::OfferStorageError)?;
+		<OffersByItem<T>>::try_mutate(collection_id.clone(), item_id, |offers| {
+			offers.try_push(offer_id)
+		})
+		.map_err(|_| Error::<T>::OfferStorageError)?;
 
 		//insert in OffersByAccount
 		<OffersByAccount<T>>::try_mutate(authority, |offers| offers.try_push(offer_id))
@@ -500,16 +505,18 @@ impl<T: Config> Pallet<T> {
 		Self::is_authorized(buyer.clone(), &offer_data.marketplace_id, Permission::TakeSellOffer)?;
 
 		//ensure the collection & owner exists
-		let owner_item =
-			pallet_uniques::Pallet::<T>::owner(offer_data.collection_id, offer_data.item_id)
-				.ok_or(Error::<T>::OwnerNotFound)?;
+		let owner_item = pallet_uniques::Pallet::<T>::owner(
+			offer_data.collection_id.clone(),
+			offer_data.item_id,
+		)
+		.ok_or(Error::<T>::OwnerNotFound)?;
 
 		//ensure owner is not the same as the buyer
 		ensure!(owner_item != buyer, Error::<T>::CannotTakeOffer);
 
 		//ensure the offer_id exists in OffersByItem
 		Self::does_exist_offer_id_for_this_item(
-			offer_data.collection_id,
+			offer_data.collection_id.clone(),
 			offer_data.item_id,
 			offer_id,
 		)?;
@@ -552,25 +559,25 @@ impl<T: Config> Pallet<T> {
 		if offer_data.percentage == Permill::from_percent(100) {
 			//Use uniques transfer function to transfer the item to the buyer
 			pallet_uniques::Pallet::<T>::do_transfer(
-				offer_data.collection_id,
+				offer_data.collection_id.clone(),
 				offer_data.item_id,
 				buyer.clone(),
 				|_, _| Ok(()),
 			)?;
 		} else {
 			let parent_info = pallet_fruniques::types::ParentInfo {
-				collection_id: offer_data.collection_id,
+				collection_id: offer_data.collection_id.clone(),
 				parent_id: offer_data.item_id,
 				parent_weight: offer_data.percentage,
 				is_hierarchical: true,
 			};
 			let metadata = pallet_fruniques::Pallet::<T>::get_nft_metadata(
-				offer_data.collection_id,
+				offer_data.collection_id.clone(),
 				offer_data.item_id,
 			);
 
 			pallet_fruniques::Pallet::<T>::do_spawn(
-				offer_data.collection_id,
+				offer_data.collection_id.clone(),
 				buyer.clone(),
 				metadata,
 				None,
@@ -581,7 +588,7 @@ impl<T: Config> Pallet<T> {
 		//update offer status from all marketplaces
 		Self::update_offers_status(
 			buyer.clone(),
-			offer_data.collection_id,
+			offer_data.collection_id.clone(),
 			offer_data.item_id,
 			offer_data.marketplace_id,
 		)?;
@@ -608,9 +615,11 @@ impl<T: Config> Pallet<T> {
 		)?;
 
 		//ensure the collection & owner exists
-		let owner_item =
-			pallet_uniques::Pallet::<T>::owner(offer_data.collection_id, offer_data.item_id)
-				.ok_or(Error::<T>::OwnerNotFound)?;
+		let owner_item = pallet_uniques::Pallet::<T>::owner(
+			offer_data.collection_id.clone(),
+			offer_data.item_id,
+		)
+		.ok_or(Error::<T>::OwnerNotFound)?;
 
 		//ensure only owner of the item can call the extrinsic
 		ensure!(owner_item == authority, Error::<T>::NotOwner);
@@ -620,7 +629,7 @@ impl<T: Config> Pallet<T> {
 
 		//ensure the offer_id exists in OffersByItem
 		Self::does_exist_offer_id_for_this_item(
-			offer_data.collection_id,
+			offer_data.collection_id.clone(),
 			offer_data.item_id,
 			offer_id,
 		)?;
@@ -668,30 +677,33 @@ impl<T: Config> Pallet<T> {
 		  KeepAlive,
 		)?; */
 
-		pallet_fruniques::Pallet::<T>::do_thaw(&offer_data.collection_id, offer_data.item_id)?;
+		pallet_fruniques::Pallet::<T>::do_thaw(
+			&offer_data.collection_id.clone(),
+			offer_data.item_id,
+		)?;
 
 		if offer_data.percentage == Permill::from_percent(100) {
 			//Use uniques transfer function to transfer the item to the buyer
 			pallet_uniques::Pallet::<T>::do_transfer(
-				offer_data.collection_id,
+				offer_data.collection_id.clone(),
 				offer_data.item_id,
 				offer_data.creator.clone(),
 				|_, _| Ok(()),
 			)?;
 		} else {
 			let parent_info = pallet_fruniques::types::ParentInfo {
-				collection_id: offer_data.collection_id,
+				collection_id: offer_data.collection_id.clone(),
 				parent_id: offer_data.item_id,
 				parent_weight: offer_data.percentage,
 				is_hierarchical: true,
 			};
 			let metadata = pallet_fruniques::Pallet::<T>::get_nft_metadata(
-				offer_data.collection_id,
+				offer_data.collection_id.clone(),
 				offer_data.item_id,
 			);
 
 			pallet_fruniques::Pallet::<T>::do_spawn(
-				offer_data.collection_id,
+				offer_data.collection_id.clone(),
 				offer_data.creator.clone(),
 				metadata,
 				None,
@@ -702,7 +714,7 @@ impl<T: Config> Pallet<T> {
 		//update offer status from all marketplaces
 		Self::update_offers_status(
 			offer_data.creator.clone(),
-			offer_data.collection_id,
+			offer_data.collection_id.clone(),
 			offer_data.item_id,
 			offer_data.marketplace_id,
 		)?;
@@ -734,13 +746,16 @@ impl<T: Config> Pallet<T> {
 
 		//ensure the offer_id exists in OffersByItem
 		Self::does_exist_offer_id_for_this_item(
-			offer_data.collection_id,
+			offer_data.collection_id.clone(),
 			offer_data.item_id,
 			offer_id,
 		)?;
 
 		if offer_data.offer_type == OfferType::SellOrder {
-			pallet_fruniques::Pallet::<T>::do_thaw(&offer_data.collection_id, offer_data.item_id)?;
+			pallet_fruniques::Pallet::<T>::do_thaw(
+				&offer_data.collection_id.clone(),
+				offer_data.item_id,
+			)?;
 		}
 
 		//remove the offer from OfferInfo
@@ -1128,12 +1143,10 @@ impl<T: Config> Pallet<T> {
 			.map_err(|_| Error::<T>::ApplicationNotFound)?;
 
 		match application.status {
-			ApplicationStatus::Pending => {
-				return Err(Error::<T>::ApplicationStatusStillPending.into())
-			},
-			ApplicationStatus::Approved => {
-				return Err(Error::<T>::ApplicationHasAlreadyBeenApproved.into())
-			},
+			ApplicationStatus::Pending =>
+				return Err(Error::<T>::ApplicationStatusStillPending.into()),
+			ApplicationStatus::Approved =>
+				return Err(Error::<T>::ApplicationHasAlreadyBeenApproved.into()),
 			ApplicationStatus::Rejected => {
 				//If status is Rejected, we need to delete the previous application from all the
 				// storage sources.
@@ -1219,10 +1232,10 @@ impl<T: Config> Pallet<T> {
 			for offer in offers {
 				let offer_info = <OffersInfo<T>>::get(offer).ok_or(Error::<T>::OfferNotFound)?;
 				//ensure the offer_type is SellOrder, because this vector also contains buy offers.
-				if offer_info.marketplace_id == marketplace_id
-					&& offer_info.offer_type == OfferType::SellOrder
+				if offer_info.marketplace_id == marketplace_id &&
+					offer_info.offer_type == OfferType::SellOrder
 				{
-					return Err(Error::<T>::OfferAlreadyExists.into());
+					return Err(Error::<T>::OfferAlreadyExists.into())
 				}
 			}
 		}
@@ -1240,9 +1253,9 @@ impl<T: Config> Pallet<T> {
 		Self::is_authorized(buyer, marketplace_id, Permission::EnlistBuyOffer)?;
 
 		//We need to check if the owner is in the marketplace
-		if let Some(owner) = pallet_uniques::Pallet::<T>::owner(*class_id, *instance_id) {
+		if let Some(owner) = pallet_uniques::Pallet::<T>::owner(class_id.clone(), *instance_id) {
 			if Self::is_authorized(owner, marketplace_id, Permission::EnlistSellOffer).is_ok() {
-				return Ok(());
+				return Ok(())
 			}
 		}
 		Err(Error::<T>::OwnerNotInMarketplace.into())
@@ -1253,9 +1266,12 @@ impl<T: Config> Pallet<T> {
 		item_id: T::ItemId,
 	) -> DispatchResult {
 		//ensure the item has offers associated with it.
-		ensure!(<OffersByItem<T>>::contains_key(collection_id, item_id), Error::<T>::OfferNotFound);
+		ensure!(
+			<OffersByItem<T>>::contains_key(collection_id.clone(), item_id),
+			Error::<T>::OfferNotFound
+		);
 
-		let offers_ids = <OffersByItem<T>>::take(collection_id, item_id);
+		let offers_ids = <OffersByItem<T>>::take(collection_id.clone(), item_id);
 		//let mut remaining_offer_ids: Vec<[u8;32]> = Vec::new();
 		let mut buy_offer_ids: BoundedVec<[u8; 32], T::MaxOffersPerMarket> = BoundedVec::default();
 
@@ -1269,7 +1285,7 @@ impl<T: Config> Pallet<T> {
 		}
 		//ensure we already took the entry from the storagemap, so we can insert it again.
 		ensure!(
-			!<OffersByItem<T>>::contains_key(collection_id, item_id),
+			!<OffersByItem<T>>::contains_key(collection_id.clone(), item_id),
 			Error::<T>::OfferNotFound
 		);
 		<OffersByItem<T>>::insert(collection_id, item_id, buy_offer_ids);
@@ -1295,10 +1311,10 @@ impl<T: Config> Pallet<T> {
 		ensure!(<Marketplaces<T>>::contains_key(marketplace), Error::<T>::MarketplaceNotFound);
 		Self::is_authorized(who.clone(), &marketplace, Permission::AskForRedemption)?;
 		//ensure the collection exists
-		if let Some(a) = pallet_uniques::Pallet::<T>::owner(collection_id, item_id) {
+		if let Some(a) = pallet_uniques::Pallet::<T>::owner(collection_id.clone(), item_id) {
 			ensure!(a == who, Error::<T>::NotOwner);
 		} else {
-			return Err(Error::<T>::CollectionNotFound.into());
+			return Err(Error::<T>::CollectionNotFound.into())
 		}
 
 		let redemption_data: RedemptionData<T> = RedemptionData {
@@ -1357,7 +1373,7 @@ impl<T: Config> Pallet<T> {
 				redemption_data.redeemed_by = Some(who.clone());
 				Self::deposit_event(Event::RedemptionAccepted(marketplace, redemption_id, who));
 				pallet_fruniques::Pallet::<T>::do_redeem(
-					redemption_data.collection_id,
+					redemption_data.collection_id.clone(),
 					redemption_data.item_id,
 				)?;
 

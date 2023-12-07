@@ -20,7 +20,7 @@ pub mod pallet {
 	use frame_system::{pallet_prelude::*, RawOrigin};
 	use pallet_fruniques::types::{Attributes, CollectionDescription, FruniqueRole, ParentInfo};
 	use pallet_gated_marketplace::types::*;
-	const STORAGE_VERSION: StorageVersion = StorageVersion::new(1);
+	const STORAGE_VERSION: StorageVersion = StorageVersion::new(0);
 
 	use crate::types::*;
 	use pallet_rbac::types::RoleBasedAccessControl;
@@ -212,11 +212,9 @@ pub mod pallet {
 
 					// add permissions to admin
 					Self::do_add_account_to_afloat_frunique(admin.clone(), FruniqueRole::Admin)?;
-
-					Self::do_create_afloat_marketplace(creator.clone(), admin)?;
-
-					Self::do_create_afloat_asset(creator, asset)?;
-
+					Self::do_create_afloat_asset(creator.clone(), asset)?;
+					Self::do_create_afloat_marketplace(creator.clone(), admin.clone())?;
+					Self::do_setup_roles(creator, admin)?;
 					Ok(())
 				},
 				InitialSetupArgs::Roles { creator, admin } => {
@@ -242,11 +240,11 @@ pub mod pallet {
 			match args {
 				KillStorageArgs::All => {
 					Self::do_delete_all_users()?;
-					<AfloatMarketPlaceId<T>>::kill();
 					<AfloatCollectionId<T>>::kill();
 					<AfloatAssetId<T>>::kill();
 					let _ = <AfloatOffers<T>>::clear(1000, None);
 					let _ = <AfloatTransactions<T>>::clear(1000, None);
+					<AfloatMarketPlaceId<T>>::kill();
 				},
 				KillStorageArgs::UserInfo => {
 					Self::do_delete_all_users()?;

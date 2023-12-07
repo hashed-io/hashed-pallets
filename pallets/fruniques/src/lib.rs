@@ -24,7 +24,7 @@ pub mod pallet {
 
 	// use frame_support::PalletId;
 
-	const STORAGE_VERSION: StorageVersion = StorageVersion::new(1);
+	const STORAGE_VERSION: StorageVersion = StorageVersion::new(0);
 
 	use pallet_rbac::types::RoleBasedAccessControl;
 	/// Configure the pallet by specifying the parameters and types on which it depends.
@@ -341,7 +341,7 @@ pub mod pallet {
 
 				Self::do_spawn(class_id, owner, metadata, attributes, Some(parent_info))?;
 
-				return Ok(());
+				return Ok(())
 			};
 
 			Self::do_spawn(class_id, owner, metadata, attributes, None)?;
@@ -377,7 +377,7 @@ pub mod pallet {
 				|frunique_data| -> DispatchResult {
 					let frunique = frunique_data.as_mut().ok_or(Error::<T>::FruniqueNotFound)?;
 					if frunique.verified == true || frunique.verified_by.is_some() {
-						return Err(Error::<T>::FruniqueAlreadyVerified.into());
+						return Err(Error::<T>::FruniqueAlreadyVerified.into())
 					}
 					frunique.verified = true;
 					frunique.verified_by = Some(caller.clone());

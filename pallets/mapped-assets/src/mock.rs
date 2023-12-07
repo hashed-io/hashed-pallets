@@ -1,6 +1,6 @@
 // This file is part of Substrate.
 
-// Copyright (C) 2019-2022 Parity Technologies (UK) Ltd.
+// Copyright (C) Parity Technologies (UK) Ltd.
 // SPDX-License-Identifier: Apache-2.0
 
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,29 +23,26 @@ use crate as pallet_assets;
 use codec::Encode;
 use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{AsEnsureOriginWithArg, ConstU32, ConstU64, GenesisBuild},
+	traits::{AsEnsureOriginWithArg, ConstU32, ConstU64},
 };
 use frame_system::EnsureRoot;
 use sp_core::H256;
 use sp_io::storage;
 use sp_runtime::{
-	testing::Header,
 	traits::{BlakeTwo256, IdentityLookup},
+	BuildStorage,
 };
 
-type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;
 type Block = frame_system::mocking::MockBlock<Test>;
 
 construct_runtime!(
-  pub enum Test where
-	Block = Block,
-	NodeBlock = Block,
-	UncheckedExtrinsic = UncheckedExtrinsic,
-  {
-	System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
-	Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
-	Assets: pallet_assets::{Pallet, Call, Storage, Event<T>},
-	RBAC: pallet_rbac::{Pallet, Call, Storage, Event<T>},
+	pub enum Test
+	{
+		System: frame_system::{Pallet, Call, Config<T>, Storage, Event<T>},
+		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
+		Assets: pallet_assets::{Pallet, Call, Storage, Event<T>},
+		RBAC: pallet_rbac::{Pallet, Call, Storage, Event<T>},
+
   }
 );
 
@@ -58,13 +55,12 @@ impl frame_system::Config for Test {
 	type BlockLength = ();
 	type RuntimeOrigin = RuntimeOrigin;
 	type RuntimeCall = RuntimeCall;
-	type Index = u64;
-	type BlockNumber = u64;
+	type Nonce = u64;
 	type Hash = H256;
 	type Hashing = BlakeTwo256;
-	type AccountId = u64;
+	type AccountId = AccountId;
 	type Lookup = IdentityLookup<Self::AccountId>;
-	type Header = Header;
+	type Block = Block;
 	type RuntimeEvent = RuntimeEvent;
 	type BlockHashCount = ConstU64<250>;
 	type DbWeight = ();
@@ -76,7 +72,7 @@ impl frame_system::Config for Test {
 	type SystemWeightInfo = ();
 	type SS58Prefix = ();
 	type OnSetCode = ();
-	type MaxConsumers = ConstU32<2>;
+	type MaxConsumers = ConstU32<3>;
 }
 
 parameter_types! {
@@ -110,28 +106,60 @@ impl pallet_balances::Config for Test {
 	type MaxLocks = ();
 	type MaxReserves = ();
 	type ReserveIdentifier = [u8; 8];
+	type RuntimeHoldReason = ();
+	type RuntimeFreezeReason = ();
+	type FreezeIdentifier = ();
+	type MaxHolds = ();
+	type MaxFreezes = ();
 }
 
 pub struct AssetsCallbackHandle;
 impl AssetsCallback<AssetId, AccountId> for AssetsCallbackHandle {
-	fn created(_id: &AssetId, _owner: &AccountId) {
-		storage::set(b"asset_created", &().encode());
+	fn created(_id: &AssetId, _owner: &AccountId) -> Result<(), ()> {
+		if Self::should_err() {
+			Err(())
+		} else {
+			storage::set(Self::CREATED.as_bytes(), &().encode());
+			Ok(())
+		}
 	}
 
-	fn destroyed(_id: &AssetId) {
-		storage::set(b"asset_destroyed", &().encode());
+	fn destroyed(_id: &AssetId) -> Result<(), ()> {
+		if Self::should_err() {
+			Err(())
+		} else {
+			storage::set(Self::DESTROYED.as_bytes(), &().encode());
+			Ok(())
+		}
 	}
 }
 
-parameter_types! {
-  pub const MaxReserves: u32 = 3;
+impl AssetsCallbackHandle {
+	pub const CREATED: &'static str = "asset_created";
+	pub const DESTROYED: &'static str = "asset_destroyed";
+
+	const RETURN_ERROR: &'static str = "return_error";
+
+	// Configures `Self` to return `Ok` when callbacks are invoked
+	pub fn set_return_ok() {
+		storage::clear(Self::RETURN_ERROR.as_bytes());
+	}
+
+	// Configures `Self` to return `Err` when callbacks are invoked
+	pub fn set_return_error() {
+		storage::set(Self::RETURN_ERROR.as_bytes(), &().encode());
+	}
+
+	// If `true`, callback should return `Err`, `Ok` otherwise.
+	fn should_err() -> bool {
+		storage::exists(Self::RETURN_ERROR.as_bytes())
+	}
 }
 
 impl Config for Test {
 	type RuntimeEvent = RuntimeEvent;
 	type Balance = u64;
 	type AssetId = u32;
-	type Rbac = RBAC;
 	type AssetIdParameter = u32;
 	type Currency = Balances;
 	type CreateOrigin = AsEnsureOriginWithArg<frame_system::EnsureSigned<u64>>;
@@ -147,8 +175,9 @@ impl Config for Test {
 	type CallbackHandle = AssetsCallbackHandle;
 	type Extra = ();
 	type RemoveItemsLimit = ConstU32<5>;
-	type MaxReserves = MaxReserves;
-	type ReserveIdentifier = u32;
+	#[cfg(feature = "runtime-benchmarks")]
+	type BenchmarkHelper = ();
+	type Rbac = RBAC;
 }
 
 use std::collections::HashMap;
@@ -158,8 +187,8 @@ pub enum Hook {
 	Died(u32, u64),
 }
 parameter_types! {
-  static Frozen: HashMap<(u32, u64), u64> = Default::default();
-  static Hooks: Vec<Hook> = Default::default();
+	static Frozen: HashMap<(u32, u64), u64> = Default::default();
+	static Hooks: Vec<Hook> = Default::default();
 }
 
 pub struct TestFreezer;
@@ -197,7 +226,7 @@ pub(crate) fn take_hooks() -> Vec<Hook> {
 }
 
 pub(crate) fn new_test_ext() -> sp_io::TestExternalities {
-	let mut storage = frame_system::GenesisConfig::default().build_storage::<Test>().unwrap();
+	let mut storage = frame_system::GenesisConfig::<Test>::default().build_storage().unwrap();
 
 	let config: pallet_assets::GenesisConfig<Test> = pallet_assets::GenesisConfig {
 		assets: vec![
