@@ -25,7 +25,7 @@ frame-benchmarking = { git = "https://github.com/paritytech/polkadot-sdk", tag =
 sp-runtime = { git = "https://github.com/paritytech/polkadot-sdk", tag = "v1.3.0-rc1", default-features = false }
 pallet-uniques = { git = "https://github.com/paritytech/polkadot-sdk", tag = "v1.3.0-rc1", default-features = false }
 pallet-balances = { git = "https://github.com/paritytech/polkadot-sdk", tag = "v1.3.0-rc1", default-features = false }
-pallet-timestamp = { git = "https://github.com/paritytech/polkadot-sdk", tag = "v1.3.0-rc1", default-features = false }
+pallet-timestamp = { git = "https://github.com/paritytech/polkadot-sdk", tag = "v1.3.0-rc1", default-features = false, version = "4.0.0-dev" }
 pallet-fruniques = { path = "../fruniques", default-features = false, version = "0.1.0-dev" }
 pallet-rbac = { path = "../rbac/", default-features = false, version = "4.0.0-dev" }
 pallet-gated-marketplace = { path = "../gated-marketplace/", default-features = false, version = "4.0.0-dev" }

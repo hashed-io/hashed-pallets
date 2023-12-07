@@ -1162,7 +1162,7 @@ impl<T: Config> Pallet<T> {
 		Ok(())
 	}
 
-	fn get_timestamp_in_milliseconds() -> Option<u64> {
+	pub fn get_timestamp_in_milliseconds() -> Option<u64> {
 		let timestamp: u64 = T::Timestamp::now().into();
 
 		Some(timestamp)

@@ -68,7 +68,6 @@ impl system::Config for Test {
 
 impl pallet_afloat::Config for Test {
 	type RuntimeEvent = RuntimeEvent;
-	type TimeProvider = pallet_timestamp::Pallet<Self>;
 	//type RemoveOrigin = frame_system::EnsureSigned<Self::AccountId>;
 	type Currency = pallet_balances::Pallet<Self>;
 	type Rbac = RBAC;

@@ -15,11 +15,12 @@ pub mod types;
 pub mod pallet {
 	use frame_support::{
 		pallet_prelude::*,
-		traits::{Currency, UnixTime},
+		traits::{Currency, Time},
 	};
 	use frame_system::{pallet_prelude::*, RawOrigin};
 	use pallet_fruniques::types::{Attributes, CollectionDescription, FruniqueRole, ParentInfo};
 	use pallet_gated_marketplace::types::*;
+	use sp_runtime::traits::Scale;
 	const STORAGE_VERSION: StorageVersion = StorageVersion::new(0);
 
 	use crate::types::*;
@@ -37,7 +38,7 @@ pub mod pallet {
 		+ pallet_uniques::Config
 	{
 		type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
-		type TimeProvider: UnixTime;
+
 		type Rbac: RoleBasedAccessControl<Self::AccountId>;
 		// type RemoveOrigin: EnsureOrigin<Self::RuntimeOrigin>;
 		type Currency: Currency<Self::AccountId>;
@@ -54,6 +55,8 @@ pub mod pallet {
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(super) fn deposit_event)]
 	pub enum Event<T: Config> {
+		/// Timestamp was not generated correctly
+		TimestampError,
 		// New user created
 		NewUser(T::AccountId),
 		// User edited

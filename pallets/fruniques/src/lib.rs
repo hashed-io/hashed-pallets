@@ -12,6 +12,7 @@ mod tests;
 // mod benchmarking;
 
 mod functions;
+pub mod migration;
 pub mod types;
 
 #[frame_support::pallet]
