@@ -18,9 +18,9 @@ pub mod pallet {
 		traits::{Currency, Time},
 	};
 	use frame_system::{pallet_prelude::*, RawOrigin};
-	use sp_runtime::traits::Scale;
 	use pallet_fruniques::types::{Attributes, CollectionDescription, FruniqueRole, ParentInfo};
 	use pallet_gated_marketplace::types::*;
+	use sp_runtime::traits::Scale;
 	const STORAGE_VERSION: StorageVersion = StorageVersion::new(0);
 
 	use crate::types::*;
