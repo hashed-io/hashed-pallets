@@ -1,6 +1,6 @@
 use super::*;
 use crate::types::*;
-use frame_support::{pallet_prelude::*};
+use frame_support::pallet_prelude::*;
 use frame_system::{pallet_prelude::*, RawOrigin};
 use pallet_fruniques::types::{Attributes, CollectionDescription, FruniqueRole, ParentInfo};
 use pallet_gated_marketplace::types::{Marketplace, MarketplaceRole};
@@ -106,7 +106,8 @@ impl<T: Config> Pallet<T> {
 			created_by: Some(creator.clone()),
 			created_date: pallet_gated_marketplace::Pallet::<T>::get_timestamp_in_milliseconds(),
 			last_modified_by: Some(creator.clone()),
-			last_modified_date: pallet_gated_marketplace::Pallet::<T>::get_timestamp_in_milliseconds(),
+			last_modified_date:
+				pallet_gated_marketplace::Pallet::<T>::get_timestamp_in_milliseconds(),
 		};
 		<UserInfo<T>>::insert(creator.clone(), creator_user);
 		Self::give_role_to_user(creator.clone(), AfloatRole::Owner)?;
@@ -117,9 +118,11 @@ impl<T: Config> Pallet<T> {
 				cid_creator: ShortString::try_from(b"afloat".to_vec()).unwrap(),
 				group: ShortString::try_from(b"afloat".to_vec()).unwrap(),
 				created_by: Some(admin.clone()),
-				created_date: pallet_gated_marketplace::Pallet::<T>::get_timestamp_in_milliseconds(),
+				created_date: pallet_gated_marketplace::Pallet::<T>::get_timestamp_in_milliseconds(
+				),
 				last_modified_by: Some(admin.clone()),
-				last_modified_date: pallet_gated_marketplace::Pallet::<T>::get_timestamp_in_milliseconds(),
+				last_modified_date:
+					pallet_gated_marketplace::Pallet::<T>::get_timestamp_in_milliseconds(),
 			};
 			<UserInfo<T>>::insert(admin.clone(), admin_user);
 			Self::give_role_to_user(admin, AfloatRole::Admin)?;
@@ -161,9 +164,11 @@ impl<T: Config> Pallet<T> {
 					cid_creator,
 					group,
 					created_by: Some(actor.clone()),
-					created_date: pallet_gated_marketplace::Pallet::<T>::get_timestamp_in_milliseconds(),
+					created_date:
+						pallet_gated_marketplace::Pallet::<T>::get_timestamp_in_milliseconds(),
 					last_modified_by: Some(actor.clone()),
-					last_modified_date: pallet_gated_marketplace::Pallet::<T>::get_timestamp_in_milliseconds(),
+					last_modified_date:
+						pallet_gated_marketplace::Pallet::<T>::get_timestamp_in_milliseconds(),
 				};
 				<UserInfo<T>>::insert(user_address.clone(), user);
 				Self::give_role_to_user(user_address.clone(), AfloatRole::BuyerOrSeller)?;
@@ -175,9 +180,11 @@ impl<T: Config> Pallet<T> {
 					cid_creator,
 					group,
 					created_by: Some(actor.clone()),
-					created_date: pallet_gated_marketplace::Pallet::<T>::get_timestamp_in_milliseconds(),
+					created_date:
+						pallet_gated_marketplace::Pallet::<T>::get_timestamp_in_milliseconds(),
 					last_modified_by: Some(actor.clone()),
-					last_modified_date: pallet_gated_marketplace::Pallet::<T>::get_timestamp_in_milliseconds(),
+					last_modified_date:
+						pallet_gated_marketplace::Pallet::<T>::get_timestamp_in_milliseconds(),
 				};
 				<UserInfo<T>>::insert(user_address.clone(), user);
 				Self::give_role_to_user(user_address.clone(), AfloatRole::CPA)?;
@@ -225,7 +232,8 @@ impl<T: Config> Pallet<T> {
 		<UserInfo<T>>::try_mutate::<_, _, DispatchError, _>(user_address.clone(), |user| {
 			let user = user.as_mut().ok_or(Error::<T>::FailedToEditUserAccount)?;
 
-			user.last_modified_date = pallet_gated_marketplace::Pallet::<T>::get_timestamp_in_milliseconds();
+			user.last_modified_date =
+				pallet_gated_marketplace::Pallet::<T>::get_timestamp_in_milliseconds();
 			user.last_modified_by = Some(actor.clone());
 			user.cid = cid;
 			user.cid_creator = cid_creator;
@@ -246,7 +254,8 @@ impl<T: Config> Pallet<T> {
 		<UserInfo<T>>::try_mutate::<_, _, DispatchError, _>(user_address.clone(), |user| {
 			let user = user.as_mut().ok_or(Error::<T>::FailedToEditUserAccount)?;
 
-			user.last_modified_date = pallet_gated_marketplace::Pallet::<T>::get_timestamp_in_milliseconds();
+			user.last_modified_date =
+				pallet_gated_marketplace::Pallet::<T>::get_timestamp_in_milliseconds();
 			user.last_modified_by = Some(actor.clone());
 			user.cid = cid;
 			user.cid_creator = cid_creator;
@@ -963,7 +972,8 @@ impl<T: Config> Pallet<T> {
 			OfferStatus::CREATED => {
 				<AfloatOffers<T>>::try_mutate(order_id, |offer| -> DispatchResult {
 					let offer = offer.as_mut().ok_or(Error::<T>::OfferNotFound)?;
-					offer.cancellation_date = pallet_gated_marketplace::Pallet::<T>::get_timestamp_in_milliseconds();
+					offer.cancellation_date =
+						pallet_gated_marketplace::Pallet::<T>::get_timestamp_in_milliseconds();
 					offer.status = OfferStatus::CANCELLED;
 					Ok(())
 				})?;
@@ -972,7 +982,8 @@ impl<T: Config> Pallet<T> {
 			OfferStatus::TF_PENDING_SIGNATURE => {
 				<AfloatOffers<T>>::try_mutate(order_id, |offer| -> DispatchResult {
 					let offer = offer.as_mut().ok_or(Error::<T>::OfferNotFound)?;
-					offer.cancellation_date = pallet_gated_marketplace::Pallet::<T>::get_timestamp_in_milliseconds();
+					offer.cancellation_date =
+						pallet_gated_marketplace::Pallet::<T>::get_timestamp_in_milliseconds();
 					offer.status = OfferStatus::CANCELLED;
 					Ok(())
 				})?;
