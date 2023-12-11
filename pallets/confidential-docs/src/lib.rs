@@ -12,7 +12,7 @@ mod mock;
 mod tests;
 
 // #[cfg(feature = "runtime-benchmarks")]
-// mod benchmarking;
+mod benchmarking;
 
 mod functions;
 pub mod types;
