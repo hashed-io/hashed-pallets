@@ -1,12 +1,12 @@
 [package]
 name = "pallet-mapped-assets"
-version = "4.0.0-dev"
-authors = ["Parity Technologies <admin@parity.io>"]
-edition = "2021"
-license = "Apache-2.0"
-homepage = "https://substrate.io"
-repository = "https://github.com/hashed-io/hashed-pallets"
 description = "FRAME asset management pallet"
+version = "4.0.0-dev"
+authors.workspace = true
+homepage.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
 readme = "README.md"
 
 [package.metadata.docs.rs]
