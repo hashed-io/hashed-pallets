@@ -10,7 +10,7 @@ use frame_support::{
 	traits::{
 		tokens::{
 			fungible::Mutate,
-			Preservation::{Expendable, Preserve, Protect},
+			Preservation::{Expendable},
 		},
 		ConstU32,
 	},
