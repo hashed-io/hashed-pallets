@@ -2146,6 +2146,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "pallet-example-basic"
+version = "4.0.0-dev"
+dependencies = [
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "log",
+ "pallet-balances",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
 name = "pallet-fruniques"
 version = "0.1.0-dev"
 dependencies = [
@@ -2239,22 +2256,6 @@ dependencies = [
 
 [[package]]
 name = "pallet-rbac"
-version = "4.0.0-dev"
-dependencies = [
- "frame-benchmarking",
- "frame-support",
- "frame-system",
- "log",
- "parity-scale-codec",
- "scale-info",
- "sp-core",
- "sp-io",
- "sp-runtime",
- "sp-std",
-]
-
-[[package]]
-name = "pallet-template"
 version = "4.0.0-dev"
 dependencies = [
  "frame-benchmarking",

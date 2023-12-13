@@ -1,3 +1,8 @@
+[workspace.package]
+authors = ["Hashed <https://github.com/hashed-io"]
+edition = "2021"
+repository = "https://github.com/hashed-io/hashed-pallets"
+
 [workspace]
 members = [
 	'pallets/bitcoin-vaults',
@@ -9,7 +14,7 @@ members = [
 	'pallets/afloat',
 	'pallets/fund-admin',
 	'pallets/fund-admin-records',
-	'pallets/template'
+	'pallets/example-basic'
 ]
 
 [profile.release]
