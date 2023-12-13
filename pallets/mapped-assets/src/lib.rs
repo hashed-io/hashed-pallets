@@ -181,7 +181,6 @@ use pallet_rbac::types::RoleBasedAccessControl;
 pub use weights::WeightInfo;
 
 type AccountIdLookupOf<T> = <<T as frame_system::Config>::Lookup as StaticLookup>::Source;
-const LOG_TARGET: &str = "runtime::assets";
 
 /// Trait with callbacks that are executed after successfull asset creation or destruction.
 pub trait AssetsCallback<AssetId, AccountId> {

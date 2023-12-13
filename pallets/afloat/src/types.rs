@@ -72,21 +72,21 @@ pub enum SignUpArgs {
 	Encode, Decode, Clone, Eq, PartialEq, RuntimeDebugNoBound, MaxEncodedLen, TypeInfo, Copy,
 )]
 pub enum OfferStatus {
-	CREATED,
-	MATCHED,
-	TF_FILLED,
-	TF_PENDING_SIGNATURE,
-	TF_SIGNED,
-	TF_SUBMITTED,
-	TF_APPROVED,
-	APPROVED,
-	FILLED,
-	CANCELLED,
+	Created,
+	Matched,
+	FilledByTF,
+	PendingTFSignature,
+	SignedTF,
+	SubmittedTF,
+	ApprovedTF,
+	Approved,
+	Filled,
+	Cancelled,
 }
 
 impl Default for OfferStatus {
 	fn default() -> Self {
-		OfferStatus::CREATED
+		OfferStatus::Created
 	}
 }
 
