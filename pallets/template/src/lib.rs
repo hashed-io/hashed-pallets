@@ -15,8 +15,6 @@ mod tests;
 mod benchmarking;
 
 /// All migrations.
-pub mod migrations;
-
 #[frame_support::pallet]
 pub mod pallet {
 
@@ -34,7 +32,7 @@ pub mod pallet {
 
 	#[pallet::pallet]
 	#[pallet::storage_version(STORAGE_VERSION)]
-	
+
 	pub struct Pallet<T>(_);
 
 	// The pallet's runtime storage items.
