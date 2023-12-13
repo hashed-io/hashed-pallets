@@ -1,7 +1,9 @@
 [workspace.package]
 authors = ["Hashed <https://github.com/hashed-io"]
 edition = "2021"
+homepage = "https://hashed.io"
 repository = "https://github.com/hashed-io/hashed-pallets"
+license = "MIT"
 
 [workspace]
 members = [
