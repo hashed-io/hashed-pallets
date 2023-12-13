@@ -15,12 +15,11 @@ pub mod types;
 pub mod pallet {
 	use frame_support::{
 		pallet_prelude::*,
-		traits::{Currency, Time},
+		traits::Currency,
 	};
 	use frame_system::{pallet_prelude::*, RawOrigin};
 	use pallet_fruniques::types::{Attributes, CollectionDescription, FruniqueRole, ParentInfo};
 	use pallet_gated_marketplace::types::*;
-	use sp_runtime::traits::Scale;
 	const STORAGE_VERSION: StorageVersion = StorageVersion::new(0);
 
 	use crate::types::*;
