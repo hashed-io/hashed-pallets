@@ -5,14 +5,15 @@
 
 pub use pallet::*;
 
+// #[cfg(feature = "runtime-benchmarks")]
+mod benchmarking;
 #[cfg(test)]
 mod mock;
 
 #[cfg(test)]
 mod tests;
 
-// #[cfg(feature = "runtime-benchmarks")]
-mod benchmarking;
+mod test_util;
 
 mod functions;
 pub mod types;

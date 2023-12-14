@@ -147,8 +147,6 @@ impl pallet_uniques::Config for Test {
 	type KeyLimit = KeyLimit;
 	type ValueLimit = ValueLimit;
 	type WeightInfo = ();
-	#[cfg(feature = "runtime-benchmarks")]
-	type Helper = ();
 	type CreateOrigin = AsEnsureOriginWithArg<EnsureSigned<Self::AccountId>>;
 	type Locker = ();
 }
@@ -237,6 +235,8 @@ impl pallet_mapped_assets::Config for Test {
 	type Extra = ();
 	type RemoveItemsLimit = ConstU32<5>;
 	type Rbac = RBAC;
+	#[cfg(feature = "runtime-benchmarks")]
+	type BenchmarkHelper = ();
 }
 
 // Build genesis storage according to the mock runtime.

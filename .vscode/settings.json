@@ -13,4 +13,7 @@
     "editor.insertSpaces": true,
     "editor.tabSize": 4
   },
+  "rust-analyzer.linkedProjects": [
+    "./pallets/confidential-docs/Cargo.toml"
+  ],
 }

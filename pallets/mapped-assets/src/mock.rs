@@ -175,9 +175,9 @@ impl Config for Test {
 	type CallbackHandle = AssetsCallbackHandle;
 	type Extra = ();
 	type RemoveItemsLimit = ConstU32<5>;
+	type Rbac = RBAC;
 	#[cfg(feature = "runtime-benchmarks")]
 	type BenchmarkHelper = ();
-	type Rbac = RBAC;
 }
 
 use std::collections::HashMap;

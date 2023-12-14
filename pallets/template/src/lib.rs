@@ -11,9 +11,6 @@ mod mock;
 #[cfg(test)]
 mod tests;
 
-#[cfg(feature = "runtime-benchmarks")]
-mod benchmarking;
-
 /// All migrations.
 pub mod migrations;
 
@@ -34,7 +31,7 @@ pub mod pallet {
 
 	#[pallet::pallet]
 	#[pallet::storage_version(STORAGE_VERSION)]
-	
+
 	pub struct Pallet<T>(_);
 
 	// The pallet's runtime storage items.

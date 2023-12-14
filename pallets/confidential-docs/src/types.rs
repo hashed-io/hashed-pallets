@@ -2,8 +2,10 @@
 use super::*;
 use frame_support::pallet_prelude::*;
 
+pub type CIDSize = ConstU32<100>;
+
 /// Defines the type used by fields that store an IPFS CID
-pub type CID = BoundedVec<u8, ConstU32<100>>;
+pub type CID = BoundedVec<u8, CIDSize>;
 /// Defines the type used by fields that store a public key
 pub type PublicKey = [u8; 32];
 /// Defines the type used by fields that store a UserId

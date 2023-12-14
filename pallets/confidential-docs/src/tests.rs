@@ -1,128 +1,20 @@
-use crate::{mock::*, types::*, Error, Event};
+use crate::{mock::*, test_util::*, types::*, Error, Event};
 use codec::Encode;
-use frame_support::{assert_noop, assert_ok, ensure};
+use frame_support::{assert_noop, assert_ok};
 use frame_system as system;
-use sp_io::hashing::blake2_256;
 
-fn generate_user_id(id: u8) -> UserId {
-	format!("user id: {}", id).using_encoded(blake2_256)
-}
-
-fn generate_public_key(id: u8) -> PublicKey {
-	format!("public key: {}", id).using_encoded(blake2_256)
-}
-
-fn generate_cid(id: u8) -> CID {
-	generate_cid_sized(id, 3)
-}
-
-fn generate_cid_sized(id: u8, size: u32) -> CID {
-	generate_vector(1, id, size).try_into().unwrap()
-}
-
-fn generate_doc_name(id: u8) -> DocName<Test> {
-	generate_doc_name_sized(id, 4)
-}
-
-fn generate_doc_name_sized(id: u8, size: u32) -> DocName<Test> {
-	generate_vector(2, id, size).try_into().unwrap()
-}
-
-fn generate_doc_desc(id: u8) -> DocDesc<Test> {
-	generate_doc_desc_sized(id, 5)
-}
-
-fn generate_doc_desc_sized(id: u8, size: u32) -> DocDesc<Test> {
-	generate_vector(3, id, size).try_into().unwrap()
-}
-
-fn generate_group_name(id: u8) -> GroupName<Test> {
-	generate_group_name_sized(id, 3)
-}
-
-fn generate_group_name_sized(id: u8, size: u32) -> GroupName<Test> {
-	generate_vector(4, id, size).try_into().unwrap()
-}
-
-fn generate_vector(prefix: u8, id: u8, size: u32) -> Vec<u8> {
-	assert!(size > 0, "vector size must be greater than 0");
-	let mut v = vec![id; size as usize];
-	v[0] = prefix;
-	v
-}
-
-// fn generate_doc_name(id: &str) -> DocName<Test> {
-// 	format!("doc name:{}", id).encode().try_into().unwrap()
-// }
-
-// fn generate_doc_desc(id: &str) -> DocDesc<Test> {
-// 	format!("doc desc:{}", id).encode().try_into().unwrap()
-// }
-
-// fn generate_group_name(id: &str) -> GroupName<Test> {
-// 	format!("group name:{}", id).encode().try_into().unwrap()
-// }
-
-fn generate_owned_doc(id: u8, owner: <Test as system::Config>::AccountId) -> OwnedDoc<Test> {
-	generate_owned_doc_sized(id, owner, 5)
-}
-
-fn generate_owned_doc_sized(
-	id: u8,
-	owner: <Test as system::Config>::AccountId,
-	size: u32,
-) -> OwnedDoc<Test> {
-	OwnedDoc {
-		cid: generate_cid_sized(id, size),
-		name: generate_doc_name_sized(id, size),
-		description: generate_doc_desc_sized(id, size),
-		owner,
-	}
-}
-
-fn generate_shared_doc(
-	id: u8,
-	from: <Test as system::Config>::AccountId,
-	to: <Test as system::Config>::AccountId,
-) -> SharedDoc<Test> {
-	generate_shared_doc_sized(id, from, to, 5)
-}
-
-fn generate_shared_doc_sized(
-	id: u8,
-	from: <Test as system::Config>::AccountId,
-	to: <Test as system::Config>::AccountId,
-	size: u32,
-) -> SharedDoc<Test> {
-	SharedDoc {
-		cid: generate_cid_sized(id, size),
-		name: generate_doc_name_sized(id, size),
-		description: generate_doc_desc_sized(id, size),
-		from,
-		to,
-	}
-}
-
-fn setup_vault(who: <Test as system::Config>::AccountId) {
-	setup_vault_sized(who, 5)
-}
-
-fn setup_vault_sized(who: <Test as system::Config>::AccountId, size: u32) {
+pub fn setup_vault(who: <Test as system::Config>::AccountId) {
 	let id = who as u8;
-	assert_ok!(ConfidentialDocs::set_vault(
-		RuntimeOrigin::signed(who),
-		generate_user_id(id),
-		generate_public_key(id),
-		generate_cid_sized(id, size)
-	));
+	let (user_id, public_key, cid) = generate_vault_sized(id, 5);
+	assert_ok!(ConfidentialDocs::set_vault(RuntimeOrigin::signed(who), user_id, public_key, cid));
 }
 
-fn setup_group(
+pub fn setup_group(
 	creator: <Test as system::Config>::AccountId,
 	group: <Test as system::Config>::AccountId,
 ) {
 	let id: u8 = group as u8;
-	let group_name: GroupName<Test> = generate_group_name(id);
+	let group_name: GroupName<Test> = generate_group_name::<Test>(id);
 	let public_key = generate_public_key(id);
 	let cid = generate_cid(id);
 	assert_ok!(ConfidentialDocs::create_group(
@@ -134,7 +26,7 @@ fn setup_group(
 	));
 }
 
-fn add_group_member(
+pub fn add_group_member(
 	creator: <Test as system::Config>::AccountId,
 	group: <Test as system::Config>::AccountId,
 	member: <Test as system::Config>::AccountId,
@@ -152,14 +44,14 @@ fn add_group_member(
 	group_member
 }
 
-fn setup_owned_doc(id: u8, owner: <Test as system::Config>::AccountId) -> OwnedDoc<Test> {
+pub fn setup_owned_doc(id: u8, owner: <Test as system::Config>::AccountId) -> OwnedDoc<Test> {
 	let doc = generate_owned_doc(id, owner);
 	assert_ok!(ConfidentialDocs::set_owned_document(RuntimeOrigin::signed(owner), doc.clone()));
 	assert_owned_doc(&doc);
 	doc
 }
 
-fn setup_shared_doc(
+pub fn setup_shared_doc(
 	id: u8,
 	from: <Test as system::Config>::AccountId,
 	to: <Test as system::Config>::AccountId,
@@ -170,26 +62,26 @@ fn setup_shared_doc(
 	doc
 }
 
-fn assert_owned_doc(doc: &OwnedDoc<Test>) {
+pub fn assert_owned_doc(doc: &OwnedDoc<Test>) {
 	assert_eq!(ConfidentialDocs::owned_docs(&doc.cid), Some(doc.clone()));
 	let owned_docs = ConfidentialDocs::owned_docs_by_owner(doc.owner);
 	assert_eq!(owned_docs.contains(&doc.cid), true);
 }
 
-fn assert_owned_doc_not_exists(cid: &CID, owner: <Test as system::Config>::AccountId) {
+pub fn assert_owned_doc_not_exists(cid: &CID, owner: <Test as system::Config>::AccountId) {
 	assert_eq!(ConfidentialDocs::owned_docs(cid), None);
 	let owned_docs = ConfidentialDocs::owned_docs_by_owner(owner);
 	assert_eq!(owned_docs.contains(cid), false);
 }
 
-fn assert_shared_doc(doc: &SharedDoc<Test>) {
+pub fn assert_shared_doc(doc: &SharedDoc<Test>) {
 	let SharedDoc { from, to, .. } = doc;
 	assert_eq!(ConfidentialDocs::shared_docs(&doc.cid), Some(doc.clone()));
 	assert_eq!(ConfidentialDocs::shared_docs_by_to(to).contains(&doc.cid), true);
 	assert_eq!(ConfidentialDocs::shared_docs_by_from(from).contains(&doc.cid), true);
 }
 
-fn assert_shared_doc_not_exists(doc: &SharedDoc<Test>) {
+pub fn assert_shared_doc_not_exists(doc: &SharedDoc<Test>) {
 	let SharedDoc { from, to, .. } = doc;
 	assert_eq!(ConfidentialDocs::shared_docs(&doc.cid), None);
 	assert_eq!(ConfidentialDocs::shared_docs_by_to(to).contains(&doc.cid), false);
@@ -303,8 +195,8 @@ fn set_owned_document_works() {
 		assert_eq!(owned_docs.into_inner(), expected_cid_vec);
 		System::assert_has_event(Event::<Test>::OwnedDocStored(doc1.clone()).into());
 
-		doc1.name = generate_doc_name(2);
-		doc1.description = generate_doc_desc(2);
+		doc1.name = generate_doc_name::<Test>(2);
+		doc1.description = generate_doc_desc::<Test>(2);
 		assert_ok!(ConfidentialDocs::set_owned_document(
 			RuntimeOrigin::signed(owner),
 			doc1.clone()
@@ -326,7 +218,7 @@ fn set_owned_document_should_fail_for_updating_non_owned_doc() {
 			RuntimeOrigin::signed(owner),
 			doc1.clone()
 		));
-		doc1.name = generate_doc_name(2);
+		doc1.name = generate_doc_name::<Test>(2);
 		let owner = 2;
 		setup_vault(owner);
 		assert_noop!(
@@ -413,7 +305,7 @@ fn remove_owned_document_works() {
 fn remove_owned_document_should_fail_for_non_existant_document() {
 	new_test_ext().execute_with(|| {
 		let owner = 1;
-		let doc1 = generate_owned_doc(1, owner);
+		let doc1 = generate_owned_doc::<Test>(1, owner);
 		assert_noop!(
 			ConfidentialDocs::remove_owned_document(RuntimeOrigin::signed(owner), doc1.cid.clone()),
 			Error::<Test>::DocNotFound
@@ -582,8 +474,8 @@ fn update_shared_document_metadata_works() {
 		setup_vault(to);
 		setup_vault(from);
 		let mut shared_doc1 = setup_shared_doc(1, from, to);
-		shared_doc1.name = generate_doc_name(2);
-		shared_doc1.description = generate_doc_desc(2);
+		shared_doc1.name = generate_doc_name::<Test>(2);
+		shared_doc1.description = generate_doc_desc::<Test>(2);
 		assert_ok!(ConfidentialDocs::update_shared_document_metadata(
 			RuntimeOrigin::signed(to),
 			shared_doc1.clone()
@@ -667,7 +559,7 @@ fn remove_shared_document_should_fail_for_non_existant_doc() {
 	new_test_ext().execute_with(|| {
 		let to = 1;
 		let from = 2;
-		let shared_doc1 = generate_shared_doc(1, from, to);
+		let shared_doc1 = generate_shared_doc::<Test>(1, from, to);
 		assert_noop!(
 			ConfidentialDocs::remove_shared_document(
 				RuntimeOrigin::signed(to),
@@ -710,7 +602,7 @@ fn create_group_works() {
 	new_test_ext().execute_with(|| {
 		let creator = 1;
 		setup_vault(creator);
-		let group_name = generate_group_name(1);
+		let group_name = generate_group_name::<Test>(1);
 		let group_id = 2;
 		let public_key = generate_public_key(2);
 		let cid = generate_cid(2);
@@ -744,7 +636,7 @@ fn create_group_works() {
 fn create_group_should_fail_for_creator_without_vault() {
 	new_test_ext().execute_with(|| {
 		let creator = 1;
-		let group_name = generate_group_name(1);
+		let group_name = generate_group_name::<Test>(1);
 		let group_id = 2;
 		let public_key = generate_public_key(2);
 		let cid = generate_cid(2);
@@ -788,7 +680,7 @@ fn create_group_should_fail_for_empty_cid() {
 	new_test_ext().execute_with(|| {
 		let creator = 1;
 		setup_vault(creator);
-		let group_name: GroupName<Test> = generate_group_name(1);
+		let group_name: GroupName<Test> = generate_group_name::<Test>(1);
 		let group_id = 2;
 		let public_key = generate_public_key(2);
 		let cid: CID = Vec::new().try_into().unwrap();

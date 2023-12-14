@@ -3,48 +3,134 @@
 #![cfg(feature = "runtime-benchmarks")]
 
 use super::*;
-use crate::Pallet as ConfidentialDocs;
+use crate::{
+	test_util::*,
+	types::{Vault, *},
+	Pallet as ConfidentialDocs,
+};
 
 use frame_benchmarking::v2::*;
+use frame_support::{assert_ok, traits::Get};
 use frame_system::RawOrigin;
-use sp_runtime::traits::Bounded;
-use types::ExtraFlags;
 
 const SEED: u32 = 0;
 
-#[instance_benchmarks]
+#[benchmarks(where T: Config)]
 mod benchmarks {
 	use super::*;
 
-	// Benchmark `transfer` extrinsic with the worst possible conditions:
-	// * Transfer will kill the sender account.
-	// * Transfer will create the recipient account.
 	#[benchmark]
-	fn set_vault() {
-		let existential_deposit = T::ExistentialDeposit::get();
-		let caller = whitelisted_caller();
-
-		// Give some multiple of the existential deposit
-		let balance = existential_deposit.saturating_mul(ED_MULTIPLIER.into());
-		let _ = <Balances<T, I> as Currency<_>>::make_free_balance_be(&caller, balance);
-
-		// Transfer `e - 1` existential deposits + 1 unit, which guarantees to create one account,
-		// and reap this user.
-		let recipient: T::AccountId = account("recipient", 0, SEED);
-		let recipient_lookup = T::Lookup::unlookup(recipient.clone());
-		let transfer_amount =
-			existential_deposit.saturating_mul((ED_MULTIPLIER - 1).into()) + 1u32.into();
+	fn set_vault(c: Linear<2, { CIDSize::get() }>) {
+		let owner: T::AccountId = account("owner", 0, SEED);
+		let (user_id, public_key, cid) = generate_vault_sized(1, c);
+		let vault = Vault::<T> { cid: cid.clone(), owner: owner.clone() };
 
 		#[extrinsic_call]
-		_(RawOrigin::Signed(caller.clone()), recipient_lookup, transfer_amount);
+		_(RawOrigin::Signed(owner), user_id, public_key, cid.clone());
+		assert_eq!(ConfidentialDocs::vaults(user_id), Some(vault.clone()));
+	}
 
-		assert_eq!(Balances::<T, I>::free_balance(&caller), Zero::zero());
-		assert_eq!(Balances::<T, I>::free_balance(&recipient), transfer_amount);
+	#[benchmark]
+	fn set_owned_document(
+		c: Linear<2, { CIDSize::get() }>,
+		n: Linear<{ T::DocNameMinLen::get() }, { T::DocNameMaxLen::get() }>,
+		d: Linear<{ T::DocDescMinLen::get() }, { T::DocDescMaxLen::get() }>,
+		o: Linear<1, { T::MaxOwnedDocs::get() - 1 }>,
+	) {
+		let owner: T::AccountId = account("owner", 0, SEED);
+		let (user_id, public_key, cid) = generate_vault_sized(1, 5);
+		assert_ok!(ConfidentialDocs::<T>::set_vault(
+			RawOrigin::Signed(owner.clone()).into(),
+			user_id,
+			public_key,
+			cid.clone(),
+		));
+		// Add "o" docs to owned docs
+		for i in 1..=o {
+			let doc = generate_owned_doc_sized(i as u8, owner.clone(), c, n, d);
+			assert_ok!(ConfidentialDocs::<T>::set_owned_document(
+				RawOrigin::Signed(owner.clone()).into(),
+				doc.clone()
+			));
+		}
+		let doc = generate_owned_doc_sized((o + 1) as u8, owner.clone(), c, n, d);
+		#[extrinsic_call]
+		_(RawOrigin::Signed(owner), doc.clone());
+		assert_eq!(ConfidentialDocs::owned_docs(&doc.cid), Some(doc.clone()));
+	}
+
+	#[benchmark]
+	fn remove_owned_document(
+		c: Linear<2, { CIDSize::get() }>,
+		n: Linear<{ T::DocNameMinLen::get() }, { T::DocNameMaxLen::get() }>,
+		d: Linear<{ T::DocDescMinLen::get() }, { T::DocDescMaxLen::get() }>,
+		o: Linear<1, { T::MaxOwnedDocs::get() }>,
+	) {
+		let owner: T::AccountId = account("owner", 0, SEED);
+		let (user_id, public_key, cid) = generate_vault_sized(1, 5);
+		assert_ok!(ConfidentialDocs::<T>::set_vault(
+			RawOrigin::Signed(owner.clone()).into(),
+			user_id,
+			public_key,
+			cid.clone(),
+		));
+		// Add "o" docs to owned docs
+		for i in 1..=o {
+			let doc = generate_owned_doc_sized(i as u8, owner.clone(), c, n, d);
+			assert_ok!(ConfidentialDocs::<T>::set_owned_document(
+				RawOrigin::Signed(owner.clone()).into(),
+				doc.clone()
+			));
+		}
+		let cid = generate_cid_sized(o as u8, c);
+		#[extrinsic_call]
+		_(RawOrigin::Signed(owner), cid.clone());
+		assert_eq!(ConfidentialDocs::<T>::owned_docs(cid), None);
+	}
+
+	#[benchmark]
+	fn share_document(
+		c: Linear<2, { CIDSize::get() }>, /* starts in to so that document type id and doc id
+		                                   * fit in the vector */
+		n: Linear<{ T::DocNameMinLen::get() }, { T::DocNameMaxLen::get() }>,
+		d: Linear<{ T::DocDescMinLen::get() }, { T::DocDescMaxLen::get() }>,
+		s: Linear<1, { T::MaxSharedFromDocs::get() - 1 }>,
+	) {
+		let from: T::AccountId = account("from", 0, SEED);
+		let to: T::AccountId = account("to", 0, SEED);
+		// Setup from vault
+		let (user_id, public_key, cid) = generate_vault_sized(1, 5);
+		assert_ok!(ConfidentialDocs::<T>::set_vault(
+			RawOrigin::Signed(from.clone()).into(),
+			user_id,
+			public_key,
+			cid.clone(),
+		));
+		// Setup to vault
+		let (user_id, public_key, cid) = generate_vault_sized(2, 5);
+		assert_ok!(ConfidentialDocs::<T>::set_vault(
+			RawOrigin::Signed(to.clone()).into(),
+			user_id,
+			public_key,
+			cid.clone(),
+		));
+		// Add "s" docs to shared docs
+		for i in 1..=s {
+			let doc = generate_shared_doc_sized(i as u8, from.clone(), to.clone(), c, n, d);
+			assert_ok!(ConfidentialDocs::<T>::share_document(
+				RawOrigin::Signed(from.clone()).into(),
+				doc.clone()
+			));
+		}
+		let doc = generate_shared_doc_sized((s + 1) as u8, from.clone(), to.clone(), c, n, d);
+		#[extrinsic_call]
+		_(RawOrigin::Signed(from), doc.clone());
+		assert_eq!(ConfidentialDocs::shared_docs(&doc.cid), Some(doc.clone()));
 	}
 
 	impl_benchmark_test_suite! {
-		Balances,
-		crate::tests::ExtBuilder::default().build(),
-		crate::tests::Test,
+		ConfidentialDocs,
+		crate::mock::new_test_ext(),
+		crate::mock::Test,
 	}
 }
