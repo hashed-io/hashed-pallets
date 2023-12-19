@@ -957,6 +957,7 @@ impl<T: Config> Pallet<T> {
 			}
 			Ok::<(), DispatchError>(())
 		})?;
+		<T as pallet::Config>::Rbac::remove_pallet_storage(Self::pallet_id())?;
 		Ok(())
 	}
 
