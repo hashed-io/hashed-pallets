@@ -1,5 +1,6 @@
-use crate::{types::*, Config, Error, Event};
+use crate::{types::*, Config};
 use codec::Encode;
+use scale_info::{self, prelude::*};
 use sp_io::hashing::blake2_256;
 
 pub fn generate_user_id(id: u8) -> UserId {
@@ -42,7 +43,7 @@ pub fn generate_group_name_sized<T: Config>(id: u8, size: u32) -> GroupName<T> {
 	generate_vector(4, id, size).try_into().unwrap()
 }
 
-pub fn generate_vector(prefix: u8, id: u8, size: u32) -> Vec<u8> {
+pub fn generate_vector(prefix: u8, id: u8, size: u32) -> scale_info::prelude::vec::Vec<u8> {
 	assert!(size > 0, "vector size must be greater than 0");
 	let mut v = vec![id; size as usize];
 	v[0] = prefix;

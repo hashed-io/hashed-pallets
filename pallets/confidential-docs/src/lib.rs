@@ -17,10 +17,12 @@ mod test_util;
 
 mod functions;
 pub mod types;
-
+pub mod weights;
+use weights::WeightInfo;
 #[frame_support::pallet]
 pub mod pallet {
 	//! Provides the backend services and metadata storage for the confidential docs solution
+	use super::*;
 	use crate::types::*;
 	use frame_support::pallet_prelude::*;
 	use frame_system::pallet_prelude::*;
@@ -63,6 +65,9 @@ pub mod pallet {
 		/// Maximum groups a user can belong to
 		#[pallet::constant]
 		type MaxMemberGroups: Get<u32>;
+
+		/// Weight information for extrinsics in this pallet.
+		type WeightInfo: WeightInfo;
 	}
 
 	#[pallet::pallet]
@@ -246,7 +251,7 @@ pub mod pallet {
 		/// - `public key`: The users cipher public key
 		/// - `cid`: The IPFS CID that contains the vaults data
 		#[pallet::call_index(1)]
-		#[pallet::weight(Weight::from_parts(10_000,0) + T::DbWeight::get().writes(1))]
+		#[pallet::weight(<T as Config>::WeightInfo::set_vault(cid.len() as u32))]
 		pub fn set_vault(
 			origin: OriginFor<T>,
 			user_id: UserId,
@@ -265,7 +270,7 @@ pub mod pallet {
 		/// - `origin`: The user that is creating/updating an owned document
 		/// - `owned_doc`: Metadata related to the owned document
 		#[pallet::call_index(2)]
-		#[pallet::weight(Weight::from_parts(10_000,0) + T::DbWeight::get().writes(1))]
+		#[pallet::weight(<T as Config>::WeightInfo::set_owned_document(owned_doc.cid.len() as u32, owned_doc.name.len() as u32, owned_doc.description.len() as u32, T::MaxOwnedDocs::get()))]
 		pub fn set_owned_document(origin: OriginFor<T>, owned_doc: OwnedDoc<T>) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 			Self::do_set_owned_document(who, owned_doc)
@@ -279,7 +284,7 @@ pub mod pallet {
 		/// - `origin`: The owner of the document
 		/// - `cid`: of the document to be removed
 		#[pallet::call_index(3)]
-		#[pallet::weight(Weight::from_parts(10_000,0) + T::DbWeight::get().writes(1))]
+		#[pallet::weight(<T as Config>::WeightInfo::remove_owned_document(cid.len() as u32, T::DocNameMaxLen::get(), T::DocDescMaxLen::get(), T::MaxOwnedDocs::get()))]
 		pub fn remove_owned_document(origin: OriginFor<T>, cid: CID) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 			Self::do_remove_owned_document(who, cid)
@@ -293,7 +298,7 @@ pub mod pallet {
 		/// - `origin`: The user that is creating the shared document
 		/// - `shared_doc`: Metadata related to the shared document
 		#[pallet::call_index(4)]
-		#[pallet::weight(Weight::from_parts(10_000,0) + T::DbWeight::get().writes(1))]
+		#[pallet::weight(<T as Config>::WeightInfo::share_document(shared_doc.cid.len() as u32, shared_doc.name.len() as u32, shared_doc.description.len() as u32, T::MaxSharedFromDocs::get()))]
 		pub fn share_document(origin: OriginFor<T>, shared_doc: SharedDoc<T>) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 			Self::do_share_document(who, shared_doc)
@@ -308,7 +313,7 @@ pub mod pallet {
 		/// - `origin`: The "to" user of the shared document
 		/// - `shared_doc`: Metadata related to the shared document
 		#[pallet::call_index(5)]
-		#[pallet::weight(Weight::from_parts(10_000,0) + T::DbWeight::get().writes(1))]
+		#[pallet::weight(<T as Config>::WeightInfo::update_shared_document_metadata(shared_doc.cid.len() as u32, shared_doc.name.len() as u32, shared_doc.description.len() as u32))]
 		pub fn update_shared_document_metadata(
 			origin: OriginFor<T>,
 			shared_doc: SharedDoc<T>,
@@ -326,7 +331,7 @@ pub mod pallet {
 		/// - `origin`: The "to" user of the shared document
 		/// - `cid`: of the document to be removed
 		#[pallet::call_index(6)]
-		#[pallet::weight(Weight::from_parts(10_000,0) + T::DbWeight::get().writes(1))]
+		#[pallet::weight(<T as Config>::WeightInfo::remove_shared_document(cid.len() as u32, T::DocNameMaxLen::get(), T::DocDescMaxLen::get(), T::MaxSharedFromDocs::get()))]
 		pub fn remove_shared_document(origin: OriginFor<T>, cid: CID) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 			Self::do_remove_shared_document(who, cid)
@@ -343,7 +348,7 @@ pub mod pallet {
 		/// - `public_key`: Public key of the group
 		/// - `cid`: cid of the document containing the private key of the group
 		#[pallet::call_index(7)]
-		#[pallet::weight(Weight::from_parts(10_000,0) + T::DbWeight::get().writes(1))]
+		#[pallet::weight(<T as Config>::WeightInfo::create_group(cid.len() as u32, name.len() as u32))]
 		pub fn create_group(
 			origin: OriginFor<T>,
 			group: T::AccountId,
@@ -363,7 +368,7 @@ pub mod pallet {
 		/// - `origin`: The user that is adding the member to the group
 		/// - `group_member`: GroupMember object containg the details of the member
 		#[pallet::call_index(8)]
-		#[pallet::weight(Weight::from_parts(10_000,0) + T::DbWeight::get().writes(1))]
+		#[pallet::weight(<T as Config>::WeightInfo::add_group_member(group_member.cid.len() as u32, T::GroupNameMaxLen::get(), T::MaxMemberGroups::get()))]
 		pub fn add_group_member(
 			origin: OriginFor<T>,
 			group_member: GroupMember<T>,
@@ -382,7 +387,7 @@ pub mod pallet {
 		/// - `group`: AccountId of the group
 		/// - `member`: AccountId of the user to remove from the group
 		#[pallet::call_index(9)]
-		#[pallet::weight(Weight::from_parts(10_000,0) + T::DbWeight::get().writes(1))]
+		#[pallet::weight(<T as Config>::WeightInfo::add_group_member(<CIDSize as frame_support::traits::TypedGet>::get(), T::GroupNameMaxLen::get(), T::MaxMemberGroups::get()))]
 		pub fn remove_group_member(
 			origin: OriginFor<T>,
 			group: T::AccountId,

@@ -75,6 +75,7 @@ impl pallet_confidential_docs::Config for Test {
 	type GroupNameMinLen = GroupNameMinLen;
 	type GroupNameMaxLen = GroupNameMaxLen;
 	type MaxMemberGroups = MaxMemberGroups;
+	type WeightInfo = ();
 }
 
 // Build genesis storage according to the mock runtime.

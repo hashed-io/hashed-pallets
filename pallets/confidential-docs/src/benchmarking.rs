@@ -8,6 +8,7 @@ use crate::{
 	types::{Vault, *},
 	Pallet as ConfidentialDocs,
 };
+use scale_info::prelude::*;
 
 use frame_benchmarking::v2::*;
 use frame_support::{assert_ok, traits::Get};
