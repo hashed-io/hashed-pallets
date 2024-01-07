@@ -312,5 +312,16 @@ pub mod pallet {
 			Self::do_remove_permission_from_pallet(pallet, permission_id)?;
 			Ok(())
 		}
+
+		#[pallet::call_index(6)]
+		#[pallet::weight(Weight::from_parts(10_000,0) + T::DbWeight::get().writes(1))]
+		pub fn remove_pallet_permissions(origin: OriginFor<T>, pallet: IdOrVec) -> DispatchResult {
+			ensure!(
+				T::RemoveOrigin::ensure_origin(origin.clone()).is_ok(),
+				Error::<T>::NotAuthorized
+			);
+			Self::remove_pallet_storage(pallet)?;
+			Ok(())
+		}
 	}
 }
