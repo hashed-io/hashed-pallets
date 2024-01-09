@@ -148,6 +148,8 @@ pub mod pallet {
 		Underflow,
 		// Afloat marketplace label too long
 		LabelTooLong,
+		// Afloat asset has not been set
+		AfloatAssetNotSet,
 	}
 
 	#[pallet::storage]

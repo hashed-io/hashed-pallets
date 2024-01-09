@@ -17,12 +17,19 @@ use sp_runtime::{
 };
 
 impl<T: Config> Pallet<T> {
+	fn get_afloat_asset_id() -> Result<T::AssetId, Error<T>> {
+		let asset_id = AfloatAssetId::<T>::get();
+		match asset_id {
+			Some(id) => Ok(id),
+			None => Err(Error::<T>::AfloatAssetNotSet),
+		}
+	}
 	// ! Setup pallet
 	pub fn do_create_afloat_marketplace(
 		creator: T::AccountId,
 		admin: T::AccountId,
 	) -> DispatchResult {
-		let asset_id = AfloatAssetId::<T>::get().expect("AfloatAssetId should be set");
+		let asset_id = Self::get_afloat_asset_id()?;
 
 		let label: BoundedVec<u8, T::LabelMaxLen> =
 			BoundedVec::try_from(b"Afloat".to_vec()).map_err(|_| Error::<T>::LabelTooLong)?;
@@ -301,10 +308,10 @@ impl<T: Config> Pallet<T> {
 		amount: T::Balance,
 	) -> DispatchResult {
 		let authority = ensure_signed(origin.clone())?;
-		let asset_id = AfloatAssetId::<T>::get().expect("AfloatAssetId should be set");
+		let asset_id = Self::get_afloat_asset_id()?;
 		ensure!(UserInfo::<T>::contains_key(user_address.clone()), Error::<T>::UserNotFound);
 
-		let current_balance = Self::do_get_afloat_balance(user_address.clone());
+		let current_balance = Self::do_get_afloat_balance(user_address.clone())?;
 		if current_balance > amount {
 			let diff = current_balance - amount;
 			pallet_mapped_assets::Pallet::<T>::afloat_do_burn(
@@ -327,9 +334,9 @@ impl<T: Config> Pallet<T> {
 		Ok(())
 	}
 
-	pub fn do_get_afloat_balance(user_address: T::AccountId) -> T::Balance {
-		let asset_id = AfloatAssetId::<T>::get().expect("AfloatAssetId should be set");
-		pallet_mapped_assets::Pallet::<T>::balance(asset_id.into(), user_address)
+	pub fn do_get_afloat_balance(user_address: T::AccountId) -> Result<T::Balance, Error<T>> {
+		let asset_id = Self::get_afloat_asset_id()?;
+		Ok(pallet_mapped_assets::Pallet::<T>::balance(asset_id.into(), user_address))
 	}
 
 	pub fn do_create_sell_order(
@@ -468,7 +475,7 @@ impl<T: Config> Pallet<T> {
 		);
 		//ensure user has enough afloat balance
 		ensure!(
-			Self::do_get_afloat_balance(who.clone()) >=
+			Self::do_get_afloat_balance(who.clone())? >=
 				offer.price_per_credit * tax_credit_amount.into(),
 			Error::<T>::NotEnoughAfloatBalanceAvailable
 		);

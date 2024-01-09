@@ -184,6 +184,8 @@ pub mod pallet {
 		ProofNotFound,
 		/// The proposal/proof of reserve was already previously broadcasted
 		AlreadyBroadcasted,
+		/// The provided xpub is invalid
+		InvalidXpub,
 	}
 
 	/* --- Onchain storage section --- */
@@ -352,6 +354,7 @@ pub mod pallet {
 			// Check that the extrinsic was signed and get the signer.
 			let who = ensure_signed(origin.clone())?;
 			ensure!(xpub.len() > 0, Error::<T>::NoneValue);
+			ensure!(str::from_utf8(&xpub).is_ok(), Error::<T>::InvalidXpub);
 			ensure!(!<XpubsByOwner<T>>::contains_key(who.clone()), Error::<T>::UserAlreadyHasXpub);
 			let manual_hash = xpub.clone().using_encoded(blake2_256);
 			// Assert if the input xpub is free to take (or if the user owns it)

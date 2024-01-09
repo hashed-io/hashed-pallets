@@ -97,6 +97,19 @@ fn inserting_same_xpub_should_fail() {
 }
 
 #[test]
+fn inserting_invalid_xpub_should_fail() {
+	new_test_ext().execute_with(|| {
+		assert_noop!(
+			BitcoinVaults::set_xpub(
+				RuntimeOrigin::signed(test_pub(2)),
+				BoundedVec::try_from(vec![192, 175]).unwrap()
+			),
+			Error::<Test>::InvalidXpub
+		);
+	});
+}
+
+#[test]
 fn inserting_without_removing_xpub_should_fail() {
 	new_test_ext().execute_with(|| {
 		assert_ok!(BitcoinVaults::set_xpub(RuntimeOrigin::signed(test_pub(1)), dummy_xpub()));

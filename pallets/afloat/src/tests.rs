@@ -18,7 +18,7 @@ fn dummy_description() -> BoundedVec<u8, StringLimit> {
 
 #[test]
 fn sign_up_works() {
-	new_test_ext().execute_with(|| {
+	TestExternalitiesBuilder::new().initialize_all().build().execute_with(|| {
 		let user = new_account(3);
 		Balances::make_free_balance_be(&user, 100);
 		let args = SignUpArgs::BuyerOrSeller {
@@ -35,7 +35,7 @@ fn sign_up_works() {
 
 #[test]
 fn update_user_info_edit_works() {
-	new_test_ext().execute_with(|| {
+	TestExternalitiesBuilder::new().initialize_all().build().execute_with(|| {
 		let user = new_account(3);
 		Balances::make_free_balance_be(&user, 100);
 
@@ -66,7 +66,7 @@ fn update_user_info_edit_works() {
 
 #[test]
 fn update_other_user_info_by_not_admin_fails() {
-	new_test_ext().execute_with(|| {
+	TestExternalitiesBuilder::new().initialize_all().build().execute_with(|| {
 		let user = new_account(3);
 		let other_user = new_account(4);
 
@@ -99,7 +99,7 @@ fn update_other_user_info_by_not_admin_fails() {
 
 #[test]
 fn update_other_user_info_by_admin_works() {
-	new_test_ext().execute_with(|| {
+	TestExternalitiesBuilder::new().initialize_all().build().execute_with(|| {
 		let owner = new_account(1);
 		let admin = new_account(2);
 		let user = new_account(3);
@@ -137,7 +137,7 @@ fn update_other_user_info_by_admin_works() {
 
 #[test]
 fn update_user_info_delete_works() {
-	new_test_ext().execute_with(|| {
+	TestExternalitiesBuilder::new().initialize_all().build().execute_with(|| {
 		let user = new_account(3);
 		Balances::make_free_balance_be(&user, 100);
 
@@ -161,7 +161,7 @@ fn update_user_info_delete_works() {
 
 #[test]
 fn set_afloat_balance_works() {
-	new_test_ext().execute_with(|| {
+	TestExternalitiesBuilder::new().initialize_all().build().execute_with(|| {
 		let user = new_account(3);
 		let other_user = new_account(4);
 
@@ -177,15 +177,15 @@ fn set_afloat_balance_works() {
 		assert_ok!(Afloat::sign_up(RawOrigin::Signed(user.clone()).into(), args.clone()));
 
 		assert_ok!(Afloat::set_afloat_balance(RawOrigin::Signed(1).into(), user.clone(), 10000));
-		assert_eq!(Afloat::do_get_afloat_balance(user.clone()), 10000);
+		assert_eq!(Afloat::do_get_afloat_balance(user.clone()).unwrap(), 10000);
 		assert_ok!(Afloat::set_afloat_balance(RawOrigin::Signed(1).into(), user.clone(), 1000));
-		assert_eq!(Afloat::do_get_afloat_balance(user.clone()), 1000);
+		assert_eq!(Afloat::do_get_afloat_balance(user.clone()).unwrap(), 1000);
 	});
 }
 
 #[test]
 fn set_balance_by_other_than_owner_fails() {
-	new_test_ext().execute_with(|| {
+	TestExternalitiesBuilder::new().initialize_all().build().execute_with(|| {
 		let user = new_account(3);
 		let other_user = new_account(4);
 
@@ -212,8 +212,19 @@ fn set_balance_by_other_than_owner_fails() {
 }
 
 #[test]
+fn set_balance_without_initializing_afloat_asset_fails() {
+	TestExternalitiesBuilder::new().initialize_roles().build().execute_with(|| {
+		let other_user = new_account(4);
+		assert_noop!(
+			Afloat::set_afloat_balance(RawOrigin::Signed(1).into(), other_user.clone(), 10000),
+			Error::<Test>::AfloatAssetNotSet
+		);
+	});
+}
+
+#[test]
 fn create_tax_credit_works() {
-	new_test_ext().execute_with(|| {
+	TestExternalitiesBuilder::new().initialize_all().build().execute_with(|| {
 		let user = new_account(3);
 		let other_user = new_account(4);
 
@@ -240,7 +251,7 @@ fn create_tax_credit_works() {
 
 #[test]
 fn create_sell_order_works() {
-	new_test_ext().execute_with(|| {
+	TestExternalitiesBuilder::new().initialize_all().build().execute_with(|| {
 		let user = new_account(3);
 		let other_user = new_account(4);
 		let item_id = 0;
@@ -277,7 +288,7 @@ fn create_sell_order_works() {
 
 #[test]
 fn create_buy_order_works() {
-	new_test_ext().execute_with(|| {
+	TestExternalitiesBuilder::new().initialize_all().build().execute_with(|| {
 		let user = new_account(3);
 		let other_user = new_account(4);
 		let item_id = 0;
@@ -317,7 +328,7 @@ fn create_buy_order_works() {
 
 // #[test]
 // fn take_buy_order_works() {
-// 	new_test_ext().execute_with(|| {
+// 	TestExternalitiesBuilder::new().initialize_all().build().execute_with(|| {
 // 		let user = new_account(3);
 // 		let other_user = new_account(4);
 // 		let item_id = 0;

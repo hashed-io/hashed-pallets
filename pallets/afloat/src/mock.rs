@@ -239,6 +239,56 @@ impl pallet_mapped_assets::Config for Test {
 	type BenchmarkHelper = ();
 }
 
+pub struct TestExternalitiesBuilder {
+	test_externalities: sp_io::TestExternalities,
+}
+
+impl TestExternalitiesBuilder {
+	pub fn new() -> Self {
+		TestExternalitiesBuilder {
+			test_externalities: frame_system::GenesisConfig::<Test>::default()
+				.build_storage()
+				.unwrap()
+				.into(),
+		}
+	}
+
+	pub fn setup_balances(mut self) -> Self {
+		self.test_externalities.execute_with(|| {
+			Balances::make_free_balance_be(&1, 100);
+			Balances::make_free_balance_be(&2, 100);
+		});
+		self
+	}
+
+	pub fn initialize_all(self) -> Self {
+		let mut builder = self.setup_balances();
+		builder.test_externalities.execute_with(|| {
+			let args = InitialSetupArgs::All {
+				creator: 1,
+				admin: 2,
+				asset: CreateAsset::New { asset_id: 0, min_balance: 1 },
+			};
+			Afloat::initial_setup(RawOrigin::Root.into(), args)
+				.expect("Error configuring initial setup");
+		});
+		builder
+	}
+
+	pub fn initialize_roles(self) -> Self {
+		let mut builder = self.setup_balances();
+		builder.test_externalities.execute_with(|| {
+			let args = InitialSetupArgs::Roles { creator: 1, admin: 2 };
+			Afloat::initial_setup(RawOrigin::Root.into(), args).expect("Error configuring roles");
+		});
+		builder
+	}
+
+	pub fn build(self) -> sp_io::TestExternalities {
+		return self.test_externalities
+	}
+}
+
 // Build genesis storage according to the mock runtime.
 pub fn new_test_ext() -> sp_io::TestExternalities {
 	// TODO: get initial conf?
