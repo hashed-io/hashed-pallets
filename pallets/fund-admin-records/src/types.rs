@@ -41,6 +41,5 @@ pub enum RecordType {
 	Reject,
 	Recovery,
 	Cancel,
-	Confirm,
-	BankDocumentation
+	Confirm
 }
