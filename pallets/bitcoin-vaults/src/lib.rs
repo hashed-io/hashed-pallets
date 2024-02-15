@@ -58,7 +58,7 @@ pub mod pallet {
 	impl<T: Config> BuildGenesisConfig for GenesisConfig<T> {
 		fn build(&self) {
 			<BDKServicesURL<T>>::put(
-				BoundedVec::<u8, ConstU32<32>>::try_from(self.bdk_services_url.clone())
+				BoundedVec::<u8, URLSize>::try_from(self.bdk_services_url.clone())
 					.unwrap_or_default(),
 			);
 		}
@@ -261,14 +261,13 @@ pub mod pallet {
 	>;
 
 	#[pallet::type_value]
-	pub(super) fn DefaultURL() -> BoundedVec<u8, ConstU32<32>> {
-		BoundedVec::<u8, ConstU32<32>>::try_from(b"https://bdk.hashed.systems".encode())
+	pub(super) fn DefaultURL() -> URL {
+		BoundedVec::<u8, URLSize>::try_from(b"https://bdk.hashed.systems".encode())
 			.unwrap_or_default()
 	}
 	#[pallet::storage]
 	//#[pallet::getter(fn dummy)]
-	pub(super) type BDKServicesURL<T: Config> =
-		StorageValue<_, BoundedVec<u8, ConstU32<32>>, ValueQuery, DefaultURL>;
+	pub(super) type BDKServicesURL<T: Config> = StorageValue<_, URL, ValueQuery, DefaultURL>;
 
 	#[pallet::hooks]
 	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
@@ -398,19 +397,24 @@ pub mod pallet {
 			let who = ensure_signed(origin.clone())?;
 			// The xpub must exists
 			ensure!(<XpubsByOwner<T>>::contains_key(who.clone()), Error::<T>::XPubNotFound);
+			// NOTE: get_vault_members always returns owner so it does not make sense to iterate
+			// vector in any case it should check cosigners
 			// The xpub must not be used on a vault
-			let vaults: Vec<[u8; 32]> = <VaultsBySigner<T>>::get(who.clone())
-				.iter()
-				.filter(|id| match <Vaults<T>>::get(id) {
-					Some(vault) => {
-						let vault_members = vault.get_vault_members();
-						vault_members.contains(&who.clone())
-					},
-					None => false,
-				})
-				.cloned()
-				.collect::<Vec<_>>();
-			ensure!(vaults.is_empty(), Error::<T>::XpubLinkedToVault);
+			// let vaults: Vec<[u8; 32]> = <VaultsBySigner<T>>::get(who.clone())
+			// 	.iter()
+			// 	.filter(|id| match <Vaults<T>>::get(id) {
+			// 		Some(vault) => {
+			// 			let vault_members = vault.get_vault_members();
+			// 			vault_members.contains(&who.clone())
+			// 		},
+			// 		None => false,
+			// 	})
+			// 	.cloned()
+			// 	.collect::<Vec<_>>()
+			ensure!(
+				<VaultsBySigner<T>>::get(who.clone()).is_empty(),
+				Error::<T>::XpubLinkedToVault
+			);
 
 			Self::do_remove_xpub(who.clone())
 		}
@@ -556,10 +560,7 @@ pub mod pallet {
 		/// - The url has a maximum length of 32 bytes
 		#[pallet::call_index(7)]
 		#[pallet::weight(Weight::from_parts(10_000,0) + T::DbWeight::get().writes(1))]
-		pub fn set_bdk_url(
-			origin: OriginFor<T>,
-			new_url: BoundedVec<u8, ConstU32<32>>,
-		) -> DispatchResult {
+		pub fn set_bdk_url(origin: OriginFor<T>, new_url: URL) -> DispatchResult {
 			T::ChangeBDKOrigin::ensure_origin(origin.clone())?;
 			<BDKServicesURL<T>>::put(new_url);
 			Ok(())

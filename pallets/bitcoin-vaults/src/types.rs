@@ -6,7 +6,15 @@ use sp_io::hashing::blake2_256;
 use sp_runtime::sp_std::vec::Vec;
 
 pub type Description<T> = BoundedVec<u8, <T as Config>::VaultDescriptionMaxLen>;
+pub type OutputDescriptor<T> = BoundedVec<u8, <T as Config>::OutputDescriptorMaxLen>;
 pub type PSBT<T> = BoundedVec<u8, <T as Config>::PSBTMaxLen>;
+pub type XPUB<T> = BoundedVec<u8, <T as Config>::XPubLen>;
+pub type Cosigners<T> =
+	BoundedVec<<T as frame_system::Config>::AccountId, <T as Config>::MaxCosignersPerVault>;
+pub type VaultId = [u8; 32];
+pub type ProposalId = [u8; 32];
+pub type URLSize = ConstU32<32>;
+pub type URL = BoundedVec<u8, URLSize>;
 //pub type AccountId = <<Signature as Verify>::Signer as IdentifyAccount>::AccountId;
 /* --- Constants section --- */
 //pub const BDK_SERVICES_URL: &[u8] = b"https://bdk.hashed.systems";
