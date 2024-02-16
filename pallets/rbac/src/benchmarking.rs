@@ -48,14 +48,14 @@ pub fn setup_roles_sized<T: Config>(pallet_id: IdOrVec, num_roles: u32, size: u3
 }
 
 pub fn setup_scopes_sized<T: Config>(pallet_id: IdOrVec, num_scopes: u32) -> Vec<ScopeId> {
-	let mut scopes = Vec::new();
+	let mut scope_ids = Vec::new();
 	for s in 0..num_scopes {
 		let scope = generate_scope_sized(s as u8, 10);
 		let scope_id = generate_id(scope);
 		assert_ok!(RBAC::<T>::create_scope(pallet_id.clone(), scope_id));
-		scopes.push(scope_id);
+		scope_ids.push(scope_id);
 	}
-	scopes
+	scope_ids
 }
 
 pub fn assign_roles_to_user<T: Config>(
@@ -78,13 +78,15 @@ pub fn assign_roles_to_user<T: Config>(
 pub fn assign_roles_to_users<T: Config>(
 	num_users: u32,
 	pallet_id: IdOrVec,
-	scope_id: ScopeId,
+	scope_ids: Vec<ScopeId>,
 	role_ids: &[RoleId],
 ) -> Vec<T::AccountId> {
 	let mut users = Vec::new();
 	for u in 0..num_users {
 		let user: T::AccountId = account("user", u, SEED);
-		assign_roles_to_user::<T>(user.clone(), pallet_id.clone(), scope_id, role_ids);
+		for scope_id in scope_ids.clone() {
+			assign_roles_to_user::<T>(user.clone(), pallet_id.clone(), scope_id, role_ids);
+		}
 		users.push(user);
 	}
 	users
@@ -104,17 +106,19 @@ pub fn generate_permissions_sized(num_permissions: u32, size: u32) -> Vec<Vec<u8
 
 pub fn setup_permissions_sized<T: Config>(
 	pallet_id: IdOrVec,
-	role_id: RoleId,
+	role_ids: Vec<RoleId>,
 	num_permissions: u32,
 	size: u32,
 ) -> Vec<PermissionId> {
 	let permissions = generate_permissions_sized(num_permissions, size);
-	assert_ok!(RBAC::<T>::tx_create_and_set_permissions(
-		RawOrigin::Root.into(),
-		pallet_id.clone(),
-		role_id.clone(),
-		permissions.clone()
-	));
+	for role_id in role_ids {
+		assert_ok!(RBAC::<T>::tx_create_and_set_permissions(
+			RawOrigin::Root.into(),
+			pallet_id.clone(),
+			role_id.clone(),
+			permissions.clone()
+		));
+	}
 	permissions.into_iter().map(|permission| generate_id(permission)).collect()
 }
 
@@ -158,7 +162,8 @@ mod benchmarks {
 		);
 		let ru = r as usize;
 		let user =
-			assign_roles_to_users::<T>(u, pallet_id.clone(), scope_id, &role_ids[0..ru])[0].clone();
+			assign_roles_to_users::<T>(u, pallet_id.clone(), vec![scope_id], &role_ids[0..ru])[0]
+				.clone();
 		let role_id = role_ids[ru - 1];
 		#[extrinsic_call]
 		_(RawOrigin::Root, user.clone(), pallet_id.clone(), scope_id, role_id);
@@ -199,7 +204,7 @@ mod benchmarks {
 			T::RoleMaxLen::get(),
 		);
 		let ru = r as usize;
-		assign_roles_to_users::<T>(u, pallet_id.clone(), scope_id, &role_ids[0..ru]);
+		assign_roles_to_users::<T>(u, pallet_id.clone(), vec![scope_id], &role_ids[0..ru]);
 		assign_roles_to_user::<T>(
 			user.clone(),
 			pallet_id.clone(),
@@ -228,12 +233,50 @@ mod benchmarks {
 			T::MaxRolesPerPallet::get(),
 			T::RoleMaxLen::get(),
 		)[0];
-		let permission_id = setup_permissions_sized::<T>(pallet_id.clone(), role_id, p, l)[0];
+		let permission_id = setup_permissions_sized::<T>(pallet_id.clone(), vec![role_id], p, l)[0];
 		#[extrinsic_call]
 		_(RawOrigin::Root, pallet_id.clone(), role_id, permission_id);
 		assert!(
 			!RBAC::<T>::permissions_by_role(pallet_id.to_id(), role_id).contains(&permission_id)
 		);
+	}
+
+	#[benchmark]
+	fn remove_permission_from_pallet(
+		i: Linear<1, 400>,
+		l: Linear<2, { T::PermissionMaxLen::get() }>,
+		p: Linear<1, { T::MaxPermissionsPerRole::get() }>,
+		m: Linear<2, { T::RoleMaxLen::get() }>,
+		r: Linear<1, { T::MaxRolesPerPallet::get() }>,
+	) {
+		let pallet_id = generate_pallet_id_sized(0, i);
+		let role_ids = setup_roles_sized::<T>(pallet_id.clone(), r, m);
+		let permission_id = setup_permissions_sized::<T>(pallet_id.clone(), role_ids, p, l)[0];
+		#[extrinsic_call]
+		_(RawOrigin::Root, pallet_id.clone(), permission_id);
+		assert_eq!(RBAC::<T>::permissions(pallet_id.to_id(), permission_id).len(), 0);
+	}
+
+	#[benchmark]
+	fn remove_pallet_permissions(
+		i: Linear<1, 400>,
+		l: Linear<2, { T::PermissionMaxLen::get() }>,
+		s: Linear<1, { T::MaxScopesPerPallet::get() }>,
+		p: Linear<1, { T::MaxPermissionsPerRole::get() }>,
+		u: Linear<1, { T::MaxUsersPerRole::get() }>,
+		m: Linear<2, { T::RoleMaxLen::get() }>,
+		r: Linear<1, { T::MaxRolesPerPallet::get() }>,
+	) {
+		let pallet_id = generate_pallet_id_sized(0, i);
+		let scope_ids = setup_scopes_sized::<T>(pallet_id.clone(), s);
+		let role_ids = setup_roles_sized::<T>(pallet_id.clone(), r, m);
+		setup_permissions_sized::<T>(pallet_id.clone(), role_ids.clone(), p, l);
+		let ru = cmp::min(r, T::MaxRolesPerUser::get()) as usize;
+		assign_roles_to_users::<T>(u, pallet_id.clone(), scope_ids, &role_ids[0..ru]);
+
+		#[extrinsic_call]
+		_(RawOrigin::Root, pallet_id.clone());
+		assert_eq!(<Permissions<T>>::iter_prefix(pallet_id.to_id()).count(), 0);
 	}
 
 	impl_benchmark_test_suite! {
