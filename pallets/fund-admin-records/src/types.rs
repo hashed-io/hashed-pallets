@@ -27,6 +27,8 @@ pub enum TableType {
 	RecoveryDrawdown,
 	Revenue,
 	RecoveryRevenue,
+	Rebalance,
+	DrawdownSources
 }
 
 #[derive(
@@ -39,5 +41,5 @@ pub enum RecordType {
 	Reject,
 	Recovery,
 	Cancel,
-	Confirm,
+	Confirm
 }

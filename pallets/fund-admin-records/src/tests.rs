@@ -25,28 +25,6 @@ fn make_record_collection(
 	record_collection
 }
 
-// fn make_default_record_collection() -> RecordCollection<Test> {
-//   make_record_collection(
-//     make_project_id("project_id"),
-//     make_hashed_info("hashed_info"),
-//     TableType::Drawdown,
-//     RecordType::Creation,
-//   )
-// }
-
-// fn make_array_record_collection(num: u16) -> RecordCollection<Test> {
-//   let mut record_collection: RecordCollection<Test> = bounded_vec![];
-//   for i in 0..num {
-//     record_collection.try_push((
-//       make_project_id(&format!("project_id_{}", i)),
-//       make_hashed_info(&format!("hashed_info_{}", i)),
-//       TableType::Drawdown,
-//       RecordType::Creation,
-//     )).unwrap_or_default();
-//   }
-//   record_collection
-// }
-
 #[test]
 fn set_signer_account_works() {
 	new_test_ext().execute_with(|| {
