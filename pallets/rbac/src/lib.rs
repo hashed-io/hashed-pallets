@@ -5,6 +5,9 @@
 /// <https://docs.substrate.io/v3/runtime/frame>
 pub use pallet::*;
 
+// #[cfg(feature = "runtime-benchmarks")]
+mod benchmarking;
+
 #[cfg(test)]
 mod mock;
 

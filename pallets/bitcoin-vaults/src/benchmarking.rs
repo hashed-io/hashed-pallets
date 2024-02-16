@@ -1,4 +1,4 @@
-//! Confidential Docs pallet benchmarking.
+//! Bitcoin Vaults pallet benchmarking.
 
 #![cfg(feature = "runtime-benchmarks")]
 
@@ -93,6 +93,23 @@ pub fn setup_vaults_sized<T: Config>(
 			num_cosigners,
 		);
 	}
+}
+
+pub fn generate_insert_output_descriptors_payload_sized<T: Config>(
+	descriptor_size: u32,
+) -> Vec<SingleVaultPayload> {
+	let mut payload = Vec::<SingleVaultPayload>::new();
+	for (vault_id, vault) in <Vaults<T>>::iter() {
+		if vault.offchain_status == BDKStatus::Pending {
+			payload.push(SingleVaultPayload {
+				vault_id,
+				output_descriptor: generate_output_descriptor_sized::<T>(1, descriptor_size).into(),
+				change_descriptor: generate_output_descriptor_sized::<T>(2, descriptor_size).into(),
+				status: OffchainStatus::Valid,
+			});
+		}
+	}
+	payload
 }
 
 pub fn setup_xpub_sized<T: Config>(owner: T::AccountId, id: u8, size: u32) {
@@ -476,6 +493,12 @@ mod benchmarks {
 			T::VaultDescriptionMaxLen::get(),
 			T::MaxCosignersPerVault::get(),
 		);
+		assert_ok!(BitcoinVaults::<T>::create_proof(
+			RawOrigin::Signed(owner.clone()).into(),
+			vault_id,
+			generate_description_sized::<T>(0, T::VaultDescriptionMaxLen::get()),
+			generate_psbt_sized::<T>(1, s)
+		));
 		let cosigner = sign_proof_sized::<T>(vault_id, s, true, false).unwrap();
 		let psbt = generate_psbt_sized::<T>(2, s);
 		#[extrinsic_call]
@@ -484,6 +507,53 @@ mod benchmarks {
 		let vault = BitcoinVaults::<T>::vaults(vault_id).unwrap();
 		assert_eq!(vault.cosigners.len(), proof.signed_psbts.len());
 	}
+
+	#[benchmark]
+	fn finalize_proof(s: Linear<2, { T::PSBTMaxLen::get() }>) {
+		let owner: T::AccountId = account("owner", 0, SEED);
+		setup_xpub_sized::<T>(owner.clone(), 0, T::XPubLen::get());
+		let vault_id = setup_vault_sized::<T>(
+			owner.clone(),
+			0,
+			T::XPubLen::get(),
+			T::VaultDescriptionMaxLen::get(),
+			T::MaxCosignersPerVault::get(),
+		);
+		assert_ok!(BitcoinVaults::<T>::create_proof(
+			RawOrigin::Signed(owner.clone()).into(),
+			vault_id,
+			generate_description_sized::<T>(0, T::VaultDescriptionMaxLen::get()),
+			generate_psbt_sized::<T>(1, s)
+		));
+		sign_proof_sized::<T>(vault_id, s, true, false).unwrap();
+		let psbt = generate_psbt_sized::<T>(2, s);
+		#[extrinsic_call]
+		_(RawOrigin::Signed(owner.clone()), vault_id, psbt);
+		let proof = BitcoinVaults::<T>::proof_of_reserve(vault_id).unwrap();
+		assert_eq!(proof.status, ProposalStatus::Broadcasted);
+	}
+
+	// #[benchmark]
+	// fn ocw_insert_descriptors(
+	// 	o: Linear<2, { T::OutputDescriptorMaxLen::get() }>,
+	// 	v: Linear<1, { 1000 }>,
+	// ) {
+	// 	let owner: T::AccountId = account("owner", 0, SEED);
+	// 	setup_xpub_sized::<T>(owner.clone(), 0, T::XPubLen::get());
+	// 	setup_vaults_sized::<T>(
+	// 		owner.clone(),
+	// 		v,
+	// 		T::XPubLen::get(),
+	// 		T::VaultDescriptionMaxLen::get(),
+	// 		T::MaxCosignersPerVault::get(),
+	// 	);
+	// 	let payload = generate_insert_output_descriptors_payload_sized(o);
+
+	// 	#[extrinsic_call]
+	// 	_(RawOrigin::Unsigned, vault_id, psbt);
+	// 	let proof = BitcoinVaults::<T>::proof_of_reserve(vault_id).unwrap();
+	// 	assert_eq!(proof.status, ProposalStatus::Broadcasted);
+	// }
 
 	impl_benchmark_test_suite! {
 		BitcoinVaults,
