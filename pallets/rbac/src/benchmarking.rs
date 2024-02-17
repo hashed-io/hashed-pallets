@@ -21,8 +21,8 @@ pub fn generate_role_sized(id: u8, size: u32) -> Vec<u8> {
 	generate_vector(1, id, size)
 }
 
-pub fn generate_scope_sized(id: u8, size: u32) -> Vec<u8> {
-	generate_vector(2, id, size)
+pub fn generate_scope_sized(id: u32, size: u32) -> Vec<u8> {
+	generate_vector((id / u8::MAX as u32) as u8, (id % u8::MAX as u32) as u8, size)
 }
 
 pub fn generate_roles_sized(num_roles: u32, size: u32) -> Vec<Vec<u8>> {
@@ -50,7 +50,7 @@ pub fn setup_roles_sized<T: Config>(pallet_id: IdOrVec, num_roles: u32, size: u3
 pub fn setup_scopes_sized<T: Config>(pallet_id: IdOrVec, num_scopes: u32) -> Vec<ScopeId> {
 	let mut scope_ids = Vec::new();
 	for s in 0..num_scopes {
-		let scope = generate_scope_sized(s as u8, 10);
+		let scope = generate_scope_sized(s, 10);
 		let scope_id = generate_id(scope);
 		assert_ok!(RBAC::<T>::create_scope(pallet_id.clone(), scope_id));
 		scope_ids.push(scope_id);
@@ -122,7 +122,7 @@ pub fn setup_permissions_sized<T: Config>(
 	permissions.into_iter().map(|permission| generate_id(permission)).collect()
 }
 
-pub fn generate_vector(prefix: u8, id: u8, size: u32) -> scale_info::prelude::vec::Vec<u8> {
+pub fn generate_vector(prefix: u8, id: u8, size: u32) -> Vec<u8> {
 	assert!(size > 0, "vector size must be greater than 0");
 	let mut v = vec![id; size as usize];
 	v[0] = prefix;
@@ -135,7 +135,7 @@ mod benchmarks {
 
 	#[benchmark]
 	fn tx_create_and_set_roles(
-		i: Linear<1, 400>,
+		i: Linear<1, 100>,
 		l: Linear<2, { T::RoleMaxLen::get() }>,
 		r: Linear<1, { T::MaxRolesPerPallet::get() }>,
 	) {
@@ -148,7 +148,7 @@ mod benchmarks {
 
 	#[benchmark]
 	fn tx_remove_role_from_user(
-		i: Linear<1, 400>,
+		i: Linear<1, 100>,
 		s: Linear<1, { T::MaxScopesPerPallet::get() }>,
 		r: Linear<1, { T::MaxRolesPerUser::get() }>,
 		u: Linear<1, { T::MaxUsersPerRole::get() }>,
@@ -172,7 +172,7 @@ mod benchmarks {
 
 	#[benchmark]
 	fn tx_create_and_set_permissions(
-		i: Linear<1, 400>,
+		i: Linear<1, 100>,
 		l: Linear<2, { T::PermissionMaxLen::get() }>,
 		p: Linear<1, { T::MaxPermissionsPerRole::get() }>,
 	) {
@@ -190,7 +190,7 @@ mod benchmarks {
 
 	#[benchmark]
 	fn tx_assign_role_to_user(
-		i: Linear<1, 400>,
+		i: Linear<1, 100>,
 		s: Linear<1, { T::MaxScopesPerPallet::get() }>,
 		r: Linear<1, { T::MaxRolesPerUser::get() }>,
 		u: Linear<1, { T::MaxUsersPerRole::get() - 1 }>,
@@ -223,7 +223,7 @@ mod benchmarks {
 
 	#[benchmark]
 	fn revoke_permission_from_role(
-		i: Linear<1, 400>,
+		i: Linear<1, 100>,
 		l: Linear<2, { T::PermissionMaxLen::get() }>,
 		p: Linear<1, { T::MaxPermissionsPerRole::get() }>,
 	) {
@@ -243,7 +243,7 @@ mod benchmarks {
 
 	#[benchmark]
 	fn remove_permission_from_pallet(
-		i: Linear<1, 400>,
+		i: Linear<1, 100>,
 		l: Linear<2, { T::PermissionMaxLen::get() }>,
 		p: Linear<1, { T::MaxPermissionsPerRole::get() }>,
 		m: Linear<2, { T::RoleMaxLen::get() }>,
@@ -259,7 +259,7 @@ mod benchmarks {
 
 	#[benchmark]
 	fn remove_pallet_permissions(
-		i: Linear<1, 400>,
+		i: Linear<1, 100>,
 		l: Linear<2, { T::PermissionMaxLen::get() }>,
 		s: Linear<1, { T::MaxScopesPerPallet::get() }>,
 		p: Linear<1, { T::MaxPermissionsPerRole::get() }>,
