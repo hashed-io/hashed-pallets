@@ -28,6 +28,13 @@ impl IdOrVec {
 			Self::Vec(v) => v.clone().using_encoded(blake2_256),
 		}
 	}
+
+	pub fn len(&self) -> usize {
+		match self {
+			Self::Id(id) => id.len(),
+			Self::Vec(v) => v.len(),
+		}
+	}
 }
 
 pub trait RoleBasedAccessControl<AccountId> {

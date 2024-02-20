@@ -66,6 +66,7 @@ impl pallet_bitcoin_vaults::Config for Test {
 	type VaultDescriptionMaxLen = VaultDescriptionMaxLen;
 	type OutputDescriptorMaxLen = OutputDescriptorMaxLen;
 	type MaxProposalsPerVault = MaxProposalsPerVault;
+	type WeightInfo = ();
 }
 
 type Extrinsic = TestXt<RuntimeCall, ()>;

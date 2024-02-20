@@ -4,7 +4,7 @@
 
 use super::*;
 use crate::{types::*, Pallet as BitcoinVaults};
-use scale_info::prelude::*;
+use scale_info::prelude::{vec::Vec, *};
 
 use frame_benchmarking::v2::*;
 use frame_support::{assert_ok, pallet_prelude::*, traits::Get};
@@ -33,7 +33,7 @@ pub fn generate_psbt_sized<T: Config>(id: u8, size: u32) -> PSBT<T> {
 	generate_vector(4, id, size).try_into().unwrap()
 }
 
-pub fn generate_vector(prefix: u8, id: u8, size: u32) -> scale_info::prelude::vec::Vec<u8> {
+pub fn generate_vector(prefix: u8, id: u8, size: u32) -> Vec<u8> {
 	assert!(size > 0, "vector size must be greater than 0");
 	let mut v = vec![id; size as usize];
 	v[0] = prefix;

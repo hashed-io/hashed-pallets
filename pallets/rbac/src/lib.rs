@@ -17,8 +17,12 @@ mod tests;
 mod functions;
 pub mod types;
 
+pub mod weights;
+use weights::WeightInfo;
+
 #[frame_support::pallet]
 pub mod pallet {
+	use super::*;
 	use crate::types::*;
 	use frame_support::pallet_prelude::{ValueQuery, *};
 	use frame_system::pallet_prelude::*;
@@ -46,6 +50,8 @@ pub mod pallet {
 		type MaxRolesPerUser: Get<u32>;
 		#[pallet::constant]
 		type MaxUsersPerRole: Get<u32>;
+		/// Weight information for extrinsics in this pallet.
+		type WeightInfo: WeightInfo;
 	}
 
 	#[pallet::pallet]
@@ -221,7 +227,7 @@ pub mod pallet {
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
 		#[pallet::call_index(0)]
-		#[pallet::weight(Weight::from_parts(10_000,0) + T::DbWeight::get().writes(1))]
+		#[pallet::weight(<T as Config>::WeightInfo::tx_create_and_set_roles(pallet.len() as u32, T::RoleMaxLen::get(), roles.len() as u32))]
 		pub fn tx_create_and_set_roles(
 			origin: OriginFor<T>,
 			pallet: IdOrVec,
@@ -236,7 +242,7 @@ pub mod pallet {
 		}
 
 		#[pallet::call_index(1)]
-		#[pallet::weight(Weight::from_parts(10_000,0) + T::DbWeight::get().writes(1))]
+		#[pallet::weight(<T as Config>::WeightInfo::tx_remove_role_from_user(pallet.len() as u32, T::MaxRolesPerUser::get(), T::MaxUsersPerRole::get()))]
 		pub fn tx_remove_role_from_user(
 			origin: OriginFor<T>,
 			user: T::AccountId,
@@ -253,7 +259,7 @@ pub mod pallet {
 		}
 
 		#[pallet::call_index(2)]
-		#[pallet::weight(Weight::from_parts(10_000,0) + T::DbWeight::get().writes(1))]
+		#[pallet::weight(<T as Config>::WeightInfo::tx_create_and_set_permissions(pallet.len() as u32, T::PermissionMaxLen::get(), permissions.len() as u32))]
 		pub fn tx_create_and_set_permissions(
 			origin: OriginFor<T>,
 			pallet: IdOrVec,
@@ -269,7 +275,7 @@ pub mod pallet {
 		}
 
 		#[pallet::call_index(3)]
-		#[pallet::weight(Weight::from_parts(10_000,0) + T::DbWeight::get().writes(1))]
+		#[pallet::weight(<T as Config>::WeightInfo::tx_assign_role_to_user(pallet.len() as u32, T::MaxScopesPerPallet::get(), T::MaxRolesPerUser::get(), T::MaxUsersPerRole::get()))]
 		pub fn tx_assign_role_to_user(
 			origin: OriginFor<T>,
 			user: T::AccountId,
@@ -286,7 +292,7 @@ pub mod pallet {
 		}
 
 		#[pallet::call_index(4)]
-		#[pallet::weight(Weight::from_parts(10_000,0) + T::DbWeight::get().writes(1))]
+		#[pallet::weight(<T as Config>::WeightInfo::revoke_permission_from_role(pallet.len() as u32, T::PermissionMaxLen::get(), T::MaxPermissionsPerRole::get()))]
 		pub fn revoke_permission_from_role(
 			origin: OriginFor<T>,
 			pallet: IdOrVec,
@@ -302,7 +308,7 @@ pub mod pallet {
 		}
 
 		#[pallet::call_index(5)]
-		#[pallet::weight(Weight::from_parts(10_000,0) + T::DbWeight::get().writes(1))]
+		#[pallet::weight(<T as Config>::WeightInfo::remove_permission_from_pallet(pallet.len() as u32, T::PermissionMaxLen::get(), T::MaxPermissionsPerRole::get(), T::RoleMaxLen::get(), T::MaxRolesPerPallet::get()))]
 		pub fn remove_permission_from_pallet(
 			origin: OriginFor<T>,
 			pallet: IdOrVec,
@@ -317,7 +323,7 @@ pub mod pallet {
 		}
 
 		#[pallet::call_index(6)]
-		#[pallet::weight(Weight::from_parts(10_000,0) + T::DbWeight::get().writes(1))]
+		#[pallet::weight(<T as Config>::WeightInfo::remove_pallet_permissions(pallet.len() as u32, T::MaxScopesPerPallet::get(), T::MaxUsersPerRole::get()))]
 		pub fn remove_pallet_permissions(origin: OriginFor<T>, pallet: IdOrVec) -> DispatchResult {
 			ensure!(
 				T::RemoveOrigin::ensure_origin(origin.clone()).is_ok(),

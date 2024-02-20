@@ -12,12 +12,15 @@ mod tests;
 
 mod functions;
 pub mod types;
+pub mod weights;
+use weights::WeightInfo;
 
 #[frame_support::pallet]
 pub mod pallet {
 	use frame_support::pallet_prelude::*;
 	//#[cfg(feature = "std")]
 	//use frame_support::serde::{Deserialize, Serialize};
+	use super::*;
 	use crate::types::*;
 	use frame_support::{pallet_prelude::BoundedVec, traits::Get};
 	use frame_system::{
@@ -89,6 +92,9 @@ pub mod pallet {
 		type OutputDescriptorMaxLen: Get<u32>;
 		#[pallet::constant]
 		type MaxProposalsPerVault: Get<u32>;
+
+		/// Weight information for extrinsics in this pallet.
+		type WeightInfo: WeightInfo;
 	}
 
 	#[pallet::pallet]
@@ -350,7 +356,7 @@ pub mod pallet {
 		///   first and insert
 		/// a new one.
 		#[pallet::call_index(1)]
-		#[pallet::weight(Weight::from_parts(10_000,0) + T::DbWeight::get().writes(2))]
+		#[pallet::weight(<T as Config>::WeightInfo::set_xpub(xpub.len() as u32))]
 		pub fn set_xpub(origin: OriginFor<T>, xpub: BoundedVec<u8, T::XPubLen>) -> DispatchResult {
 			// Check that the extrinsic was signed and get the signer.
 			let who = ensure_signed(origin.clone())?;
@@ -392,7 +398,7 @@ pub mod pallet {
 		///
 		/// This tx does not takes any parameters.
 		#[pallet::call_index(2)]
-		#[pallet::weight(Weight::from_parts(10_000,0) + T::DbWeight::get().writes(2))]
+		#[pallet::weight(<T as Config>::WeightInfo::remove_xpub(T::XPubLen::get(), T::VaultDescriptionMaxLen::get(), T::MaxCosignersPerVault::get(), T::MaxVaultsPerUser::get()))]
 		pub fn remove_xpub(origin: OriginFor<T>) -> DispatchResult {
 			let who = ensure_signed(origin.clone())?;
 			// The xpub must exists
@@ -432,7 +438,7 @@ pub mod pallet {
 		/// ### Considerations
 		/// - Do not include the vault owner on the `cosigners` list.
 		#[pallet::call_index(3)]
-		#[pallet::weight(Weight::from_parts(10_000,0) + T::DbWeight::get().writes(1))]
+		#[pallet::weight(<T as Config>::WeightInfo::create_vault(T::XPubLen::get(), description.len() as u32, cosigners.len() as u32, T::MaxVaultsPerUser::get()))]
 		pub fn create_vault(
 			origin: OriginFor<T>,
 			threshold: u32,
@@ -481,7 +487,7 @@ pub mod pallet {
 		/// ### Considerations:
 		/// - Only the vault owner can perform this extrinsic
 		#[pallet::call_index(4)]
-		#[pallet::weight(Weight::from_parts(10_000,0) + T::DbWeight::get().writes(1))]
+		#[pallet::weight(<T as Config>::WeightInfo::remove_vault(T::XPubLen::get(), T::VaultDescriptionMaxLen::get(), T::MaxCosignersPerVault::get(), T::MaxVaultsPerUser::get(), T::MaxProposalsPerVault::get(), T::PSBTMaxLen::get()))]
 		pub fn remove_vault(origin: OriginFor<T>, vault_id: [u8; 32]) -> DispatchResult {
 			let who = ensure_signed(origin.clone())?;
 
@@ -501,7 +507,7 @@ pub mod pallet {
 		/// ### Considerations
 		/// - Please ensure the recipient address is a valid mainnet address.
 		#[pallet::call_index(5)]
-		#[pallet::weight(Weight::from_parts(10_000,0) + T::DbWeight::get().writes(1))]
+		#[pallet::weight(<T as Config>::WeightInfo::propose(T::XPubLen::get(), description.len() as u32, T::MaxProposalsPerVault::get(), T::PSBTMaxLen::get()))]
 		pub fn propose(
 			origin: OriginFor<T>,
 			vault_id: [u8; 32],
@@ -536,7 +542,7 @@ pub mod pallet {
 		/// ### Parameters:
 		/// - `proposal_id`: the proposal identifier
 		#[pallet::call_index(6)]
-		#[pallet::weight(Weight::from_parts(10_000,0) + T::DbWeight::get().writes(1))]
+		#[pallet::weight(<T as Config>::WeightInfo::remove_proposal(T::XPubLen::get(), T::VaultDescriptionMaxLen::get(), T::MaxProposalsPerVault::get(), T::PSBTMaxLen::get()))]
 		pub fn remove_proposal(origin: OriginFor<T>, proposal_id: [u8; 32]) -> DispatchResult {
 			let who = ensure_signed(origin.clone())?;
 			let proposal = <Proposals<T>>::get(proposal_id).ok_or(Error::<T>::ProposalNotFound)?;
@@ -559,7 +565,7 @@ pub mod pallet {
 		/// - Ensure the new url is valid.
 		/// - The url has a maximum length of 32 bytes
 		#[pallet::call_index(7)]
-		#[pallet::weight(Weight::from_parts(10_000,0) + T::DbWeight::get().writes(1))]
+		#[pallet::weight(<T as Config>::WeightInfo::set_bdk_url(new_url.len() as u32))]
 		pub fn set_bdk_url(origin: OriginFor<T>, new_url: URL) -> DispatchResult {
 			T::ChangeBDKOrigin::ensure_origin(origin.clone())?;
 			<BDKServicesURL<T>>::put(new_url);
@@ -579,7 +585,7 @@ pub mod pallet {
 		/// - If successful, this process cannot be undone
 		/// - A user can only sign a proposal once
 		#[pallet::call_index(8)]
-		#[pallet::weight(Weight::from_parts(10_000,0) + T::DbWeight::get().writes(1))]
+		#[pallet::weight(<T as Config>::WeightInfo::save_psbt(T::MaxCosignersPerVault::get(), signature_payload.len() as u32))]
 		pub fn save_psbt(
 			origin: OriginFor<T>,
 			proposal_id: [u8; 32],
@@ -603,7 +609,7 @@ pub mod pallet {
 		/// - The proposal must have a valid PSBT
 		/// - Any vault member can perform this extrinsic
 		#[pallet::call_index(9)]
-		#[pallet::weight(Weight::from_parts(10_000,0) + T::DbWeight::get().writes(1))]
+		#[pallet::weight(<T as Config>::WeightInfo::finalize_psbt(T::MaxCosignersPerVault::get(), T::PSBTMaxLen::get()))]
 		pub fn finalize_psbt(
 			origin: OriginFor<T>,
 			proposal_id: [u8; 32],
@@ -625,7 +631,7 @@ pub mod pallet {
 		/// - The proposal must be finalized already
 		/// - Any vault member can perform this extrinsic
 		#[pallet::call_index(10)]
-		#[pallet::weight(Weight::from_parts(10_000,0) + T::DbWeight::get().writes(1))]
+		#[pallet::weight(<T as Config>::WeightInfo::broadcast_psbt(T::PSBTMaxLen::get()))]
 		pub fn broadcast_psbt(origin: OriginFor<T>, proposal_id: [u8; 32]) -> DispatchResult {
 			let who = ensure_signed(origin.clone())?;
 			Self::do_finalize_psbt(who, proposal_id, true)
@@ -644,7 +650,7 @@ pub mod pallet {
 		/// - Any vault member can perform this extrinsic
 		/// - A vault can only have a PoR at a time.
 		#[pallet::call_index(11)]
-		#[pallet::weight(Weight::from_parts(10_000,0) + T::DbWeight::get().writes(1))]
+		#[pallet::weight(<T as Config>::WeightInfo::create_proof(message.len() as u32, psbt.len() as u32))]
 		pub fn create_proof(
 			origin: OriginFor<T>,
 			vault_id: [u8; 32],
@@ -667,7 +673,7 @@ pub mod pallet {
 		/// - Any vault member can perform this extrinsic
 		/// - A vault signer can only sabe its PSBT once.
 		#[pallet::call_index(12)]
-		#[pallet::weight(Weight::from_parts(10_000,0) + T::DbWeight::get().writes(1))]
+		#[pallet::weight(<T as Config>::WeightInfo::save_proof_psbt(psbt.len() as u32))]
 		pub fn save_proof_psbt(
 			origin: OriginFor<T>,
 			vault_id: [u8; 32],
@@ -689,7 +695,7 @@ pub mod pallet {
 		/// - Any vault member can perform this extrinsic
 		/// - A vault signer can only sabe its PSBT once.
 		#[pallet::call_index(13)]
-		#[pallet::weight(Weight::from_parts(10_000,0) + T::DbWeight::get().writes(1))]
+		#[pallet::weight(<T as Config>::WeightInfo::finalize_proof(psbt.len() as u32))]
 		pub fn finalize_proof(
 			origin: OriginFor<T>,
 			vault_id: [u8; 32],

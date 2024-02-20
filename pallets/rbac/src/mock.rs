@@ -68,6 +68,7 @@ impl pallet_rbac::Config for Test {
 	type MaxRolesPerUser = MaxRolesPerUser;
 	type MaxUsersPerRole = MaxUsersPerRole;
 	type RemoveOrigin = EnsureRoot<Self::AccountId>;
+	type WeightInfo = ();
 }
 // Build genesis storage according to the mock runtime.
 pub fn new_test_ext() -> sp_io::TestExternalities {

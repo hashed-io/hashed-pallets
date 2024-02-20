@@ -4,7 +4,7 @@
 
 use super::*;
 use crate::{types::*, Pallet as RBAC};
-use scale_info::prelude::*;
+use scale_info::prelude::{vec::Vec, *};
 
 use frame_benchmarking::v2::*;
 use frame_support::{assert_ok, pallet_prelude::*, traits::Get};
@@ -149,12 +149,11 @@ mod benchmarks {
 	#[benchmark]
 	fn tx_remove_role_from_user(
 		i: Linear<1, 100>,
-		s: Linear<1, { T::MaxScopesPerPallet::get() }>,
 		r: Linear<1, { T::MaxRolesPerUser::get() }>,
 		u: Linear<1, { T::MaxUsersPerRole::get() }>,
 	) {
 		let pallet_id = generate_pallet_id_sized(0, i);
-		let scope_id = setup_scopes_sized::<T>(pallet_id.clone(), s)[0];
+		let scope_id = setup_scopes_sized::<T>(pallet_id.clone(), T::MaxScopesPerPallet::get())[0];
 		let role_ids = setup_roles_sized::<T>(
 			pallet_id.clone(),
 			T::MaxRolesPerPallet::get(),
@@ -260,18 +259,23 @@ mod benchmarks {
 	#[benchmark]
 	fn remove_pallet_permissions(
 		i: Linear<1, 100>,
-		l: Linear<2, { T::PermissionMaxLen::get() }>,
 		s: Linear<1, { T::MaxScopesPerPallet::get() }>,
-		p: Linear<1, { T::MaxPermissionsPerRole::get() }>,
 		u: Linear<1, { T::MaxUsersPerRole::get() }>,
-		m: Linear<2, { T::RoleMaxLen::get() }>,
-		r: Linear<1, { T::MaxRolesPerPallet::get() }>,
 	) {
 		let pallet_id = generate_pallet_id_sized(0, i);
 		let scope_ids = setup_scopes_sized::<T>(pallet_id.clone(), s);
-		let role_ids = setup_roles_sized::<T>(pallet_id.clone(), r, m);
-		setup_permissions_sized::<T>(pallet_id.clone(), role_ids.clone(), p, l);
-		let ru = cmp::min(r, T::MaxRolesPerUser::get()) as usize;
+		let role_ids = setup_roles_sized::<T>(
+			pallet_id.clone(),
+			T::MaxRolesPerPallet::get(),
+			T::RoleMaxLen::get(),
+		);
+		setup_permissions_sized::<T>(
+			pallet_id.clone(),
+			role_ids.clone(),
+			T::MaxPermissionsPerRole::get(),
+			T::PermissionMaxLen::get(),
+		);
+		let ru = cmp::min(T::MaxRolesPerPallet::get(), T::MaxRolesPerUser::get()) as usize;
 		assign_roles_to_users::<T>(u, pallet_id.clone(), scope_ids, &role_ids[0..ru]);
 
 		#[extrinsic_call]
