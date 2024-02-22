@@ -1,14 +1,23 @@
+[workspace.package]
+authors = ["Hashed <https://github.com/hashed-io"]
+edition = "2021"
+homepage = "https://hashed.io"
+repository = "https://github.com/hashed-io/hashed-pallets"
+license = "MIT"
+
 [workspace]
 members = [
-    'pallets/bitcoin-vaults',
-    'pallets/confidential-docs',
-    'pallets/rbac',
-    'pallets/fruniques',
-    'pallets/gated-marketplace',
-    'pallets/mapped-assets',
-    'pallets/afloat',
-    'pallets/fund-admin',
-    'pallets/fund-admin-records',
+	'pallets/bitcoin-vaults',
+	'pallets/confidential-docs',
+	'pallets/rbac',
+	'pallets/fruniques',
+	'pallets/gated-marketplace',
+	'pallets/mapped-assets',
+	'pallets/afloat',
+	'pallets/fund-admin',
+	'pallets/fund-admin-records',
+	'pallets/example-basic'
 ]
+
 [profile.release]
 panic = 'unwind'

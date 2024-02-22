@@ -1,6 +1,4 @@
 use crate as pallet_gated_marketplace;
-use frame_system::RawOrigin;
-use sp_runtime::traits::Lookup;
 
 use frame_support::{
 	parameter_types,
@@ -13,14 +11,8 @@ use sp_runtime::traits::{BlakeTwo256, IdentityLookup};
 pub type Balance = u128;
 type Block = frame_system::mocking::MockBlock<Test>;
 use frame_system::EnsureRoot;
-use sp_runtime::{
-	create_runtime_str, generic, impl_opaque_keys,
-	traits::{AccountIdLookup, Block as BlockT, IdentifyAccount, NumberFor, Verify},
-	transaction_validity::{TransactionSource, TransactionValidity},
-	AccountId32, ApplyExtrinsicResult, BuildStorage, MultiSignature, Percent,
-};
+use sp_runtime::BuildStorage;
 use system::EnsureSigned;
-type AccountId = u64;
 type AssetId = u32;
 // Configure a mock runtime to test the pallet.
 frame_support::construct_runtime!(

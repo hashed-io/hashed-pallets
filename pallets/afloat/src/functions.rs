@@ -970,22 +970,22 @@ impl<T: Config> Pallet<T> {
 		ensure!(is_admin_or_owner || offer.creator_id == who, Error::<T>::Unauthorized);
 
 		match offer.status {
-			OfferStatus::CREATED => {
+			OfferStatus::Created => {
 				<AfloatOffers<T>>::try_mutate(order_id, |offer| -> DispatchResult {
 					let offer = offer.as_mut().ok_or(Error::<T>::OfferNotFound)?;
 					offer.cancellation_date =
 						pallet_gated_marketplace::Pallet::<T>::get_timestamp_in_milliseconds();
-					offer.status = OfferStatus::CANCELLED;
+					offer.status = OfferStatus::Cancelled;
 					Ok(())
 				})?;
 				Ok(())
 			},
-			OfferStatus::TF_PENDING_SIGNATURE => {
+			OfferStatus::PendingTFSignature => {
 				<AfloatOffers<T>>::try_mutate(order_id, |offer| -> DispatchResult {
 					let offer = offer.as_mut().ok_or(Error::<T>::OfferNotFound)?;
 					offer.cancellation_date =
 						pallet_gated_marketplace::Pallet::<T>::get_timestamp_in_milliseconds();
-					offer.status = OfferStatus::CANCELLED;
+					offer.status = OfferStatus::Cancelled;
 					Ok(())
 				})?;
 				Ok(())
