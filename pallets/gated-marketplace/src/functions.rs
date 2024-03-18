@@ -135,6 +135,7 @@ impl<T: Config> Pallet<T> {
 		// ensure the origin is owner or admin
 		Self::is_authorized(authority.clone(), &marketplace_id, Permission::Enroll)?;
 
+		Self::validate_fields(&fields, &custodian_fields)?;
 		let (custodian, fields) = Self::set_up_application(fields, custodian_fields);
 
 		let application = Application::<T> {
@@ -794,6 +795,24 @@ impl<T: Config> Pallet<T> {
 	}
 
 	/* ---- Helper functions ---- */
+	pub fn validate_fields(
+		fields: &Fields<T>,
+		custodian_fields: &Option<CustodianFields<T>>,
+	) -> DispatchResult {
+		match custodian_fields {
+			Some(c_fields) => {
+				if fields.len() != c_fields.1.len() {
+					return Err(Error::<T>::InsufficientCustodianFields.into())
+				}
+			}
+			None => {
+				if !fields.is_empty() {
+					return Err(Error::<T>::FieldsNotProvided.into())
+				}
+			}
+		}
+		Ok(())
+	}
 
 	pub fn set_up_application(
 		fields: Fields<T>,
@@ -812,7 +831,6 @@ impl<T: Config> Pallet<T> {
 				for (i, field) in f.iter_mut().enumerate() {
 					field.custodian_cid = Some(c_fields.1[i].clone());
 				}
-
 				Some(c_fields.0)
 			},
 			_ => None,
