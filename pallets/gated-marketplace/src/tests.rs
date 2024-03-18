@@ -378,6 +378,7 @@ fn apply_twice_shouldnt_work() {
 			1,
 		));
 		let m_id = get_marketplace_id("my marketplace", 500, 600, 1);
+		
 		assert_ok!(GatedMarketplace::apply(
 			RuntimeOrigin::signed(3),
 			m_id,

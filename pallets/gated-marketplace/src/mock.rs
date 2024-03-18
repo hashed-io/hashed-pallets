@@ -1,5 +1,4 @@
 use crate as pallet_gated_marketplace;
-use frame_system::RawOrigin;
 use sp_runtime::traits::Lookup;
 
 use frame_support::{
@@ -22,6 +21,7 @@ use sp_runtime::{
 use system::EnsureSigned;
 type AccountId = u64;
 type AssetId = u32;
+
 // Configure a mock runtime to test the pallet.
 frame_support::construct_runtime!(
   pub enum Test

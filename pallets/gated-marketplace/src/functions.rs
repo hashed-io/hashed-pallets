@@ -806,7 +806,7 @@ impl<T: Config> Pallet<T> {
 				}
 			}
 			None => {
-				if !fields.is_empty() {
+				if fields.is_empty() {
 					return Err(Error::<T>::FieldsNotProvided.into())
 				}
 			}
