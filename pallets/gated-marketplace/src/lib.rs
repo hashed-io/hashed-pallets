@@ -338,6 +338,12 @@ pub mod pallet {
 		OwnerNotInMarketplace,
 		/// MappedAssetId not found
 		AssetNotFound,
+		/// Not enough custodian fields provided
+		InsufficientCustodianFields,
+		/// Fields not provided for the application
+		FieldsNotProvided,
+		/// Exceeds the maximum number of files
+		ExceedMaxFilesApplication,
 	}
 
 	#[pallet::call]
@@ -435,7 +441,7 @@ pub mod pallet {
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
-			let (custodian, fields) = Self::set_up_application(fields, custodian_fields);
+			let (custodian, fields) = Self::set_up_application(fields, custodian_fields)?;
 
 			let application = Application::<T> {
 				status: ApplicationStatus::default(),
@@ -473,7 +479,7 @@ pub mod pallet {
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
-			let (custodian, fields) = Self::set_up_application(fields, custodian_fields);
+			let (custodian, fields) = Self::set_up_application(fields, custodian_fields)?;
 
 			let application = Application::<T> {
 				status: ApplicationStatus::default(),

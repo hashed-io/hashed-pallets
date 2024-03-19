@@ -1,5 +1,4 @@
 use crate as pallet_gated_marketplace;
-use frame_system::RawOrigin;
 use sp_runtime::traits::Lookup;
 
 use frame_support::{
@@ -22,6 +21,7 @@ use sp_runtime::{
 use system::EnsureSigned;
 type AccountId = u64;
 type AssetId = u32;
+
 // Configure a mock runtime to test the pallet.
 frame_support::construct_runtime!(
   pub enum Test
@@ -163,16 +163,17 @@ impl pallet_balances::Config for Test {
 }
 
 parameter_types! {
-  pub const MaxScopesPerPallet: u32 = 2;
-  pub const MaxRolesPerPallet: u32 = 6;
-  pub const RoleMaxLen: u32 = 25;
-  pub const PermissionMaxLen: u32 = 25;
-  pub const MaxPermissionsPerRole: u32 = 30;
-  pub const MaxRolesPerUser: u32 = 2;
-  pub const MaxUsersPerRole: u32 = 2;
+	pub const MaxScopesPerPallet: u32 = 2;
+	pub const MaxRolesPerPallet: u32 = 6;
+	pub const RoleMaxLen: u32 = 25;
+	pub const PermissionMaxLen: u32 = 25;
+	pub const MaxPermissionsPerRole: u32 = 30;
+	pub const MaxRolesPerUser: u32 = 2;
+	pub const MaxUsersPerRole: u32 = 2;
 }
 impl pallet_rbac::Config for Test {
 	type RuntimeEvent = RuntimeEvent;
+	type RemoveOrigin = EnsureRoot<Self::AccountId>;
 	type MaxScopesPerPallet = MaxScopesPerPallet;
 	type MaxRolesPerPallet = MaxRolesPerPallet;
 	type RoleMaxLen = RoleMaxLen;
@@ -180,7 +181,7 @@ impl pallet_rbac::Config for Test {
 	type MaxPermissionsPerRole = MaxPermissionsPerRole;
 	type MaxRolesPerUser = MaxRolesPerUser;
 	type MaxUsersPerRole = MaxUsersPerRole;
-	type RemoveOrigin = EnsureRoot<Self::AccountId>;
+	type WeightInfo = ();
 }
 
 // Build genesis storage according to the mock runtime.
