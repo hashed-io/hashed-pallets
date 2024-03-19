@@ -274,6 +274,60 @@ fn apply_with_custodian_works() {
 }
 
 #[test]
+fn apply_with_mismatched_number_of_files_and_custodian_files_shouldnt_work() {
+	new_test_ext().execute_with(|| {
+		Balances::make_free_balance_be(&1, 100);
+		// Dispatch a signed extrinsic.
+		let m_label = create_label("my marketplace");
+		assert_ok!(GatedMarketplace::create_marketplace(
+			RuntimeOrigin::signed(1),
+			2,
+			m_label.clone(),
+			500,
+			600,
+			1,
+		));
+		let m_id = get_marketplace_id("my marketplace", 500, 600, 1);
+		assert_noop!(
+			GatedMarketplace::apply(
+				RuntimeOrigin::signed(3),
+				m_id,
+				create_application_fields(2),
+				create_custodian_fields(4, 1)
+			),
+			Error::<Test>::InsufficientCustodianFields
+		);
+	});
+}
+
+#[test]
+fn apply_with_custodian_but_no_custodian_files_shouldnt_work() {
+	new_test_ext().execute_with(|| {
+		Balances::make_free_balance_be(&1, 100);
+		// Dispatch a signed extrinsic.
+		let m_label = create_label("my marketplace");
+		assert_ok!(GatedMarketplace::create_marketplace(
+			RuntimeOrigin::signed(1),
+			2,
+			m_label.clone(),
+			500,
+			600,
+			1,
+		));
+		let m_id = get_marketplace_id("my marketplace", 500, 600, 1);
+		assert_noop!(
+			GatedMarketplace::apply(
+				RuntimeOrigin::signed(3),
+				m_id,
+				create_application_fields(2),
+				create_custodian_fields(4, 0)
+			),
+			Error::<Test>::InsufficientCustodianFields
+		);
+	});
+}
+
+#[test]
 fn apply_with_same_account_as_custodian_shouldnt_work() {
 	new_test_ext().execute_with(|| {
 		Balances::make_free_balance_be(&1, 100);
@@ -378,7 +432,7 @@ fn apply_twice_shouldnt_work() {
 			1,
 		));
 		let m_id = get_marketplace_id("my marketplace", 500, 600, 1);
-		
+
 		assert_ok!(GatedMarketplace::apply(
 			RuntimeOrigin::signed(3),
 			m_id,
