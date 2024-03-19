@@ -328,7 +328,7 @@ fn apply_with_mismatched_number_of_files_and_custodian_files_shouldnt_work() {
 }
 
 #[test]
-fn apply_with_custodian_but_no_custodian_files_shouldnt_work() {
+fn apply_with_custodian_but_no_custodian_fields_shouldnt_work() {
 	new_test_ext().execute_with(|| {
 		Balances::make_free_balance_be(&1, 100);
 		// Dispatch a signed extrinsic.
