@@ -474,12 +474,10 @@ impl<T: Config> Pallet<T> {
 			Error::<T>::NotEnoughTaxCreditsAvailable
 		);
 
-		// check arithmatic overflow
-		Self::safe_multiply_offer(offer.price_per_credit, tax_credit_amount)?;
 		//ensure user has enough afloat balance
 		ensure!(
 			Self::do_get_afloat_balance(who.clone())? >=
-				offer.price_per_credit * tax_credit_amount.into(),
+				Self::safe_multiply_offer(offer.price_per_credit, tax_credit_amount.into())?,
 			Error::<T>::NotEnoughAfloatBalanceAvailable
 		);
 		let zero_balance: T::Balance = Zero::zero();
@@ -488,7 +486,7 @@ impl<T: Config> Pallet<T> {
 
 		let creation_date: u64 = T::Timestamp::now().into();
 		let price_per_credit: T::Balance = offer.price_per_credit.into();
-		let total_price: T::Balance = price_per_credit * tax_credit_amount;
+		let total_price: T::Balance = Self::safe_multiply_offer(price_per_credit, tax_credit_amount)?;
 		let fee: Option<T::Balance> = None;
 		let tax_credit_id: <T as pallet_uniques::Config>::ItemId = offer.tax_credit_id;
 		let seller_id: T::AccountId = offer.creator_id;
@@ -941,9 +939,9 @@ impl<T: Config> Pallet<T> {
 	fn safe_multiply_offer(
 		factor1: T::Balance,
 		factor2: T::Balance
-	) -> DispatchResult {
-		factor1.checked_mul(&factor2).ok_or_else(|| Error::<T>::ArithmeticOverflow)?;
-		Ok(())
+	) -> Result<T::Balance, DispatchError> {
+		let result = factor1.checked_mul(&factor2).ok_or_else(|| Error::<T>::ArithmeticOverflow)?;
+		Ok(result)
 	}
 
 	fn get_all_roles_for_user(account_id: T::AccountId) -> Result<Vec<AfloatRole>, DispatchError> {

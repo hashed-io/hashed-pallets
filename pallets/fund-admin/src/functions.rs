@@ -3120,9 +3120,12 @@ impl<T: Config> Pallet<T> {
 		Ok(())
 	}
 
-	fn safe_add(a: u64, b: u64) -> DispatchResult {
-		a.checked_add(b).ok_or_else(|| Error::<T>::ArithmeticOverflow)?;
-		Ok(())
+	fn safe_add(
+		a: u64,
+		b: u64
+	) -> Result<u64, DispatchError> {
+		let result = a.checked_add(b).ok_or_else(|| Error::<T>::ArithmeticOverflow)?;
+		Ok(result)
 	}
 
 	fn do_calculate_drawdown_total_amount(
@@ -3145,11 +3148,9 @@ impl<T: Config> Pallet<T> {
 				// Get transaction data
 				let transaction_data = TransactionsInfo::<T>::get(transaction_id)
 					.ok_or(Error::<T>::TransactionNotFound)?;
-				// Check arithmetic overflow
-				Self::safe_add(drawdown_total_amount, transaction_data.amount)?;
 
 				// Add transaction amount to drawdown total amount
-				drawdown_total_amount += transaction_data.amount;
+				drawdown_total_amount = Self::safe_add(drawdown_total_amount, transaction_data.amount)?;
 			}
 		}
 
@@ -3300,11 +3301,8 @@ impl<T: Config> Pallet<T> {
 					RevenueTransactionsInfo::<T>::get(revenue_transaction_id)
 						.ok_or(Error::<T>::RevenueTransactionNotFound)?;
 
-				// Check arithmetic overflow
-				Self::safe_add(revenue_total_amount, revenue_transaction_data.amount)?;
-
 				// Add revenue transaction amount to revenue total amount
-				revenue_total_amount += revenue_transaction_data.amount;
+				revenue_total_amount = Self::safe_add(revenue_total_amount, revenue_transaction_data.amount)?;
 			}
 		}
 

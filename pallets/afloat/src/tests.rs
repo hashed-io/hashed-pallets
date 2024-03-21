@@ -59,7 +59,7 @@ fn replicate_overflow_for_start_take_sell_order() {
 			}
 		));
 
-		let (offer_id, offer) = AfloatOffers::<Test>::iter().next().unwrap().clone();
+		let (offer_id, _offer) = AfloatOffers::<Test>::iter().next().unwrap().clone();
 		assert_noop!(
 			Afloat::start_take_sell_order(
 				RawOrigin::Signed(other_user.clone()).into(),
