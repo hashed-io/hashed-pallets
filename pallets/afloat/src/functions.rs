@@ -531,6 +531,8 @@ impl<T: Config> Pallet<T> {
 		Ok(())
 	}
 
+	
+
 	/// Confirms a sell transaction.
 	///
 	/// # Arguments

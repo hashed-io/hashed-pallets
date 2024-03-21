@@ -1,5 +1,5 @@
 use super::*;
-use crate::{mock::*, types::*, Error};
+use crate::{mock::*, types::*, AfloatOffers, Error};
 use frame_support::{assert_noop, assert_ok, traits::Currency, BoundedVec};
 use frame_system::RawOrigin;
 
@@ -15,6 +15,58 @@ fn dummy_description() -> BoundedVec<u8, StringLimit> {
 //admin_id = 2
 //buy_fee = 2%
 //sell_fee = 4%
+
+#[test]
+fn replicate_overflow_for_start_take_sell_order() {
+	TestExternalitiesBuilder::new().initialize_all().build().execute_with(|| {
+		let user = new_account(3);
+		let other_user = new_account(4);
+		let item_id = 0;
+
+		Balances::make_free_balance_be(&user, 100);
+		Balances::make_free_balance_be(&other_user, 100);
+
+		let args = SignUpArgs::BuyerOrSeller {
+			cid: ShortString::try_from(b"cid".to_vec()).unwrap(),
+			cid_creator: ShortString::try_from(b"cid_creator".to_vec()).unwrap(),
+			group: ShortString::try_from(b"Group".to_vec()).unwrap(),
+		};
+
+		assert_ok!(Afloat::sign_up(RawOrigin::Signed(user.clone()).into(), args.clone()));
+		assert_ok!(Afloat::sign_up(RawOrigin::Signed(other_user.clone()).into(), args.clone()));
+
+		assert_ok!(Afloat::set_afloat_balance(
+			RuntimeOrigin::signed(1),
+			other_user.clone(),
+			100000
+		));
+		assert_eq!(Afloat::do_get_afloat_balance(other_user.clone()).unwrap(), 100000);
+
+		assert_ok!(Afloat::create_tax_credit(
+			RawOrigin::Signed(user.clone()).into(),
+			dummy_description(),
+			None,
+			None,
+		));
+
+		assert_ok!(Afloat::create_offer(
+			RawOrigin::Signed(user.clone()).into(),
+			CreateOfferArgs::Sell {
+				tax_credit_id: item_id,
+				price_per_credit: 18446744073709551615,
+				tax_credit_amount: 10,
+				expiration_date: 1000
+			}
+		));
+
+		let (offer_id, offer) = AfloatOffers::<Test>::iter().next().unwrap().clone();
+		assert_ok!(Afloat::start_take_sell_order(
+			RawOrigin::Signed(other_user.clone()).into(),
+			offer_id,
+			10
+		));
+	});
+}
 
 #[test]
 fn sign_up_works() {
