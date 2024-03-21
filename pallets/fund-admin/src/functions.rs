@@ -2008,13 +2008,8 @@ impl<T: Config> Pallet<T> {
 
 		// Create revenue transaction id
 		let revenue_transaction_id =
-			(revenue_id, job_eligible_id, project_id, timestamp).using_encoded(blake2_256);
-
-		// Ensure revenue transaction id doesn't exist
-		ensure!(
-			!RevenueTransactionsInfo::<T>::contains_key(revenue_transaction_id),
-			Error::<T>::RevenueTransactionIdAlreadyExists
-		);
+			(revenue_id, revenue_amount, job_eligible_id, project_id, timestamp)
+				.using_encoded(blake2_256);
 
 		// Create revenue transaction data
 		let revenue_transaction_data = RevenueTransactionData {
@@ -3125,6 +3120,11 @@ impl<T: Config> Pallet<T> {
 		Ok(())
 	}
 
+	fn safe_add(a: u64, b: u64) -> DispatchResult {
+		a.checked_add(b).ok_or_else(|| Error::<T>::ArithmeticOverflow)?;
+		Ok(())
+	}
+
 	fn do_calculate_drawdown_total_amount(
 		project_id: [u8; 32],
 		drawdown_id: [u8; 32],
@@ -3145,6 +3145,8 @@ impl<T: Config> Pallet<T> {
 				// Get transaction data
 				let transaction_data = TransactionsInfo::<T>::get(transaction_id)
 					.ok_or(Error::<T>::TransactionNotFound)?;
+				// Check arithmetic overflow
+				Self::safe_add(drawdown_total_amount, transaction_data.amount)?;
 
 				// Add transaction amount to drawdown total amount
 				drawdown_total_amount += transaction_data.amount;
@@ -3297,6 +3299,9 @@ impl<T: Config> Pallet<T> {
 				let revenue_transaction_data =
 					RevenueTransactionsInfo::<T>::get(revenue_transaction_id)
 						.ok_or(Error::<T>::RevenueTransactionNotFound)?;
+
+				// Check arithmetic overflow
+				Self::safe_add(revenue_total_amount, revenue_transaction_data.amount)?;
 
 				// Add revenue transaction amount to revenue total amount
 				revenue_total_amount += revenue_transaction_data.amount;

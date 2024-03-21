@@ -694,6 +694,8 @@ pub mod pallet {
 		AdminHasNoFreeBalance,
 		/// Administrator account has insuficiente balance to register a new user
 		InsufficientFundsToTransfer,
+		// Arithmetic addition overflow
+		ArithmeticOverflow,
 	}
 
 	// E X T R I N S I C S
