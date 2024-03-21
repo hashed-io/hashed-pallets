@@ -146,6 +146,8 @@ pub mod pallet {
 		ChildOfferIdNotFound,
 		// Tax credit amount underflow
 		Underflow,
+		// Arithmetic multiplication overflow
+		ArithmeticOverflow,
 		// Afloat marketplace label too long
 		LabelTooLong,
 		// Afloat asset has not been set

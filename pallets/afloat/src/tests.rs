@@ -60,11 +60,14 @@ fn replicate_overflow_for_start_take_sell_order() {
 		));
 
 		let (offer_id, offer) = AfloatOffers::<Test>::iter().next().unwrap().clone();
-		assert_ok!(Afloat::start_take_sell_order(
-			RawOrigin::Signed(other_user.clone()).into(),
-			offer_id,
-			10
-		));
+		assert_noop!(
+			Afloat::start_take_sell_order(
+				RawOrigin::Signed(other_user.clone()).into(),
+				offer_id,
+				10
+			),
+			Error::<Test>::ArithmeticOverflow
+		);
 	});
 }
 

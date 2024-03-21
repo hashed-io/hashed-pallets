@@ -4,7 +4,6 @@ use frame_support::pallet_prelude::*;
 use frame_system::{pallet_prelude::*, RawOrigin};
 use pallet_fruniques::types::{Attributes, CollectionDescription, FruniqueRole, ParentInfo};
 use pallet_gated_marketplace::types::{Marketplace, MarketplaceRole};
-use sp_runtime::{traits::StaticLookup, Permill};
 // use frame_support::traits::OriginTrait;
 use core::convert::TryInto;
 use frame_support::traits::Time;
@@ -12,8 +11,9 @@ use pallet_rbac::types::{IdOrVec, RoleBasedAccessControl, RoleId};
 use scale_info::prelude::vec;
 use sp_io::hashing::blake2_256;
 use sp_runtime::{
+	Permill,
 	sp_std::{str, vec::Vec},
-	traits::Zero,
+	traits::{Zero, StaticLookup, CheckedMul},
 };
 
 impl<T: Config> Pallet<T> {
@@ -473,6 +473,9 @@ impl<T: Config> Pallet<T> {
 			offer.tax_credit_amount_remaining >= tax_credit_amount,
 			Error::<T>::NotEnoughTaxCreditsAvailable
 		);
+
+		// check arithmatic overflow
+		Self::safe_multiply_offer(offer.price_per_credit, tax_credit_amount)?;
 		//ensure user has enough afloat balance
 		ensure!(
 			Self::do_get_afloat_balance(who.clone())? >=
@@ -933,6 +936,14 @@ impl<T: Config> Pallet<T> {
 					_ => panic!("Unexpected role string"),
 				}
 			})
+	}
+
+	fn safe_multiply_offer(
+		factor1: T::Balance,
+		factor2: T::Balance
+	) -> DispatchResult {
+		factor1.checked_mul(&factor2).ok_or_else(|| Error::<T>::ArithmeticOverflow)?;
+		Ok(())
 	}
 
 	fn get_all_roles_for_user(account_id: T::AccountId) -> Result<Vec<AfloatRole>, DispatchError> {
