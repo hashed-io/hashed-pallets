@@ -4175,6 +4175,50 @@ fn drawdowns_a_user_submits_a_drawdown_for_approval_works() {
 }
 
 #[test]
+fn replicate_overflow_for_a_drawdown_submission() {
+	new_test_ext().execute_with(|| {
+		assert_ok!(make_default_full_project());
+		let project_id = ProjectsInfo::<Test>::iter_keys().next().unwrap();
+
+		let drawdown_id = get_drawdown_id(project_id, DrawdownType::EB5, 1);
+		let expenditure_id = get_budget_expenditure_id(
+			project_id,
+			make_field_name("Expenditure Test 1"),
+			ExpenditureType::HardCost,
+		);
+
+		let transaction_data =
+			make_transaction(Some(expenditure_id), Some(1000), CUDAction::Create, None);
+
+		assert_ok!(FundAdmin::submit_drawdown(
+			RuntimeOrigin::signed(2),
+			project_id,
+			drawdown_id,
+			Some(transaction_data),
+			false,
+		));
+
+		let second_transaction_data = make_transaction(
+			Some(expenditure_id),
+			Some(18446744073709551615),
+			CUDAction::Create,
+			None,
+		);
+
+		assert_noop!(
+			FundAdmin::submit_drawdown(
+				RuntimeOrigin::signed(2),
+				project_id,
+				drawdown_id,
+				Some(second_transaction_data),
+				true,
+			),
+			Error::<Test>::ArithmeticOverflow
+		);
+	});
+}
+
+#[test]
 fn drawdowns_a_user_submits_a_draft_drawdown_for_approval_works() {
 	new_test_ext().execute_with(|| {
 		assert_ok!(make_default_full_project());
@@ -5786,6 +5830,46 @@ fn revenues_after_a_revenue_is_submitted_the_next_one_is_generated_automaticaly_
 		assert_eq!(
 			RevenuesInfo::<Test>::get(next_revenue_id).unwrap().status,
 			RevenueStatus::Draft
+		);
+	});
+}
+
+#[test]
+fn replicate_overflow_for_a_revenue_submission() {
+	new_test_ext().execute_with(|| {
+		assert_ok!(make_default_full_project());
+		let project_id = ProjectsInfo::<Test>::iter_keys().next().unwrap();
+
+		let revenue_id = get_revenue_id(project_id, 1);
+		let job_eligible_id = get_job_eligible_id(project_id, make_field_name("Job Eligible Test"));
+
+		let revenue_transaction_data =
+			make_revenue_transaction(Some(job_eligible_id), Some(10000), CUDAction::Create, None);
+
+		assert_ok!(FundAdmin::submit_revenue(
+			RuntimeOrigin::signed(2),
+			project_id,
+			revenue_id,
+			Some(revenue_transaction_data),
+			false,
+		));
+
+		let second_revenue_transaction_data = make_revenue_transaction(
+			Some(job_eligible_id),
+			Some(18446744073709551615),
+			CUDAction::Create,
+			None,
+		);
+
+		assert_noop!(
+			FundAdmin::submit_revenue(
+				RuntimeOrigin::signed(2),
+				project_id,
+				revenue_id,
+				Some(second_revenue_transaction_data),
+				true,
+			),
+			Error::<Test>::ArithmeticOverflow
 		);
 	});
 }

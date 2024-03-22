@@ -187,6 +187,7 @@ impl pallet_rbac::Config for Test {
 	type MaxPermissionsPerRole = MaxPermissionsPerRole;
 	type MaxRolesPerUser = MaxRolesPerUser;
 	type MaxUsersPerRole = MaxUsersPerRole;
+	type WeightInfo = ();
 }
 
 impl pallet_timestamp::Config for Test {

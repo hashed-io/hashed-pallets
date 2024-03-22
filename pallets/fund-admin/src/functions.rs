@@ -2008,8 +2008,8 @@ impl<T: Config> Pallet<T> {
 
 		// Create revenue transaction id
 		let revenue_transaction_id =
-			(revenue_id, job_eligible_id, project_id, timestamp).using_encoded(blake2_256);
-
+			(revenue_id, revenue_amount, job_eligible_id, project_id, timestamp)
+				.using_encoded(blake2_256);
 		// Ensure revenue transaction id doesn't exist
 		ensure!(
 			!RevenueTransactionsInfo::<T>::contains_key(revenue_transaction_id),
@@ -2031,11 +2031,6 @@ impl<T: Config> Pallet<T> {
 		};
 
 		// Insert revenue transaction data into RevenueTransactionsInfo
-		// Ensure revenue transaction id doesn't exist
-		ensure!(
-			!RevenueTransactionsInfo::<T>::contains_key(revenue_transaction_id),
-			Error::<T>::RevenueTransactionIdAlreadyExists
-		);
 		<RevenueTransactionsInfo<T>>::insert(revenue_transaction_id, revenue_transaction_data);
 
 		// Insert revenue transaction id into TransactionsByRevenue
@@ -3125,6 +3120,14 @@ impl<T: Config> Pallet<T> {
 		Ok(())
 	}
 
+	fn safe_add(
+		a: u64,
+		b: u64
+	) -> Result<u64, DispatchError> {
+		let result = a.checked_add(b).ok_or_else(|| Error::<T>::ArithmeticOverflow)?;
+		Ok(result)
+	}
+
 	fn do_calculate_drawdown_total_amount(
 		project_id: [u8; 32],
 		drawdown_id: [u8; 32],
@@ -3147,7 +3150,7 @@ impl<T: Config> Pallet<T> {
 					.ok_or(Error::<T>::TransactionNotFound)?;
 
 				// Add transaction amount to drawdown total amount
-				drawdown_total_amount += transaction_data.amount;
+				drawdown_total_amount = Self::safe_add(drawdown_total_amount, transaction_data.amount)?;
 			}
 		}
 
@@ -3299,7 +3302,7 @@ impl<T: Config> Pallet<T> {
 						.ok_or(Error::<T>::RevenueTransactionNotFound)?;
 
 				// Add revenue transaction amount to revenue total amount
-				revenue_total_amount += revenue_transaction_data.amount;
+				revenue_total_amount = Self::safe_add(revenue_total_amount, revenue_transaction_data.amount)?;
 			}
 		}
 
