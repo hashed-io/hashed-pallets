@@ -474,10 +474,11 @@ impl<T: Config> Pallet<T> {
 			Error::<T>::NotEnoughTaxCreditsAvailable
 		);
 
+		let price_per_credit: T::Balance = offer.price_per_credit.into();
+		let total_price: T::Balance = Self::safe_multiply_offer(price_per_credit, tax_credit_amount)?;
 		//ensure user has enough afloat balance
 		ensure!(
-			Self::do_get_afloat_balance(who.clone())? >=
-				Self::safe_multiply_offer(offer.price_per_credit, tax_credit_amount.into())?,
+			Self::do_get_afloat_balance(who.clone())? >= total_price,
 			Error::<T>::NotEnoughAfloatBalanceAvailable
 		);
 		let zero_balance: T::Balance = Zero::zero();
@@ -485,8 +486,6 @@ impl<T: Config> Pallet<T> {
 		ensure!(tax_credit_amount > zero_balance, Error::<T>::Underflow);
 
 		let creation_date: u64 = T::Timestamp::now().into();
-		let price_per_credit: T::Balance = offer.price_per_credit.into();
-		let total_price: T::Balance = Self::safe_multiply_offer(price_per_credit, tax_credit_amount)?;
 		let fee: Option<T::Balance> = None;
 		let tax_credit_id: <T as pallet_uniques::Config>::ItemId = offer.tax_credit_id;
 		let seller_id: T::AccountId = offer.creator_id;

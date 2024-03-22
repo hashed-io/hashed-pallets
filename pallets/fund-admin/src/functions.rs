@@ -2010,6 +2010,11 @@ impl<T: Config> Pallet<T> {
 		let revenue_transaction_id =
 			(revenue_id, revenue_amount, job_eligible_id, project_id, timestamp)
 				.using_encoded(blake2_256);
+		// Ensure revenue transaction id doesn't exist
+		ensure!(
+			!RevenueTransactionsInfo::<T>::contains_key(revenue_transaction_id),
+			Error::<T>::RevenueTransactionIdAlreadyExists
+		);
 
 		// Create revenue transaction data
 		let revenue_transaction_data = RevenueTransactionData {
@@ -2026,11 +2031,6 @@ impl<T: Config> Pallet<T> {
 		};
 
 		// Insert revenue transaction data into RevenueTransactionsInfo
-		// Ensure revenue transaction id doesn't exist
-		ensure!(
-			!RevenueTransactionsInfo::<T>::contains_key(revenue_transaction_id),
-			Error::<T>::RevenueTransactionIdAlreadyExists
-		);
 		<RevenueTransactionsInfo<T>>::insert(revenue_transaction_id, revenue_transaction_data);
 
 		// Insert revenue transaction id into TransactionsByRevenue
